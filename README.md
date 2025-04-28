@@ -152,7 +152,7 @@ See the [LICENSE](LICENSE) file for full details.
 
 - Inspired by PyTorch, Keras, TensorFlow, and the academic principles behind deep learning.
 - Built for curiosity, education, and exploration.
-- Created and maintained by [Your Name](https://github.com/yourgithubhandle).
+- Created and maintained by [James Carman](https://github.com/jwcarman).
 
 ---
 
