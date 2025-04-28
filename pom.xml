@@ -8,6 +8,31 @@
     <artifactId>netwerx</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <url>https://github.com/jwcarman/netwerx</url>
+
+    <developers>
+        <developer>
+            <id>jwcarman</id>
+            <name>James Carman</name>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/jwcarman/netwerx</url>
+        <connection>scm:git:git@github.com:jwcarman/netwerx.git</connection>
+        <developerConnection>scm:git:git@github.com:jwcarman/netwerx.git</developerConnection>
+    </scm>
+
+    
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
