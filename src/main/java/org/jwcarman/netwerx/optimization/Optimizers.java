@@ -20,6 +20,14 @@ public class Optimizers {
         return new MomentumOptimizer(learningRate, momentumFactor);
     }
 
+    public static Optimizer adam() {
+        return new AdamOptimizer();
+    }
+
+    public static Optimizer adam(double learningRate, double beta1, double beta2, double epsilon) {
+        return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Optimizers() {

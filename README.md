@@ -18,23 +18,26 @@ Built for Java developers who want to **understand** and **customize** neural ne
 - Fully connected feed-forward neural networks
 - Activation-specific weight initialization (Xavier, He, and custom strategies)
 - Activation-specific bias initialization
-- Modular activation functions (Sigmoid, ReLU, LeakyReLU, Tanh, Softmax)
-- Pluggable optimizers (SGD, Momentum)
-- Pluggable loss functions (Binary Cross Entropy, Weighted BCE)
+- Modular activation functions (Sigmoid, ReLU, LeakyReLU, Tanh, Softmax, Linear)
+- Pluggable optimizers (SGD, Momentum, Adam)
+- Pluggable loss functions (Binary Cross Entropy, Weighted BCE, Categorical Cross Entropy, Mean Squared Error)
 - Fluent API for building networks
 - Training observer pattern (loss tracking, early stopping)
-- Designed for extensibility and transparency
-- Reproducible random initialization with customizable Random sources
 - Lightweight — no external heavy dependencies (only EJML for efficient matrix math)
+- Reproducible random initialization with customizable Random sources
+- Java 23+ modern style (`Records`, `Math.clamp`, lambdas)
 
 ---
 
 ## 🚀 Quickstart
 
-```java
-var rand = new Random(42); // For reproducibility
+### Binary Classification Example
 
-var classifier = new NeuralNetworkBuilder(inputFeatureCount)
+```java
+var rand = new Random(42);
+
+var classifier = NeuralNetwork.builder(inputFeatureCount)
+    .optimizer(() -> Optimizers.momentum(0.01, 0.9))
     .layer(layer -> layer
         .units(8)
         .activation(Activations.relu())
@@ -51,13 +54,13 @@ var classifier = new NeuralNetworkBuilder(inputFeatureCount)
     );
 
 // Train for up to 300 epochs
-classifier.train(inputs, targets, (epoch, loss, predictions, labels) -> {
+classifier.train(inputs, labels, (epoch, loss, predictions, targets) -> {
     System.out.println("Epoch " + epoch + " - Loss: " + loss);
     return epoch < 300;
 });
 
 // Make predictions
-var testPredictions = classifier.predict(testInputs);
+boolean[] predictions = classifier.predict(testInputs);
 ```
 
 ✅ Simple, readable, powerful!
@@ -69,12 +72,12 @@ var testPredictions = classifier.predict(testInputs);
 | Concept | Description |
 |:--------|:------------|
 | **Layer** | Fully connected layer with customizable activation, weight optimizer, bias optimizer. |
-| **Activation Functions** | Modular activation classes: ReLU, Sigmoid, Tanh, LeakyReLU, Softmax. |
-| **Weight Initialization** | Each activation defines its preferred weight and bias initialization. |
-| **Optimizers** | SGD and Momentum optimizers available; pluggable per-layer. |
-| **Loss Functions** | BCE (Binary Cross Entropy) and Weighted BCE included. |
-| **TrainingObserver** | Hook to monitor progress and optionally stop training early. |
-| **Fluent API** | `NeuralNetworkBuilder` allows clean, simple, readable network definitions. |
+| **Activation Functions** | Modular activation classes: ReLU, Sigmoid, Tanh, LeakyReLU, Softmax, Linear. |
+| **Weight Initialization** | Each activation defines its preferred weight and bias initialization (Xavier, He, etc.). |
+| **Optimizers** | SGD, Momentum, and Adam optimizers available; fully pluggable. |
+| **Losses** | BCE, Weighted BCE, Categorical Cross Entropy, MSE (for regression tasks). |
+| **TrainingObserver** | Hook to monitor loss, custom metrics, and support early stopping. |
+| **Fluent API** | `NeuralNetwork.builder()` for clean, composable network definitions. |
 
 ---
 
@@ -82,22 +85,22 @@ var testPredictions = classifier.predict(testInputs);
 
 Netwerx has been successfully used to model Titanic survival prediction:
 
-- 6 input features (ticket class, age, sex, fare, number of parents/children, siblings/spouses)
-- Two hidden layers (8 neurons, then 4 neurons) with ReLU activation
-- Weighted binary cross-entropy loss to handle survivor imbalance
-- Momentum optimizer for smoother convergence
-- 300–500 epochs training
+- 6 input features (ticket class, age, sex, fare, parents/children, siblings/spouses)
+- Two hidden layers (8 neurons and 4 neurons) with ReLU activation
+- Weighted Binary Cross-Entropy loss to account for class imbalance
+- Momentum optimizer to improve convergence
+- 300–500 epochs of training
 
 **Results:**
-- Predicts realistic survival rates (~120 survivors out of 418 test samples)
-- Matches known Titanic dataset average survival rates
+- Predicts realistic survival rates (~120 survivors out of 418 passengers)
+- Matches known Titanic dataset survival averages
 - Demonstrates correct learning dynamics and generalization
 
-✅ Netwerx handles real-world noisy datasets with no tricks.
+✅ Netwerx handles real-world noisy datasets without needing complex tricks.
 
 ---
 
-## 🔧 Extending Netwerx
+## 🧩 Extending Netwerx
 
 Adding new functionality is simple!
 
@@ -105,9 +108,9 @@ Adding new functionality is simple!
 |:-------|:----------|
 | New activation function | `Activation` interface |
 | New optimizer | `Optimizer` interface |
-| New loss function | `LossFunction` interface |
+| New loss function | `Loss` interface |
 | New metrics during training | `TrainingObserver` |
-| Custom layer types | Extend `Layer` class |
+| Custom layer types | Extend the `Layer` class |
 
 ✅ Netwerx is designed for *plug and play* extensibility.
 
@@ -115,12 +118,14 @@ Adding new functionality is simple!
 
 ## 🛤 Roadmap
 
-- [ ] Add Adam and RMSProp optimizers
+- [ ] Add RMSProp optimizer
 - [ ] Support mini-batch training
 - [ ] Learning rate decay scheduling
-- [ ] Multi-class classification (Softmax output support)
 - [ ] Save/load model parameters
 - [ ] Training curve visualization
+- [ ] Dropout regularization support
+- [ ] Early stopping utilities
+- [ ] Learning Rate Finder utilities
 - [ ] Example projects and tutorials
 
 ---
@@ -143,15 +148,15 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon) for contribution gui
 
 Netwerx is open-sourced under the [Apache License 2.0](LICENSE).
 
-You may use, modify, and distribute this software under the terms of the Apache 2.0 license.
+You may use, modify, and distribute this software under the terms of the Apache 2.0 license.  
 See the [LICENSE](LICENSE) file for full details.
 
 ---
 
 ## 🙏 Acknowledgements
 
-- Inspired by PyTorch, Keras, TensorFlow, and the academic principles behind deep learning.
-- Built for curiosity, education, and exploration.
+- Inspired by the spirit of PyTorch, Keras, TensorFlow, but built for **understanding**, **experimentation**, and **control**.
+- Special thanks to the academic deep learning community.
 - Created and maintained by [James Carman](https://github.com/jwcarman).
 
 ---
