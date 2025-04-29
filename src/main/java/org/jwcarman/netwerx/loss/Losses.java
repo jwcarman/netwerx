@@ -44,6 +44,15 @@ public class Losses {
         return new LogCosh();
     }
 
+    public static Loss weightedBce(double positiveWeight, double negativeWeight) {
+        return new WeightedBinaryCrossEntropy(positiveWeight, negativeWeight);
+    }
+
+    public static Loss weightedBce(double positiveWeight, double negativeWeight, double epsilon) {
+        return new WeightedBinaryCrossEntropy(positiveWeight, negativeWeight, epsilon);
+    }
+
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Losses() {

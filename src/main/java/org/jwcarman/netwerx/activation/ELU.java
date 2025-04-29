@@ -21,12 +21,12 @@ public class ELU extends HeActivation {
 // -------------------------- OTHER METHODS --------------------------
 
     @Override
-    public double apply(double x) {
+    protected double apply(double x) {
         return x >= 0 ? x : alpha * (Math.exp(x) - 1);
     }
 
     @Override
-    public double derivative(double x) {
+    protected double derivative(double x) {
         return x >= 0 ? DEFAULT_ALPHA : alpha * Math.exp(x);
     }
 

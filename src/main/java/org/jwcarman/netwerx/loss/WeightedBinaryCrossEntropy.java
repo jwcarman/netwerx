@@ -7,6 +7,7 @@ public class WeightedBinaryCrossEntropy implements Loss {
 
 // ------------------------------ FIELDS ------------------------------
 
+    public static final double DEFAULT_EPSILON = 1e-15;
     private final double positiveWeight; // Weight for label 1
     private final double negativeWeight; // Weight for label 0
     private final double epsilon;
@@ -14,7 +15,7 @@ public class WeightedBinaryCrossEntropy implements Loss {
 // --------------------------- CONSTRUCTORS ---------------------------
 
     public WeightedBinaryCrossEntropy(double positiveWeight, double negativeWeight) {
-        this(positiveWeight, negativeWeight, 1e-15);
+        this(positiveWeight, negativeWeight, DEFAULT_EPSILON);
     }
 
     public WeightedBinaryCrossEntropy(double positiveWeight, double negativeWeight, double epsilon) {
@@ -25,7 +26,7 @@ public class WeightedBinaryCrossEntropy implements Loss {
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface LossFunction ---------------------
+// --------------------- Interface Loss ---------------------
 
     @Override
     public double loss(SimpleMatrix a, SimpleMatrix y) {

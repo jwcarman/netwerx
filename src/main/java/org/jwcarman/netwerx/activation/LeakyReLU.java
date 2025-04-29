@@ -21,13 +21,13 @@ public class LeakyReLU extends HeActivation {
 // -------------------------- OTHER METHODS --------------------------
 
     @Override
-    public double apply(double input) {
-        return input >= 0.0 ? input : alpha * input;
+    public double apply(double x) {
+        return x >= 0 ? x : alpha * x;
     }
 
     @Override
-    public double derivative(double input) {
-        return input > 0.0 ? 1.0 : 0.0;
+    public double derivative(double x) {
+        return x >= 0 ? 1.0 : alpha;
     }
 
 }

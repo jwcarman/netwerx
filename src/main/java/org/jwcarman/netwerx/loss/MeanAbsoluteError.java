@@ -1,29 +1,24 @@
 package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.util.Matrices;
 
 public class MeanAbsoluteError implements Loss {
 
     @Override
     public double loss(SimpleMatrix predictions, SimpleMatrix targets) {
-        double sum = 0.0;
-        for (int row = 0; row < predictions.getNumRows(); row++) {
-            for (int col = 0; col < predictions.getNumCols(); col++) {
-                sum += Math.abs(predictions.get(row, col) - targets.get(row, col));
-            }
-        }
+        final var sum = Matrices.predictionTargets(predictions, targets)
+                .mapToDouble(pt -> Math.abs(pt.prediction() - pt.target()))
+                .sum();
+
         return sum / (predictions.getNumRows() * predictions.getNumCols());
     }
 
     @Override
     public SimpleMatrix gradient(SimpleMatrix predictions, SimpleMatrix targets) {
         var grad = new SimpleMatrix(predictions.getNumRows(), predictions.getNumCols());
-        for (int row = 0; row < predictions.getNumRows(); row++) {
-            for (int col = 0; col < predictions.getNumCols(); col++) {
-                double diff = predictions.get(row, col) - targets.get(row, col);
-                grad.set(row, col, Math.signum(diff));
-            }
-        }
-        return grad;
+        Matrices.predictionTargets(predictions, targets)
+                .forEach(pt -> grad.set(pt.row(), pt.col(), Math.signum(pt.prediction() - pt.target())));
+        return grad.divide(1.0 * predictions.getNumRows() * predictions.getNumCols());
     }
 }

@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static java.lang.Math.clamp;
 
@@ -26,18 +27,15 @@ public class CategoricalCrossEntropy implements Loss {
 // --------------------- Interface Loss ---------------------
 
     @Override
-    public double loss(SimpleMatrix yHat, SimpleMatrix y) {
-        var loss = 0.0;
-
-        for (int col = 0; col < yHat.getNumCols(); col++) {
-            for (int row = 0; row < yHat.getNumRows(); row++) {
-                var predicted = clamp(yHat.get(row, col), epsilon, 1.0 - epsilon);
-                var actual = y.get(row, col);
-                loss -= actual * Math.log(predicted);
-            }
-        }
-
-        return loss / yHat.getNumCols();
+    public double loss(SimpleMatrix predictions, SimpleMatrix targets) {
+        var loss = Matrices.predictionTargets(predictions, targets)
+                .mapToDouble(pt -> {
+                    var yHat = clamp(pt.prediction(), epsilon, 1.0 - epsilon);
+                    var y = pt.target();
+                    return -y * Math.log(yHat);
+                })
+                .sum();
+        return loss / predictions.getNumCols();
     }
 
     @Override

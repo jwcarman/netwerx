@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.util.Matrices;
 
 /**
  * Log-Cosh Loss function.
@@ -8,27 +9,24 @@ import org.ejml.simple.SimpleMatrix;
  */
 public class LogCosh implements Loss {
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Loss ---------------------
+
     @Override
     public double loss(SimpleMatrix predictions, SimpleMatrix targets) {
-        double loss = 0.0;
-        for (int row = 0; row < predictions.getNumRows(); row++) {
-            for (int col = 0; col < predictions.getNumCols(); col++) {
-                double diff = predictions.get(row, col) - targets.get(row, col);
-                loss += Math.log(Math.cosh(diff));
-            }
-        }
+        final var loss = Matrices.predictionTargets(predictions, targets)
+                .mapToDouble(pt -> Math.log(Math.cosh(pt.prediction() - pt.target())))
+                .sum();
         return loss / (predictions.getNumRows() * predictions.getNumCols());
     }
 
     @Override
     public SimpleMatrix gradient(SimpleMatrix predictions, SimpleMatrix targets) {
         var grad = new SimpleMatrix(predictions.getNumRows(), predictions.getNumCols());
-        for (int row = 0; row < predictions.getNumRows(); row++) {
-            for (int col = 0; col < predictions.getNumCols(); col++) {
-                double diff = predictions.get(row, col) - targets.get(row, col);
-                grad.set(row, col, Math.tanh(diff));
-            }
-        }
+        Matrices.predictionTargets(predictions, targets)
+                .forEach(pt -> grad.set(pt.row(), pt.col(), Math.tanh(pt.prediction() - pt.target())));
         return grad;
     }
+
 }
