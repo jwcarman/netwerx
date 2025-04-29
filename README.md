@@ -1,5 +1,5 @@
 # Netwerx
-
+[![CI with Maven](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml/badge.svg)](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml)
 ![Java](https://img.shields.io/badge/Java-23%2B-blue)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue)
 
