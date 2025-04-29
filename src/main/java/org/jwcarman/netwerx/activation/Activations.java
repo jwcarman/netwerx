@@ -36,6 +36,22 @@ public class Activations {
         return new Linear();
     }
 
+    public static Activation swish() {
+        return new Swish();
+    }
+
+    public static Activation swish(double initialBias) {
+        return new Swish(initialBias);
+    }
+
+    public static Activation elu() {
+        return new ELU();
+    }
+
+    public static Activation elu(double initialBias, double alpha) {
+        return new ELU(initialBias, alpha);
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Activations() {
