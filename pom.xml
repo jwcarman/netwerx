@@ -32,7 +32,7 @@
         <developerConnection>scm:git:git@github.com:jwcarman/netwerx.git</developerConnection>
     </scm>
 
-    
+
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
@@ -43,7 +43,8 @@
         <commons-csv.version>1.13.0</commons-csv.version>
         <ejml.version>0.44.0</ejml.version>
         <junit.version>5.11.4</junit.version>
-        <slf4j.version></slf4j.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <slf4j.version>2.0.17</slf4j.version>
     </properties>
 
     <dependencies>
@@ -85,7 +86,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-bom</artifactId>
-                <version>2.0.17</version>
+                <version>${slf4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -105,4 +106,38 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <id>ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <formats>
+                                        <format>XML</format>
+                                    </formats>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
