@@ -34,19 +34,17 @@ Built for Java developers who want to **understand** and **customize** neural ne
 var rand = new Random(42); // For reproducibility
 
 var classifier = NeuralNetwork.builder(inputFeatureCount)
+    .random(rand)
     .optimizer(() -> Optimizers.momentum(0.001, 0.9))
     .layer(layer -> layer
         .units(8)
         .activation(Activations.relu())
-        .random(rand)
     )
     .layer(layer -> layer
         .units(4)
         .activation(Activations.relu())
-        .random(rand)
     )
     .binaryClassifier(bc -> bc
-        .random(rand)
         .loss(Losses.weightedBce(positiveWeight, negativeWeight))
     );
 
