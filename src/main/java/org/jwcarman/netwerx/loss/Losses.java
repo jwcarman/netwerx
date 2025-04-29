@@ -24,6 +24,26 @@ public class Losses {
         return new CategoricalCrossEntropy(epsilon);
     }
 
+    public static Loss mae() {
+        return new MeanAbsoluteError();
+    }
+
+    public static Loss huber() {
+        return new Huber();
+    }
+
+    public static Loss huber(double delta) {
+        return new Huber(delta);
+    }
+
+    public static Loss hinge() {
+        return new Hinge();
+    }
+
+    public static Loss logCosh() {
+        return new LogCosh();
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Losses() {
