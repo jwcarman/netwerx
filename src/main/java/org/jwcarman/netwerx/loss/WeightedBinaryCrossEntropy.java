@@ -1,9 +1,9 @@
 package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.matrix.Matrices;
+import org.jwcarman.netwerx.util.Matrices;
 
-public class WeightedBinaryCrossEntropy implements LossFunction {
+public class WeightedBinaryCrossEntropy implements Loss {
 
 // ------------------------------ FIELDS ------------------------------
 

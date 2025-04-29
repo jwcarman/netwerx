@@ -1,6 +1,6 @@
-package org.jwcarman.netwerx;
+package org.jwcarman.netwerx.regression;
 
-import org.jwcarman.netwerx.loss.LossFunction;
+import org.jwcarman.netwerx.loss.Loss;
 import org.jwcarman.netwerx.loss.Losses;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
@@ -8,11 +8,11 @@ import org.jwcarman.netwerx.util.Randoms;
 
 import java.util.Random;
 
-public class BinaryClassifierConfig {
+public class RegressionModelConfig {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private LossFunction lossFunction = Losses.bce();
+    private Loss loss = Losses.mse();
     private Random random = Randoms.defaultRandom();
     private Optimizer weightOptimizer = Optimizers.sgd();
     private Optimizer biasOptimizer = Optimizers.sgd();
@@ -23,8 +23,8 @@ public class BinaryClassifierConfig {
         return biasOptimizer;
     }
 
-    public LossFunction getLossFunction() {
-        return lossFunction;
+    public Loss getLoss() {
+        return loss;
     }
 
     public Random getRandom() {
@@ -37,28 +37,28 @@ public class BinaryClassifierConfig {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public BinaryClassifierConfig biasOptimizer(Optimizer biasOptimizer) {
+    public RegressionModelConfig biasOptimizer(Optimizer biasOptimizer) {
         this.biasOptimizer = biasOptimizer;
         return this;
     }
 
-    public BinaryClassifierConfig lossFunction(LossFunction lossFunction) {
-        this.lossFunction = lossFunction;
+    public RegressionModelConfig loss(Loss loss) {
+        this.loss = loss;
         return this;
     }
 
-    public BinaryClassifierConfig optimizer(Optimizer optimizer) {
+    public RegressionModelConfig optimizer(Optimizer optimizer) {
         this.weightOptimizer = optimizer;
         this.biasOptimizer = optimizer;
         return this;
     }
 
-    public BinaryClassifierConfig random(Random random) {
+    public RegressionModelConfig random(Random random) {
         this.random = random;
         return this;
     }
 
-    public BinaryClassifierConfig weightOptimizer(Optimizer weightOptimizer) {
+    public RegressionModelConfig weightOptimizer(Optimizer weightOptimizer) {
         this.weightOptimizer = weightOptimizer;
         return this;
     }

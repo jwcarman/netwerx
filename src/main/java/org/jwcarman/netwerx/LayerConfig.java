@@ -8,7 +8,7 @@ import org.jwcarman.netwerx.util.Randoms;
 
 import java.util.Random;
 
-public class LayerConfiguration {
+public class LayerConfig {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -21,7 +21,7 @@ public class LayerConfiguration {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    LayerConfiguration(int inputSize) {
+    LayerConfig(int inputSize) {
         this.inputSize = inputSize;
     }
 
@@ -53,33 +53,33 @@ public class LayerConfiguration {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public LayerConfiguration activation(Activation activation) {
+    public LayerConfig activation(Activation activation) {
         this.activation = activation;
         return this;
     }
 
-    public LayerConfiguration biasOptimizer(Optimizer biasOptimizer) {
+    public LayerConfig biasOptimizer(Optimizer biasOptimizer) {
         this.biasOptimizer = biasOptimizer;
         return this;
     }
 
-    public LayerConfiguration optimizer(Optimizer optimizer) {
+    public LayerConfig optimizer(Optimizer optimizer) {
         this.weightOptimizer = optimizer;
         this.biasOptimizer = optimizer;
         return this;
     }
 
-    public LayerConfiguration random(Random random) {
+    public LayerConfig random(Random random) {
         this.random = random;
         return this;
     }
 
-    public LayerConfiguration units(int units) {
+    public LayerConfig units(int units) {
         this.units = units;
         return this;
     }
 
-    public LayerConfiguration weightOptimizer(Optimizer weightOptimizer) {
+    public LayerConfig weightOptimizer(Optimizer weightOptimizer) {
         this.weightOptimizer = weightOptimizer;
         return this;
     }

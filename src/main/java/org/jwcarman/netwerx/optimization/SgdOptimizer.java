@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.optimization;
 
 import org.ejml.simple.SimpleMatrix;
 
-import static org.jwcarman.netwerx.matrix.Matrices.subtractColumnVector;
+import static org.jwcarman.netwerx.util.Matrices.subtractColumnVector;
 
 public class SgdOptimizer implements Optimizer {
 

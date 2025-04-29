@@ -2,95 +2,110 @@ package org.jwcarman.netwerx.titanic;
 
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.NeuralNetworkBuilder;
+import org.jwcarman.netwerx.NeuralNetwork;
+import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
+import org.jwcarman.netwerx.data.CommaSeparatedValues;
+import org.jwcarman.netwerx.data.Datasets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Random;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.data.Datasets.normalizeFeature;
+
 class TitanicTestCase {
+
+    private static final Logger logger = LoggerFactory.getLogger(TitanicTestCase.class);
+
+    public static final String AGE = "Age";
+    public static final String FARE = "Fare";
+    public static final double DEFAULT_AGE = 30.0;
+    public static final String PARENTS_AND_CHILDREN = "Parch";
+    public static final String SIBLINGS_AND_SPOUSES = "SibSp";
+    public static final String TICKET_CLASS = "Pclass";
+    public static final String MALE = "male";
+    public static final String SEX = "Sex";
+    public static final String SURVIVED = "Survived";
+    public static final String TRUE = "1";
+    public static final String NAME = "Name";
+
+    private final Random random = new Random(42);
 
 // -------------------------- OTHER METHODS --------------------------
 
     @Test
-    void testTitanicModel() throws Exception {
-        var trainingPassengers = TitanicDatasetLoader.loadTrainingPassengers();
+    void binaryClassifier() {
+        final List<TitanicPassenger> passengers = CommaSeparatedValues.load("/dataset/titanic/labeled.csv", csv -> {
+            var name = csv.get(NAME);
+            var fare = csv.get(FARE).isEmpty() ? 32.0 : Double.parseDouble(csv.get(FARE));
+            var ticketClass = Integer.parseInt(csv.get(TICKET_CLASS));
+            var age = csv.get(AGE).isEmpty() ? DEFAULT_AGE : Double.parseDouble(csv.get(AGE));
+            var parentsAndChildren = csv.get(PARENTS_AND_CHILDREN).isEmpty() ? 0 : Integer.parseInt(csv.get(PARENTS_AND_CHILDREN));
+            var siblingsAndSpouses = csv.get(SIBLINGS_AND_SPOUSES).isEmpty() ? 0 : Integer.parseInt(csv.get(SIBLINGS_AND_SPOUSES));
+            var sex = MALE.equalsIgnoreCase(csv.get(SEX)) ? 1 : 0;
+            var survived = csv.isSet(SURVIVED) && TRUE.equals(csv.get(SURVIVED));
+            return new TitanicPassenger(name, ticketClass, age, sex, fare, parentsAndChildren, siblingsAndSpouses, survived);
+        });
 
-        var inputs = createInputs(trainingPassengers);
-        var targets = new SimpleMatrix(trainingPassengers.stream().mapToDouble(p -> p.survived() ? 1.0 : 0.0).toArray()).transpose();
+        var split = Datasets.split(passengers, 0.8f, random);
 
-        System.out.println("Average target value: " + targets.elementSum() / targets.getNumCols());
+        var trainInputs = features(split.trainingSet());
+        var trainTargets = labels(split.trainingSet());
 
-        var rand = new Random(42);
-        var classifier = new NeuralNetworkBuilder(inputs.getNumRows())
+        var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
                 .layer(layer -> layer
                         .units(8)
-                        .random(rand)
+                        .random(random)
                 )
                 .layer(layer -> layer
                         .units(4)
-                        .random(rand)
+                        .random(random)
                 )
                 .binaryClassifier(bc -> bc
-                        .random(rand)
+                        .random(random)
                 );
 
 
-        classifier.train(inputs, targets, (epoch, loss, a, y) -> epoch < 300);
+        classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 100);
 
-        var testPassengers = TitanicDatasetLoader.loadTestPassengers();
-        var testInputs = createInputs(testPassengers);
+        var testInputs = features(split.testSet());
+        var testTargets = labels(split.testSet());
         var predictions = classifier.predict(testInputs);
-        var survivors = 0;
-        for (int col = 0; col < predictions.getNumCols(); col++) {
-            if (predictions.get(0, col) >= 1.0) {
-                survivors++;
-            }
-        }
-        System.out.println("Predicted survivors: " + survivors + " out of " + predictions.getNumCols());
+        var stats = BinaryClassifierStats.of(predictions, testTargets);
+        logger.info("Stats: {}", stats);
+        assertThat(stats.f1()).isGreaterThanOrEqualTo(0.7);
     }
 
-    private static SimpleMatrix createInputs(List<TitanicPassenger> passengers) {
-        final var data = new double[passengers.size()][6];
-        for (int i = 0; i < passengers.size(); i++) {
-            var passenger = passengers.get(i);
-            data[i][0] = passenger.ticketClass();
-            data[i][1] = passenger.age();
-            data[i][2] = passenger.sex();
-            data[i][3] = passenger.fare();
-            data[i][4] = passenger.parentsAndChildren();
-            data[i][5] = passenger.siblingsAndSpouses();
-        }
-        SimpleMatrix inputs = new SimpleMatrix(data).transpose();
-        normalizeRow(inputs, 0);
-        normalizeRow(inputs, 1);
-        normalizeRow(inputs, 3);
-        normalizeRow(inputs, 4);
-        normalizeRow(inputs, 5);
-        return inputs;
+    private static boolean[] labels(List<TitanicPassenger> list) {
+        return Datasets.binaryLabels(list, TitanicPassenger::survived);
     }
 
-    private static void normalizeRow(SimpleMatrix matrix, int rowIndex) {
-        double min = Double.POSITIVE_INFINITY;
-        double max = Double.NEGATIVE_INFINITY;
-
-        // Find min and max in the specified row
-        for (int col = 0; col < matrix.numCols(); col++) {
-            double value = matrix.get(rowIndex, col);
-            if (value < min) min = value;
-            if (value > max) max = value;
-        }
-
-        double range = max - min;
-        if (range == 0) {
-            for (int col = 0; col < matrix.getNumCols(); col++) {
-                matrix.set(rowIndex, col, 0.5);  // Uniform
-            }
-        } else {
-            for (int col = 0; col < matrix.getNumCols(); col++) {
-                double value = matrix.get(rowIndex, col);
-                matrix.set(rowIndex, col, (value - min) / range);
-            }
-        }
+    private static SimpleMatrix features(List<TitanicPassenger> list) {
+        SimpleMatrix features = Datasets.features(list,
+                TitanicPassenger::ticketClass,
+                TitanicPassenger::age,
+                TitanicPassenger::sex,
+                TitanicPassenger::fare,
+                TitanicPassenger::parentsAndChildren,
+                TitanicPassenger::siblingsAndSpouses);
+        normalizeFeature(features, 0); // Ticket Class
+        normalizeFeature(features, 1); // Age
+        normalizeFeature(features, 3); // Fare
+        normalizeFeature(features, 4); // Parents and Children
+        normalizeFeature(features, 5); // Siblings and Spouses
+        return features;
     }
 
+    record TitanicPassenger(String name,
+                                   double ticketClass,
+                                   double age,
+                                   double sex,
+                                   double fare,
+                                   double siblingsAndSpouses,
+                                   double parentsAndChildren,
+                                   boolean survived) {
+
+    }
 }

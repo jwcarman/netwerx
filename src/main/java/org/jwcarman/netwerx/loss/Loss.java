@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
 
-public interface LossFunction {
+public interface Loss {
 
     double loss(SimpleMatrix output, SimpleMatrix target);
 

@@ -1,9 +1,9 @@
 package org.jwcarman.netwerx.loss;
 
 import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.matrix.Matrices;
+import org.jwcarman.netwerx.util.Matrices;
 
-public class BinaryCrossEntropy implements LossFunction {
+public class BinaryCrossEntropy implements Loss {
     public static final double DEFAULT_EPSILON = 1e-15;
 
 // ------------------------------ FIELDS ------------------------------

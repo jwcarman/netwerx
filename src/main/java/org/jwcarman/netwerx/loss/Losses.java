@@ -4,12 +4,24 @@ public class Losses {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static LossFunction bce() {
+    public static Loss bce() {
         return new BinaryCrossEntropy();
     }
 
-    public static LossFunction bce(double epsilon) {
+    public static Loss bce(double epsilon) {
         return new BinaryCrossEntropy(epsilon);
+    }
+
+    public static Loss mse() {
+        return new MeanSquaredError();
+    }
+
+    public static Loss cce() {
+        return new CategoricalCrossEntropy();
+    }
+
+    public static Loss cce(double epsilon) {
+        return new CategoricalCrossEntropy(epsilon);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------

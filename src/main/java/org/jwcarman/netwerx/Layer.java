@@ -2,12 +2,12 @@ package org.jwcarman.netwerx;
 
 import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.activation.Activation;
-import org.jwcarman.netwerx.matrix.Matrices;
+import org.jwcarman.netwerx.util.Matrices;
 import org.jwcarman.netwerx.optimization.Optimizer;
 
-import static org.jwcarman.netwerx.matrix.Matrices.addColumnVector;
+import static org.jwcarman.netwerx.util.Matrices.addColumnVector;
 
-public class Layer {
+class Layer {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -29,7 +29,7 @@ public class Layer {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Layer(LayerConfiguration config) {
+    public Layer(LayerConfig config) {
         this.weights = Matrices.filled(config.getUnits(), config.getInputSize(), () -> config.getActivation().generateInitialWeight(config.getRandom(), config.getInputSize(), config.getUnits()));
         this.biases = SimpleMatrix.filled(config.getUnits(), 1, config.getActivation().generateInitialBias());
         this.activation = config.getActivation();
@@ -69,4 +69,8 @@ public class Layer {
         };
     }
 
+    public static interface Backprop {
+        SimpleMatrix a();
+        SimpleMatrix apply(SimpleMatrix gradOutput);
+    }
 }

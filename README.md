@@ -47,7 +47,7 @@ var classifier = new NeuralNetworkBuilder(inputFeatureCount)
     )
     .binaryClassifier(bc -> bc
         .random(rand)
-        .lossFunction(Losses.weightedBce(positiveWeight, negativeWeight))
+        .loss(Losses.weightedBce(positiveWeight, negativeWeight))
     );
 
 // Train for up to 300 epochs

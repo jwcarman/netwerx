@@ -6,15 +6,25 @@ public class Softmax implements Activation {
 
     @Override
     public SimpleMatrix apply(SimpleMatrix input) {
-        double max = input.elementMax();
-        SimpleMatrix expInput = input.elementExp().divide(input.elementExp().elementSum());
-        return expInput;
+        var output = new SimpleMatrix(input.getNumRows(), input.getNumCols());
+
+        for (int col = 0; col < input.getNumCols(); col++) {
+            var column = input.extractVector(false, col);
+
+            var max = column.elementMaxAbs();
+            var stabilized = column.minus(max);
+            var exp = stabilized.elementExp();
+            var sumExp = exp.elementSum();
+            for (int row = 0; row < exp.getNumRows(); row++) {
+                output.set(row, col, exp.get(row) / sumExp);
+            }
+        }
+
+        return output;
     }
 
     @Override
     public SimpleMatrix derivative(SimpleMatrix input) {
-        // Softmax derivative is complex and typically not used directly.
-        // It is often computed in the context of backpropagation.
-        throw new UnsupportedOperationException("Softmax derivative is not implemented.");
+        return SimpleMatrix.filled(input.getNumRows(), input.getNumCols(), 1.0);
     }
 }

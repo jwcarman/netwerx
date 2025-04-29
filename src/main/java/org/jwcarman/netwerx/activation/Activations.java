@@ -28,6 +28,14 @@ public class Activations {
         return new LeakyReLU(initialBias, alpha);
     }
 
+    public static Activation softmax() {
+        return new Softmax();
+    }
+
+    public static Activation linear() {
+        return new Linear();
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Activations() {

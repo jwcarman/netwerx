@@ -1,6 +1,7 @@
-package org.jwcarman.netwerx.matrix;
+package org.jwcarman.netwerx.util;
 
 import org.ejml.simple.SimpleMatrix;
+import org.ejml.simple.SimpleOperations;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
@@ -38,16 +39,21 @@ public class Matrices {
         }
         return result;
     }
+
     public static SimpleMatrix clamp(SimpleMatrix original, double min, double max) {
         return apply(original, value -> Math.clamp(value, min, max));
     }
 
     public static SimpleMatrix apply(SimpleMatrix original, DoubleUnaryOperator fn) {
         final SimpleMatrix result = new SimpleMatrix(original);
-        result.elementOp((row, col, value) -> {
-            return fn.applyAsDouble(value);
-        });
+        result.elementOp((SimpleOperations.ElementOpReal) (_, _, value) -> fn.applyAsDouble(value));
         return result;
+    }
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Matrices() {
+
     }
 
 }
