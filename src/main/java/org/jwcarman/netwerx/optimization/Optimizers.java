@@ -28,6 +28,14 @@ public class Optimizers {
         return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
     }
 
+    public static Optimizer rmsProp() {
+        return new RmsPropOptimizer();
+    }
+
+    public static Optimizer rmsProp(double learningRate, double beta, double epsilon) {
+        return new RmsPropOptimizer(learningRate, beta, epsilon);
+    }
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Optimizers() {

@@ -118,7 +118,6 @@ Adding new functionality is simple!
 
 ## 🛤 Roadmap
 
-- [ ] Add RMSProp optimizer
 - [ ] Support mini-batch training
 - [ ] Learning rate decay scheduling
 - [ ] Save/load model parameters
