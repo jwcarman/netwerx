@@ -48,14 +48,14 @@ class WineTestCase {
         var trainTargets = labels(split.trainingSet());
 
         var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+                .random(random)
                 .layer(layer -> layer
                         .units(16)
-                        .random(random))
+                )
                 .layer(layer -> layer
                         .units(8)
-                        .random(random))
-                .multiClassifier(mc -> mc.outputClasses(3)
-                        .random(random));
+                )
+                .multiClassifier();
 
         classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 600);
 

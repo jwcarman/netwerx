@@ -8,6 +8,7 @@ import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
+import org.jwcarman.netwerx.util.Customizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,18 +44,15 @@ class ConcreteTestCase {
         var trainTargets = labels(split.trainingSet());
 
         var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+                .random(random)
                 .optimizer(ConcreteTestCase::optimizer)
                 .layer(layer -> layer
-                        .random(random)
                         .units(16)
                 )
                 .layer(layer -> layer
-                        .random(random)
                         .units(8)
                 )
-                .regressionModel(rm -> rm
-                        .random(random)
-                );
+                .regressionModel();
 
         classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 2000);
         var testInputs = features(split.testSet());

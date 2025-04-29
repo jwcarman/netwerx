@@ -55,17 +55,14 @@ class TitanicTestCase {
         var trainTargets = labels(split.trainingSet());
 
         var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+                .random(random)
                 .layer(layer -> layer
                         .units(8)
-                        .random(random)
                 )
                 .layer(layer -> layer
                         .units(4)
-                        .random(random)
                 )
-                .binaryClassifier(bc -> bc
-                        .random(random)
-                );
+                .binaryClassifier();
 
 
         classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 100);
@@ -99,13 +96,13 @@ class TitanicTestCase {
     }
 
     record TitanicPassenger(String name,
-                                   double ticketClass,
-                                   double age,
-                                   double sex,
-                                   double fare,
-                                   double siblingsAndSpouses,
-                                   double parentsAndChildren,
-                                   boolean survived) {
+                            double ticketClass,
+                            double age,
+                            double sex,
+                            double fare,
+                            double siblingsAndSpouses,
+                            double parentsAndChildren,
+                            boolean survived) {
 
     }
 }
