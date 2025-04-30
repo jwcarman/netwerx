@@ -144,8 +144,6 @@ Netwerx has been successfully used to model Titanic survival prediction:
 - 100 epochs training
 - 78% accuracy on test set
 
-```java
-
 **Results:**
 - Predicts realistic survival rates (~120 survivors out of 418 test samples)
 - Matches known Titanic dataset survival statistics
