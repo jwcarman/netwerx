@@ -11,6 +11,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StreamsTest {
 
     @Test
+    void zip_shouldZipUntilShortestStreamEnds() {
+        var a = Stream.of("a", "b", "c");
+        var b = Stream.of(1, 2);
+
+        var zipped = Streams.zip(a, b, (s, i) -> s + i).toList();
+
+        assertThat(zipped).containsExactly("a1", "b2");
+    }
+
+    @Test
+    void zip_shouldReturnEmptyWhenBothStreamsAreEmpty() {
+        var a = Stream.<String>empty();
+        var b = Stream.<Integer>empty();
+
+        var zipped = Streams.zip(a, b, (s, i) -> s + i).toList();
+
+        assertThat(zipped).isEmpty();
+    }
+
+    @Test
     void zip_shouldCombineEqualLengthStreams() {
         List<String> result = Streams.zip(
                 Stream.of(1, 2, 3),
