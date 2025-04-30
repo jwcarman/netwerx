@@ -1,5 +1,6 @@
-package org.jwcarman.netwerx;
+package org.jwcarman.netwerx.def;
 
+import org.jwcarman.netwerx.regression.RegressionModelConfig;
 import org.jwcarman.netwerx.loss.Loss;
 import org.jwcarman.netwerx.loss.Losses;
 import org.jwcarman.netwerx.optimization.Optimizer;
@@ -8,15 +9,14 @@ import org.jwcarman.netwerx.util.Randoms;
 
 import java.util.Random;
 
-public class MultiClassifierConfig {
+class DefaultRegressionModelConfig implements RegressionModelConfig {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private Loss loss = Losses.cce();
+    private Loss loss = Losses.mse();
     private Random random = Randoms.defaultRandom();
     private Optimizer weightOptimizer = Optimizers.sgd();
     private Optimizer biasOptimizer = Optimizers.sgd();
-    private int outputClasses = 3;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -26,10 +26,6 @@ public class MultiClassifierConfig {
 
     public Loss getLoss() {
         return loss;
-    }
-
-    public int getOutputClasses() {
-        return outputClasses;
     }
 
     public Random getRandom() {
@@ -42,33 +38,33 @@ public class MultiClassifierConfig {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public MultiClassifierConfig biasOptimizer(Optimizer biasOptimizer) {
+    @Override
+    public DefaultRegressionModelConfig biasOptimizer(Optimizer biasOptimizer) {
         this.biasOptimizer = biasOptimizer;
         return this;
     }
 
-    public MultiClassifierConfig loss(Loss loss) {
+    @Override
+    public DefaultRegressionModelConfig loss(Loss loss) {
         this.loss = loss;
         return this;
     }
 
-    public MultiClassifierConfig optimizer(Optimizer optimizer) {
+    @Override
+    public DefaultRegressionModelConfig optimizer(Optimizer optimizer) {
         this.weightOptimizer = optimizer;
         this.biasOptimizer = optimizer;
         return this;
     }
 
-    public MultiClassifierConfig outputClasses(int outputClasses) {
-        this.outputClasses = outputClasses;
-        return this;
-    }
-
-    public MultiClassifierConfig random(Random random) {
+    @Override
+    public DefaultRegressionModelConfig random(Random random) {
         this.random = random;
         return this;
     }
 
-    public MultiClassifierConfig weightOptimizer(Optimizer weightOptimizer) {
+    @Override
+    public DefaultRegressionModelConfig weightOptimizer(Optimizer weightOptimizer) {
         this.weightOptimizer = weightOptimizer;
         return this;
     }

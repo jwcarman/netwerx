@@ -1,12 +1,14 @@
-package org.jwcarman.netwerx;
+package org.jwcarman.netwerx.def;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.NeuralNetwork;
+import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.loss.Loss;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultNeuralNetwork implements NeuralNetwork {
+class DefaultNeuralNetwork implements NeuralNetwork {
 
 // ------------------------------ FIELDS ------------------------------
 

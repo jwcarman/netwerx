@@ -1,5 +1,6 @@
-package org.jwcarman.netwerx;
+package org.jwcarman.netwerx.def;
 
+import org.jwcarman.netwerx.classification.binary.BinaryClassifierConfig;
 import org.jwcarman.netwerx.loss.Loss;
 import org.jwcarman.netwerx.loss.Losses;
 import org.jwcarman.netwerx.optimization.Optimizer;
@@ -8,7 +9,7 @@ import org.jwcarman.netwerx.util.Randoms;
 
 import java.util.Random;
 
-public class BinaryClassifierConfig {
+class DefaultBinaryClassifierConfig implements BinaryClassifierConfig {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -37,28 +38,33 @@ public class BinaryClassifierConfig {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public BinaryClassifierConfig biasOptimizer(Optimizer biasOptimizer) {
+    @Override
+    public DefaultBinaryClassifierConfig biasOptimizer(Optimizer biasOptimizer) {
         this.biasOptimizer = biasOptimizer;
         return this;
     }
 
-    public BinaryClassifierConfig loss(Loss loss) {
+    @Override
+    public DefaultBinaryClassifierConfig loss(Loss loss) {
         this.loss = loss;
         return this;
     }
 
-    public BinaryClassifierConfig optimizer(Optimizer optimizer) {
+    @Override
+    public DefaultBinaryClassifierConfig optimizer(Optimizer optimizer) {
         this.weightOptimizer = optimizer;
         this.biasOptimizer = optimizer;
         return this;
     }
 
-    public BinaryClassifierConfig random(Random random) {
+    @Override
+    public DefaultBinaryClassifierConfig random(Random random) {
         this.random = random;
         return this;
     }
 
-    public BinaryClassifierConfig weightOptimizer(Optimizer weightOptimizer) {
+    @Override
+    public DefaultBinaryClassifierConfig weightOptimizer(Optimizer weightOptimizer) {
         this.weightOptimizer = weightOptimizer;
         return this;
     }

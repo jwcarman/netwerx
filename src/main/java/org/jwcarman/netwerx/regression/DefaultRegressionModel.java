@@ -5,7 +5,7 @@ import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.loss.Loss;
 
-public class DefaultRegressionModel implements RegressionModel{
+public class DefaultRegressionModel implements RegressionModel {
 
 // ------------------------------ FIELDS ------------------------------
 
