@@ -1,25 +1,12 @@
 package org.jwcarman.netwerx;
 
 import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
 import org.jwcarman.netwerx.loss.Loss;
 
 /**
  * Interface representing a neural network model.
  */
 public interface NeuralNetwork {
-
-// -------------------------- STATIC METHODS --------------------------
-
-    /**
-     * Creates a new instance of {@link NeuralNetworkBuilder} to construct a neural network.
-     *
-     * @param inputSize the size of the input layer, which corresponds to the number of features in the input data
-     * @return a new instance of {@link NeuralNetworkBuilder} for building the neural network
-     */
-    static NeuralNetworkBuilder builder(int inputSize) {
-        return new DefaultNeuralNetworkBuilder(inputSize);
-    }
 
 // -------------------------- OTHER METHODS --------------------------
 

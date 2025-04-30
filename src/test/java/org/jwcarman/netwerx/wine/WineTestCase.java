@@ -2,10 +2,10 @@ package org.jwcarman.netwerx.wine;
 
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +17,13 @@ import static org.jwcarman.netwerx.data.Datasets.normalizeFeature;
 
 class WineTestCase {
 
+// ------------------------------ FIELDS ------------------------------
+
     private static final Logger logger = LoggerFactory.getLogger(WineTestCase.class);
 
     private static final Random random = new Random(42);
+
+// -------------------------- OTHER METHODS --------------------------
 
     @Test
     void multiClassClassification() {
@@ -47,7 +51,7 @@ class WineTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+        var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
                 .random(random)
                 .layer(layer -> layer
                         .units(16)
@@ -57,7 +61,7 @@ class WineTestCase {
                 )
                 .multiClassifier();
 
-        classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 600);
+        classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 600);
 
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());
@@ -65,11 +69,6 @@ class WineTestCase {
         var stats = MultiClassifierStats.of(predictions, testTargets, 3);
         logger.info("Stats: {}", stats);
         assertThat(stats.f1()).isGreaterThanOrEqualTo(0.75);
-
-    }
-
-    private static int[] labels(List<Wine> list) {
-        return Datasets.multiClassLabels(list, Wine::label);
     }
 
     private static SimpleMatrix features(List<Wine> list) {
@@ -102,6 +101,12 @@ class WineTestCase {
         normalizeFeature(features, 12); // Proline
         return features;
     }
+
+    private static int[] labels(List<Wine> list) {
+        return Datasets.multiClassLabels(list, Wine::label);
+    }
+
+// -------------------------- INNER CLASSES --------------------------
 
     record Wine(int label,
                 double alcohol,

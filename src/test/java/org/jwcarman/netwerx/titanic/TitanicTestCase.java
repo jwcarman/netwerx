@@ -2,10 +2,10 @@ package org.jwcarman.netwerx.titanic;
 
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,7 @@ class TitanicTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+        var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
                 .random(random)
                 .layer(layer -> layer
                         .units(8)
@@ -65,7 +65,7 @@ class TitanicTestCase {
                 .binaryClassifier();
 
 
-        classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 100);
+        classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 100);
 
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());

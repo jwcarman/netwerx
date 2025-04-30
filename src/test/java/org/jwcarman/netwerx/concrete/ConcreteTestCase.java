@@ -2,9 +2,9 @@ package org.jwcarman.netwerx.concrete;
 
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
@@ -42,7 +42,7 @@ class ConcreteTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = NeuralNetwork.builder(trainInputs.getNumRows())
+        var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
                 .random(random)
                 .optimizer(ConcreteTestCase::optimizer)
                 .layer(layer -> layer
