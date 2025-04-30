@@ -26,4 +26,4 @@ jobs:
     - name: Build with Maven
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: mvn -Pci -B verify
+      run: mvn -Pci -B verify sonar:sonar
