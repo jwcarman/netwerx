@@ -63,4 +63,31 @@ class RmsPropOptimizerTest {
         assertThat(param.isIdentical(paramCopy, 1e-12)).isTrue();
         assertThat(grad.isIdentical(gradCopy, 1e-12)).isTrue();
     }
+
+    @Test
+    void optimize_shouldUpdateParametersAcrossCalls() {
+        var optimizer = Optimizers.rmsProp(); // Uses defaults: lr=0.001, beta=0.9
+
+        var param = new SimpleMatrix(2, 1);
+        param.set(0, 0, 1.0);
+        param.set(1, 0, 2.0);
+
+        var grad = new SimpleMatrix(2, 1);
+        grad.set(0, 0, 0.1);
+        grad.set(1, 0, 0.2);
+
+        var updated1 = optimizer.optimize(param, grad);
+        var updated2 = optimizer.optimize(updated1, grad);
+
+        // Ensure that each update reduces the parameter value
+        assertThat(updated1.get(0, 0)).isLessThan(param.get(0, 0));
+        assertThat(updated2.get(0, 0)).isLessThan(updated1.get(0, 0));
+
+        assertThat(updated1.get(1, 0)).isLessThan(param.get(1, 0));
+        assertThat(updated2.get(1, 0)).isLessThan(updated1.get(1, 0));
+
+        // Optionally: Check we are within some small delta from original (don't hardcode expected values)
+        assertThat(param.get(0, 0) - updated1.get(0, 0)).isPositive();
+        assertThat(updated1.get(0, 0) - updated2.get(0, 0)).isPositive();
+    }
 }

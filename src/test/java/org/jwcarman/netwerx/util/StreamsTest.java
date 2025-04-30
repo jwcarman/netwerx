@@ -2,12 +2,46 @@ package org.jwcarman.netwerx.util;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StreamsTest {
+
+    @Test
+    void zip_shouldCombineEqualLengthStreams() {
+        List<String> result = Streams.zip(
+                Stream.of(1, 2, 3),
+                Stream.of("a", "b", "c"),
+                (i, s) -> i + s
+        ).toList();
+
+        assertThat(result).containsExactly("1a", "2b", "3c");
+    }
+
+    @Test
+    void zip_shouldStopAtShortestStream() {
+        List<String> result = Streams.zip(
+                Stream.of(1, 2),
+                Stream.of("a", "b", "c"),
+                (i, s) -> i + s
+        ).toList();
+
+        assertThat(result).containsExactly("1a", "2b");
+    }
+
+    @Test
+    void zip_shouldReturnEmptyWhenOneStreamIsEmpty() {
+        List<String> result = Streams.zip(
+                Stream.of(),
+                Stream.of("a", "b"),
+                (i, s) -> i + s
+        ).toList();
+
+        assertThat(result).isEmpty();
+    }
 
     @Test
     void zip_shouldCombineElementsFromBothStreams() {
