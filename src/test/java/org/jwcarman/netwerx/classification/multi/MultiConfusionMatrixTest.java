@@ -92,4 +92,14 @@ class MultiConfusionMatrixTest {
         // Should only contain classes 0 and 1
         assertThat(participating).containsExactlyInAnyOrder(0, 1);
     }
+
+    @Test
+    void macroF1_shouldReturnZeroWhenPrecisionAndRecallAreZero() {
+        var matrix = new MultiConfusionMatrix(3);
+        // No calls to increment → precision and recall for all classes are 0
+
+        assertThat(matrix.macroPrecision()).isEqualTo(0.0);
+        assertThat(matrix.macroRecall()).isEqualTo(0.0);
+        assertThat(matrix.macroF1()).isEqualTo(0.0);
+    }
 }

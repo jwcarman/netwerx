@@ -43,4 +43,23 @@ class HingeTest {
             assertThat(grad.get(0, col)).isCloseTo(expectedGrad.get(0, col), within(0.0001));
         }
     }
+
+    @Test
+    void gradient_shouldIncludeZeroCaseWhenMarginIsMet() {
+        var hinge = new Hinge();
+        var predictions = new SimpleMatrix(1, 2);
+        predictions.set(0, 0, 1.0);   // yHat
+        predictions.set(0, 1, -1.0);  // yHat
+
+        var targets = new SimpleMatrix(1, 2);
+        targets.set(0, 0, 1.0);       // y
+        targets.set(0, 1, -1.0);      // y
+
+        var gradient = hinge.gradient(predictions, targets);
+
+        // First example: y * yHat = 1 * 1 = 1.0 → Not less than 1 → should be 0.0
+        assertThat(gradient.get(0, 0)).isEqualTo(0.0);
+        // Second example: y * yHat = -1 * -1 = 1.0 → Not less than 1 → should be 0.0
+        assertThat(gradient.get(0, 1)).isEqualTo(0.0);
+    }
 }

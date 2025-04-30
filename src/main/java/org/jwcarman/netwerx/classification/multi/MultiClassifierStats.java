@@ -10,10 +10,6 @@ public record MultiClassifierStats(
 // -------------------------- STATIC METHODS --------------------------
 
     public static MultiClassifierStats of(int[] predicted, int[] actual, int numClasses) {
-        if (predicted.length != actual.length) {
-            throw new IllegalArgumentException("Predicted and actual labels must have the same length.");
-        }
-
         MultiConfusionMatrix matrix = new MultiConfusionMatrix(numClasses);
         for (int i = 0; i < predicted.length; i++) {
             matrix.increment(actual[i], predicted[i]);
