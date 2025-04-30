@@ -40,7 +40,7 @@ Built for Java developers who want to **understand** and **customize** neural ne
 ```java
 var rand = new Random(42); // For reproducibility
 
-var classifier = NeuralNetwork.builder(inputFeatureCount)
+var classifier = new DefaultNeuralNetworkBuilder(inputFeatureCount)
     .random(rand)
     .optimizer(() -> Optimizers.momentum(0.001, 0.9))
     .layer(layer -> layer
