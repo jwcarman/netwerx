@@ -5,10 +5,6 @@ public record ConfusionMatrix(int tp, int tn, int fp, int fn) {
 // -------------------------- STATIC METHODS --------------------------
 
     public static ConfusionMatrix of(boolean[] predicted, boolean[] actual) {
-        if (predicted.length != actual.length) {
-            throw new IllegalArgumentException("Predicted and actual labels must have the same length.");
-        }
-
         int tp = 0;
         int tn = 0;
         int fp = 0;

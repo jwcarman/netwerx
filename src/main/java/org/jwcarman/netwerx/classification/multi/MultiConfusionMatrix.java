@@ -101,7 +101,7 @@ public class MultiConfusionMatrix {
 
     // ------------------------ PRIVATE HELPERS ------------------------
 
-    private IntStream participatingClasses() {
+    IntStream participatingClasses() {
         return IntStream.range(0, size())
                 .filter(c -> tp(c) + fp(c) + fn(c) > 0);
     }

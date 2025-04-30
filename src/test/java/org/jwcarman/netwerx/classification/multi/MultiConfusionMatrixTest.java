@@ -70,4 +70,26 @@ class MultiConfusionMatrixTest {
         assertThat(matrix.recall(2)).isEqualTo(0.0);
         assertThat(matrix.f1(2)).isEqualTo(0.0);
     }
+
+    @Test
+    void participatingClasses_shouldOnlyIncludeActiveClasses() {
+        var matrix = new MultiConfusionMatrix(4); // 4 classes, class 3 will be unused
+
+        // Class 0: TP, FN, FP
+        matrix.increment(0, 0); // TP for class 0
+        matrix.increment(1, 0); // FP for class 0
+        matrix.increment(0, 1); // FN for class 0
+
+        // Class 1: TP only
+        matrix.increment(1, 1);
+
+        // Class 2: no activity
+
+        // Class 3: no activity — this should *not* be in participatingClasses()
+
+        var participating = matrix.participatingClasses().boxed().toList();
+
+        // Should only contain classes 0 and 1
+        assertThat(participating).containsExactlyInAnyOrder(0, 1);
+    }
 }

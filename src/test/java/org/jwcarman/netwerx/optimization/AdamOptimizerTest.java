@@ -59,4 +59,28 @@ class AdamOptimizerTest {
         // Should nudge the parameter slightly
         assertThat(updated.get(0, 0)).isNotEqualTo(original.get(0, 0));
     }
+
+    @Test
+    void optimizer_shouldUpdateParametersUsingAdam_twice() {
+        var param = new SimpleMatrix(2, 1, true, 1.0, 2.0);
+        var grad = new SimpleMatrix(2, 1, true, 0.1, 0.2);
+
+        var optimizer = Optimizers.adam(); // default config
+
+        // First step (t = 1)
+        var updated1 = optimizer.optimize(param, grad);
+        // Second step (t = 2)
+        var updated2 = optimizer.optimize(updated1, grad);
+
+        // Assert directional correctness
+        assertThat(updated1.get(0, 0)).isLessThan(1.0);
+        assertThat(updated1.get(1, 0)).isLessThan(2.0);
+
+        assertThat(updated2.get(0, 0)).isLessThan(updated1.get(0, 0));
+        assertThat(updated2.get(1, 0)).isLessThan(updated1.get(1, 0));
+
+        // Assert reasonable values (sanity checks)
+        assertThat(updated2.get(0, 0)).isBetween(0.995, 0.999);
+        assertThat(updated2.get(1, 0)).isBetween(1.995, 1.999);
+    }
 }

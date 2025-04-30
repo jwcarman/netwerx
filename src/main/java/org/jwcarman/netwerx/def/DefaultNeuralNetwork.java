@@ -20,7 +20,9 @@ class DefaultNeuralNetwork implements NeuralNetwork {
         this.layers = layers;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface NeuralNetwork ---------------------
 
     /**
      * Predicts the output for the given input using the neural network.
@@ -30,9 +32,11 @@ class DefaultNeuralNetwork implements NeuralNetwork {
      */
     @Override
     public SimpleMatrix predict(SimpleMatrix x) {
-        return layers.stream().reduce(x,
-                (currentInput, layer) -> layer.forward(currentInput).a(),
-                (a, _) -> a);
+        var result = x;
+        for (Layer layer : layers) {
+            result = layer.forward(result).a();
+        }
+        return result;
     }
 
     /**
