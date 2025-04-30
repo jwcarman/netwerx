@@ -3,9 +3,8 @@ package org.jwcarman.netwerx.loss;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class BinaryCrossEntropyTest {
 
@@ -59,7 +58,7 @@ class BinaryCrossEntropyTest {
         var loss = Losses.bce();
         var grad = loss.gradient(predictions, targets);
 
-        assertThat(grad.get(0, 0)).isCloseTo(-0.3, within(1e-6));
-        assertThat(grad.get(0, 1)).isCloseTo(0.3, within(1e-6));
+        assertThat(grad.get(0, 0)).isCloseTo(-0.3, withinTolerance());
+        assertThat(grad.get(0, 1)).isCloseTo(0.3, withinTolerance());
     }
 }

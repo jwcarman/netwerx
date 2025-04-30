@@ -8,7 +8,6 @@ import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
-import org.jwcarman.netwerx.util.Customizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,7 @@ class ConcreteTestCase {
                 )
                 .regressionModel();
 
-        classifier.train(trainInputs, trainTargets, (epoch, loss, a, y) -> epoch < 2000);
+        classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 2000);
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());
         var predictions = classifier.predict(testInputs);

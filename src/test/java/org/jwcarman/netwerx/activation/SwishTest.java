@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.lang.Math.exp;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class SwishTest {
     @Test
@@ -18,7 +18,7 @@ class SwishTest {
             double x = input.get(0, i);
             double sigmoid = 1.0 / (1.0 + exp(-x));
             double expected = x * sigmoid;
-            assertThat(output.get(0, i)).isCloseTo(expected, within(1e-6));
+            assertThat(output.get(0, i)).isCloseTo(expected, withinTolerance());
         }
     }
 
@@ -33,7 +33,7 @@ class SwishTest {
             double sig = 1.0 / (1.0 + exp(-x));
             double sigPrime = sig * (1 - sig);
             double expected = sig + x * sigPrime;
-            assertThat(derivative.get(0, i)).isCloseTo(expected, within(1e-6));
+            assertThat(derivative.get(0, i)).isCloseTo(expected, withinTolerance());
         }
     }
 
@@ -46,6 +46,6 @@ class SwishTest {
         double x = 1.0;
         double sigmoid = 1.0 / (1.0 + exp(-x));
         double expected = x * sigmoid;
-        assertThat(output.get(0, 0)).isCloseTo(expected, within(1e-6));
+        assertThat(output.get(0, 0)).isCloseTo(expected, withinTolerance());
     }
 }

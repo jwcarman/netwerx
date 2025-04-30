@@ -15,7 +15,6 @@ public class DefaultRegressionModel implements RegressionModel{
 // -------------------------- STATIC METHODS --------------------------
 
 // -------------------------- HELPER METHODS --------------------------
-
     private static SimpleMatrix convertLabels(double[] labels) {
         var numSamples = labels.length;
         var y = new SimpleMatrix(1, numSamples);

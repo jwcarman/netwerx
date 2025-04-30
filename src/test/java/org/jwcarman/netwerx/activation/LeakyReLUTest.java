@@ -3,9 +3,8 @@ package org.jwcarman.netwerx.activation;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class LeakyReLUTest {
 
@@ -18,8 +17,8 @@ class LeakyReLUTest {
 
         var output = activation.apply(input);
 
-        assertThat(output.get(0, 0)).isCloseTo(-0.01, within(1e-6)); // 0.01 * -1.0
-        assertThat(output.get(0, 1)).isCloseTo(2.0, within(1e-6));
+        assertThat(output.get(0, 0)).isCloseTo(-0.01, withinTolerance()); // 0.01 * -1.0
+        assertThat(output.get(0, 1)).isCloseTo(2.0, withinTolerance());
     }
 
     @Test
@@ -31,8 +30,8 @@ class LeakyReLUTest {
 
         var derivative = activation.derivative(input);
 
-        assertThat(derivative.get(0, 0)).isCloseTo(0.01, within(1e-6));  // Negative slope
-        assertThat(derivative.get(0, 1)).isCloseTo(1.0, within(1e-6));   // Positive slope
+        assertThat(derivative.get(0, 0)).isCloseTo(0.01, withinTolerance());  // Negative slope
+        assertThat(derivative.get(0, 1)).isCloseTo(1.0, withinTolerance());   // Positive slope
     }
 
     @Test
@@ -44,8 +43,8 @@ class LeakyReLUTest {
 
         var output = activation.apply(input);
 
-        assertThat(output.get(0, 0)).isCloseTo(-0.1, within(1e-6)); // 0.05 * -2.0
-        assertThat(output.get(0, 1)).isCloseTo(3.0, within(1e-6));
+        assertThat(output.get(0, 0)).isCloseTo(-0.1, withinTolerance()); // 0.05 * -2.0
+        assertThat(output.get(0, 1)).isCloseTo(3.0, withinTolerance());
     }
 
     @Test
@@ -57,7 +56,7 @@ class LeakyReLUTest {
 
         var derivative = activation.derivative(input);
 
-        assertThat(derivative.get(0, 0)).isCloseTo(0.05, within(1e-6));
-        assertThat(derivative.get(0, 1)).isCloseTo(1.0, within(1e-6));
+        assertThat(derivative.get(0, 0)).isCloseTo(0.05, withinTolerance());
+        assertThat(derivative.get(0, 1)).isCloseTo(1.0, withinTolerance());
     }
 }

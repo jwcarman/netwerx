@@ -1,191 +1,115 @@
 package org.jwcarman.netwerx;
 
-import org.jwcarman.netwerx.activation.Activations;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifier;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierConfig;
-import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifier;
-import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierConfig;
 import org.jwcarman.netwerx.optimization.Optimizer;
-import org.jwcarman.netwerx.optimization.Optimizers;
-import org.jwcarman.netwerx.regression.DefaultRegressionModel;
 import org.jwcarman.netwerx.regression.RegressionModel;
 import org.jwcarman.netwerx.regression.RegressionModelConfig;
 import org.jwcarman.netwerx.util.Customizer;
-import org.jwcarman.netwerx.util.Randoms;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
-public class NeuralNetworkBuilder {
-
-// ------------------------------ FIELDS ------------------------------
-
-    private final List<LayerConfig> layerConfigs = new LinkedList<>();
-    private Supplier<Optimizer> weightOptimizer = Optimizers::sgd;
-    private Supplier<Optimizer> biasOptimizer = Optimizers::sgd;
-    private Random random = Randoms.defaultRandom();
-    private int inputSize;
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    /**
-     * Creates a NeuralNetworkBuilder with the specified input size.
-     *
-     * @param inputSize the size of the input layer
-     */
-    public NeuralNetworkBuilder(int inputSize) {
-        this.inputSize = inputSize;
-    }
+public interface NeuralNetworkBuilder {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public NeuralNetworkBuilder biasOptimizer(Supplier<Optimizer> biasOptimizer) {
-        this.biasOptimizer = biasOptimizer;
-        return this;
-    }
+    /**
+     * Sets the bias optimizer for the neural network.
+     *
+     * @param biasOptimizer a supplier that provides the optimizer to use for bias parameters
+     * @return the current instance of NeuralNetworkBuilder for method chaining
+     */
+    NeuralNetworkBuilder biasOptimizer(Supplier<Optimizer> biasOptimizer);
 
     /**
-     * Creates a binary classifier with default configuration.
+     * Creates a binary classifier using the neural network. This classifier is designed for binary classification
+     * tasks, where the output is either true or false (1 or 0).
      *
-     * @return a BinaryClassifier instance with default settings
+     * @return a BinaryClassifier instance that uses the neural network for binary classification tasks
      */
-    public BinaryClassifier binaryClassifier() {
-        return binaryClassifier(Customizer.noop());
-    }
+    BinaryClassifier binaryClassifier();
 
     /**
-     * Creates a binary classifier with the given customizer.
+     * Creates a binary classifier using the neural network with a custom configuration.
      *
-     * @param customizer a customizer to configure the binary classifier
-     * @return a BinaryClassifier instance configured with the provided customizer
+     * @param customizer a Customizer that allows for configuration of the BinaryClassifier
+     * @return a BinaryClassifier instance that uses the neural network for binary classification tasks
      */
-    public BinaryClassifier binaryClassifier(Customizer<BinaryClassifierConfig> customizer) {
-        BinaryClassifierConfig config = new BinaryClassifierConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
-        customizer.customize(config);
+    BinaryClassifier binaryClassifier(Customizer<BinaryClassifierConfig> customizer);
 
-        layer(layer -> layer
-                .units(1)
-                .activation(Activations.sigmoid())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom()));
-
-        return new DefaultBinaryClassifier(build(), config.getLoss());
-    }
+    /**
+     * Builds the neural network with the specified configuration.
+     *
+     * @return a NeuralNetwork instance that has been configured and built according to the provided settings
+     */
+    NeuralNetwork build();
 
     /**
      * Adds a layer to the neural network with the specified configuration.
      *
-     * @param customizer a customizer to configure the layer
-     * @return this NeuralNetworkBuilder instance for method chaining
+     * @param customizer a Customizer that allows for configuration of the LayerConfig
+     * @return the current instance of NeuralNetworkBuilder for method chaining
      */
-    public NeuralNetworkBuilder layer(Customizer<LayerConfig> customizer) {
-        LayerConfig config = new LayerConfig(inputSize);
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
-        customizer.customize(config);
-        layerConfigs.add(config);
-        this.inputSize = config.getUnits();
-        return this;
-    }
+    NeuralNetworkBuilder layer(Customizer<LayerConfig> customizer);
 
     /**
-     * Builds the neural network with the configured layers.
+     * Creates a multi-class classifier using the neural network.
      *
-     * @return a NeuralNetwork instance containing the configured layers
+     * @return a MultiClassifier instance that uses the neural network for multi-class classification tasks
      */
-    public NeuralNetwork build() {
-        return new NeuralNetwork(layerConfigs.stream().map(Layer::new).toList());
-    }
+    MultiClassifier multiClassifier();
 
     /**
-     * Creates a multi-class classifier with default configuration.
+     * Creates a multi-class classifier using the neural network with a custom configuration.
      *
-     * @return a MultiClassifier instance with default settings
+     * @param customizer a Customizer that allows for configuration of the MultiClassifierConfig
+     * @return a MultiClassifier instance that uses the neural network for multi-class classification tasks
      */
-    public MultiClassifier multiClassifier() {
-        return multiClassifier(Customizer.noop());
-    }
+    MultiClassifier multiClassifier(Customizer<MultiClassifierConfig> customizer);
 
     /**
-     * Creates a multi-class classifier with the given customizer.
+     * Sets the optimizer for the neural network. This optimizer is responsible for adjusting the weights and biases
+     * during training to minimize the loss function.
      *
-     * @param customizer a customizer to configure the multi-class classifier
-     * @return a MultiClassifier instance configured with the provided customizer
+     * @param optimizer a supplier that provides the optimizer to use for training the neural network
+     * @return the current instance of NeuralNetworkBuilder for method chaining
      */
-    public MultiClassifier multiClassifier(Customizer<MultiClassifierConfig> customizer) {
-        var config = new MultiClassifierConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
-        customizer.customize(config);
-
-        layer(layer -> layer
-                .units(config.getOutputClasses())
-                .activation(Activations.softmax())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom())
-        );
-
-        return new DefaultMultiClassifier(build(), config.getLoss(), config.getOutputClasses());
-    }
-
-    public NeuralNetworkBuilder optimizer(Supplier<Optimizer> optimizer) {
-        this.weightOptimizer = optimizer;
-        this.biasOptimizer = optimizer;
-        return this;
-    }
-
-    public NeuralNetworkBuilder random(Random random) {
-        this.random = random;
-        return this;
-    }
+    NeuralNetworkBuilder optimizer(Supplier<Optimizer> optimizer);
 
     /**
-     * Creates a regression model with default configuration.
+     * Sets the random number generator for the neural network. This is typically used for initializing weights.
      *
-     * @return a RegressionModel instance with default settings
+     * @param random the Random instance to use for random number generation
+     * @return the current instance of NeuralNetworkBuilder for method chaining
      */
-    public RegressionModel regressionModel() {
-        return regressionModel(Customizer.noop());
-    }
+    NeuralNetworkBuilder random(Random random);
 
     /**
-     * Creates a regression model with the given customizer.
+     * Creates a regression model using the neural network. This model is designed for regression tasks,
+     * where the output is a continuous value rather than a class label.
      *
-     * @param customizer a customizer to configure the regression model
-     * @return a RegressionModel instance configured with the provided customizer
+     * @return a RegressionModel instance that uses the neural network for regression tasks
      */
-    public RegressionModel regressionModel(Customizer<RegressionModelConfig> customizer) {
-        RegressionModelConfig config = new RegressionModelConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
-        customizer.customize(config);
+    RegressionModel regressionModel();
 
-        layer(layer -> layer
-                .units(1)
-                .activation(Activations.linear())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom())
-        );
+    /**
+     * Creates a regression model using the neural network with a custom configuration.
+     *
+     * @param customizer a Customizer that allows for configuration of the RegressionModelConfig
+     * @return a RegressionModel instance that uses the neural network for regression tasks
+     */
+    RegressionModel regressionModel(Customizer<RegressionModelConfig> customizer);
 
-        return new DefaultRegressionModel(build(), config.getLoss());
-    }
-
-    public NeuralNetworkBuilder weightOptimizer(Supplier<Optimizer> weightOptimizer) {
-        this.weightOptimizer = weightOptimizer;
-        return this;
-    }
+    /**
+     * Sets the weight optimizer for the neural network. This optimizer is responsible for adjusting the weights
+     * during training to minimize the loss function.
+     *
+     * @param weightOptimizer a supplier that provides the optimizer to use for weight parameters
+     * @return the current instance of NeuralNetworkBuilder for method chaining
+     */
+    NeuralNetworkBuilder weightOptimizer(Supplier<Optimizer> weightOptimizer);
 
 }

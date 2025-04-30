@@ -3,9 +3,8 @@ package org.jwcarman.netwerx.activation;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class SigmoidTest {
     @Test
@@ -14,9 +13,9 @@ class SigmoidTest {
         var input = new SimpleMatrix(1, 3, true, -2.0, 0.0, 2.0);
         var output = sigmoid.apply(input);
 
-        assertThat(output.get(0, 0)).isCloseTo(1.0 / (1 + Math.exp(2.0)), within(1e-6));
-        assertThat(output.get(0, 1)).isCloseTo(0.5, within(1e-6));
-        assertThat(output.get(0, 2)).isCloseTo(1.0 / (1 + Math.exp(-2.0)), within(1e-6));
+        assertThat(output.get(0, 0)).isCloseTo(1.0 / (1 + Math.exp(2.0)), withinTolerance());
+        assertThat(output.get(0, 1)).isCloseTo(0.5, withinTolerance());
+        assertThat(output.get(0, 2)).isCloseTo(1.0 / (1 + Math.exp(-2.0)), withinTolerance());
     }
 
     @Test
@@ -30,7 +29,7 @@ class SigmoidTest {
             double x = input.get(0, i);
             double s = 1.0 / (1 + Math.exp(-x));
             double expected = s * (1 - s);
-            assertThat(derived.get(0, i)).isCloseTo(expected, within(1e-6));
+            assertThat(derived.get(0, i)).isCloseTo(expected, withinTolerance());
         }
     }
 }

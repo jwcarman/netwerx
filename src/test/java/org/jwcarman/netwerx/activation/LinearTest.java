@@ -3,9 +3,8 @@ package org.jwcarman.netwerx.activation;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class LinearTest {
 
@@ -24,7 +23,7 @@ class LinearTest {
         assertThat(result.getNumCols()).isEqualTo(input.getNumCols());
         for (int row = 0; row < input.getNumRows(); row++) {
             for (int col = 0; col < input.getNumCols(); col++) {
-                assertThat(result.get(row, col)).isCloseTo(input.get(row, col), within(1e-6));
+                assertThat(result.get(row, col)).isCloseTo(input.get(row, col), withinTolerance());
             }
         }
     }
@@ -42,7 +41,7 @@ class LinearTest {
         assertThat(result.getNumCols()).isEqualTo(input.getNumCols());
         for (int row = 0; row < result.getNumRows(); row++) {
             for (int col = 0; col < result.getNumCols(); col++) {
-                assertThat(result.get(row, col)).isCloseTo(1.0, within(1e-6));
+                assertThat(result.get(row, col)).isCloseTo(1.0, withinTolerance());
             }
         }
     }

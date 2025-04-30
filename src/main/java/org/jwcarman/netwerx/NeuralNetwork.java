@@ -3,66 +3,41 @@ package org.jwcarman.netwerx;
 import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.loss.Loss;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * Interface representing a neural network model.
+ */
+public interface NeuralNetwork {
 
-public class NeuralNetwork {
+// -------------------------- STATIC METHODS --------------------------
 
-// ------------------------------ FIELDS ------------------------------
-
-    private final List<Layer> layers;
-
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    NeuralNetwork(List<Layer> layers) {
-        this.layers = layers;
-    }
-
-    public static NeuralNetworkBuilder builder(int inputSize) {
-        return new NeuralNetworkBuilder(inputSize);
+    /**
+     * Creates a new instance of {@link NeuralNetworkBuilder} to construct a neural network.
+     *
+     * @param inputSize the size of the input layer, which corresponds to the number of features in the input data
+     * @return a new instance of {@link NeuralNetworkBuilder} for building the neural network
+     */
+    static NeuralNetworkBuilder builder(int inputSize) {
+        return new DefaultNeuralNetworkBuilder(inputSize);
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * Predicts the output for the given input using the neural network.
+     * Predicts the output for a given input matrix.
      *
-     * @param x the input features as a SimpleMatrix (each column is a feature vector)
-     * @return the predicted output as a SimpleMatrix (each column is a predicted output vector)
+     * @param x the input matrix, where each column represents a sample
+     * @return the predicted output matrix, where each column corresponds to the prediction for the respective input sample
      */
-    public SimpleMatrix predict(SimpleMatrix x) {
-        return layers.stream().reduce(x,
-                (currentInput, layer) -> layer.forward(currentInput).a(),
-                (a, b) -> a);
-    }
+    SimpleMatrix predict(SimpleMatrix x);
 
     /**
-     * Trains the neural network using the provided input and target output.
+     * Trains the neural network using the provided input and target matrices.
      *
-     * @param x            the input features as a SimpleMatrix (each column is a feature vector)
-     * @param y            the target output as a SimpleMatrix (each column is a target output vector)
-     * @param lossFunction the loss function to use for training
-     * @param observer     an observer to monitor training progress
+     * @param x        the input matrix, where each column represents a sample
+     * @param y        the target output matrix, where each column corresponds to the expected output for the respective input sample
+     * @param loss     the loss function to be used for training, which defines how the model's predictions are evaluated against the targets
+     * @param observer an observer that can monitor the training process, providing feedback or logging information during training
      */
-    public void train(SimpleMatrix x, SimpleMatrix y, Loss lossFunction, TrainingObserver observer) {
-        int epoch = 1;
-        boolean continueTraining;
-        do {
-            var a = x;
-            var backProps = new ArrayList<Layer.Backprop>();
-            for (Layer layer : layers) {
-                var backpropagator = layer.forward(a);
-                backProps.addFirst(backpropagator);
-                a = backpropagator.a();
-            }
-            var loss = lossFunction.loss(a, y);
-            var gradOutput = lossFunction.gradient(a, y);
-            for (Layer.Backprop backProp : backProps) {
-                gradOutput = backProp.apply(gradOutput);
-            }
-            continueTraining = observer.onEpoch(epoch, loss, a, y);
-            epoch++;
-        } while (continueTraining);
-    }
+    void train(SimpleMatrix x, SimpleMatrix y, Loss loss, TrainingObserver observer);
 
 }

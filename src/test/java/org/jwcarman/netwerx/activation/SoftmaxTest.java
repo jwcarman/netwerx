@@ -4,7 +4,7 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class SoftmaxTest {
 
@@ -31,7 +31,7 @@ class SoftmaxTest {
 
         // Confirm softmax probabilities still sum to 1
         double sum = output.elementSum();
-        assertThat(sum).isCloseTo(1.0, within(1e-6));
+        assertThat(sum).isCloseTo(1.0, withinTolerance());
     }
 
     @Test
@@ -45,7 +45,7 @@ class SoftmaxTest {
             for (int row = 0; row < output.getNumRows(); row++) {
                 columnSum += output.get(row, col);
             }
-            assertThat(columnSum).isCloseTo(1.0, within(1e-6));
+            assertThat(columnSum).isCloseTo(1.0, withinTolerance());
         }
     }
 

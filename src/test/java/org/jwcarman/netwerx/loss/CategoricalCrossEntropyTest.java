@@ -4,9 +4,8 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
 import static java.lang.Math.log;
-import static org.assertj.core.api.Assertions.within;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 
 class CategoricalCrossEntropyTest {
     @Test
@@ -26,7 +25,7 @@ class CategoricalCrossEntropyTest {
 
         double result = loss.loss(predictions, targets);
         double expected = -((log(0.7) + log(0.7)) / 2.0);
-        assertThat(result).isCloseTo(expected, within(1e-6));
+        assertThat(result).isCloseTo(expected, withinTolerance());
     }
 
     @Test
@@ -43,7 +42,7 @@ class CategoricalCrossEntropyTest {
 
         double clamped = Math.max(CategoricalCrossEntropy.DEFAULT_EPSILON, 1e-20);
         double expected = -log(clamped);
-        assertThat(result).isCloseTo(expected, within(1e-6));
+        assertThat(result).isCloseTo(expected, withinTolerance());
     }
 
     @Test
@@ -60,9 +59,9 @@ class CategoricalCrossEntropyTest {
 
         assertThat(grad.getNumRows()).isEqualTo(3);
         assertThat(grad.getNumCols()).isEqualTo(1);
-        assertThat(grad.get(0)).isCloseTo(-0.3, within(1e-6));
-        assertThat(grad.get(1)).isCloseTo(0.2, within(1e-6));
-        assertThat(grad.get(2)).isCloseTo(0.1, within(1e-6));
+        assertThat(grad.get(0)).isCloseTo(-0.3, withinTolerance());
+        assertThat(grad.get(1)).isCloseTo(0.2, withinTolerance());
+        assertThat(grad.get(2)).isCloseTo(0.1, withinTolerance());
     }
 
     @Test
@@ -82,6 +81,6 @@ class CategoricalCrossEntropyTest {
 
         double result = loss.loss(predictions, targets);
 
-        assertThat(result).isCloseTo(expectedLoss, within(1e-6));
+        assertThat(result).isCloseTo(expectedLoss, withinTolerance());
     }
 }
