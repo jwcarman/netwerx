@@ -1,17 +1,9 @@
 package org.jwcarman.netwerx.classification.binary;
 
 import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
-import org.jwcarman.netwerx.loss.Loss;
 
 public interface BinaryClassifier {
-
-// -------------------------- STATIC METHODS --------------------------
-
-    static BinaryClassifier create(NeuralNetwork network, Loss loss) {
-        return new DefaultBinaryClassifier(network, loss);
-    }
 
 // -------------------------- OTHER METHODS --------------------------
 

@@ -1,17 +1,20 @@
 package org.jwcarman.netwerx.def;
 
+import org.jwcarman.netwerx.LayerConfig;
 import org.jwcarman.netwerx.NeuralNetwork;
+import org.jwcarman.netwerx.NeuralNetworkBuilder;
+import org.jwcarman.netwerx.activation.Activations;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifier;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierConfig;
-import org.jwcarman.netwerx.LayerConfig;
-import org.jwcarman.netwerx.classification.multi.MultiClassifierConfig;
-import org.jwcarman.netwerx.regression.RegressionModelConfig;
+import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifier;
+import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifier;
-import org.jwcarman.netwerx.NeuralNetworkBuilder;
-import org.jwcarman.netwerx.regression.RegressionModel;
-import org.jwcarman.netwerx.activation.Activations;
+import org.jwcarman.netwerx.classification.multi.MultiClassifierConfig;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.regression.DefaultRegressionModel;
+import org.jwcarman.netwerx.regression.RegressionModel;
+import org.jwcarman.netwerx.regression.RegressionModelConfig;
 import org.jwcarman.netwerx.util.Customizer;
 import org.jwcarman.netwerx.util.Randoms;
 
@@ -82,7 +85,7 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .biasOptimizer(config.getBiasOptimizer())
                 .random(config.getRandom()));
 
-        return BinaryClassifier.create(build(), config.getLoss());
+        return new DefaultBinaryClassifier(build(), config.getLoss());
     }
 
     /**
@@ -145,7 +148,7 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .random(config.getRandom())
         );
 
-        return MultiClassifier.create(build(), config.getLoss(), config.getOutputClasses());
+        return new DefaultMultiClassifier(build(), config.getLoss(), config.getOutputClasses());
     }
 
     @Override
@@ -193,7 +196,7 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .random(config.getRandom())
         );
 
-        return RegressionModel.create(build(), config.getLoss());
+        return new DefaultRegressionModel(build(), config.getLoss());
     }
 
     @Override
