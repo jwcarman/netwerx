@@ -37,7 +37,7 @@
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <assertj.version>3.24.2</assertj.version>
         <commons-csv.version>1.13.0</commons-csv.version>
@@ -46,7 +46,11 @@
         <jacoco.version>0.8.12</jacoco.version>
         <slf4j.version>2.0.17</slf4j.version>
 
+        <sonar-maven-plugin.version>5.1.0.4751</sonar-maven-plugin.version>
+
+        <!-- SonarCloud properties -->
         <sonar.organization>jwcarman</sonar.organization>
+        <sonar.projectKey>jwcarman_netwerx</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
@@ -138,6 +142,11 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>${sonar-maven-plugin.version}</version>
                     </plugin>
                 </plugins>
             </build>
