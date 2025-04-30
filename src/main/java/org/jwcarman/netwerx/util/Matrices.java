@@ -22,7 +22,6 @@ public class Matrices {
         return result;
     }
 
-
     public static SimpleMatrix filled(int rows, int cols, DoubleSupplier filler) {
         final SimpleMatrix result = new SimpleMatrix(rows, cols);
         for (int row = 0; row < rows; row++) {
@@ -42,9 +41,6 @@ public class Matrices {
     }
 
     public static Stream<PredictionTarget> predictionTargets(SimpleMatrix predictions, SimpleMatrix targets) {
-        if (predictions.getNumRows() != targets.getNumRows() || predictions.getNumCols() != targets.getNumCols()) {
-            throw new IllegalArgumentException("Predictions and targets must have the same dimensions.");
-        }
         return Streams.zip(
                 allElements(predictions),
                 allElements(targets),
@@ -62,32 +58,6 @@ public class Matrices {
                 .limit((long) matrix.getNumRows() * matrix.getNumCols());
     }
 
-    public static Stream<MatrixElement> rowElements(SimpleMatrix matrix, final int row) {
-        if (row < 0 || row >= matrix.getNumRows()) {
-            throw new IndexOutOfBoundsException("Row index out of bounds: " + row);
-        }
-        return Stream.iterate(0, col -> col + 1)
-                .limit(matrix.getNumCols())
-                .map(col -> new MatrixElement(row, col, matrix.get(row, col)));
-    }
-
-    public static Stream<MatrixElement> columnElements(SimpleMatrix matrix, final int col) {
-        if (col < 0 || col >= matrix.getNumCols()) {
-            throw new IndexOutOfBoundsException("Column index out of bounds: " + col);
-        }
-        return Stream.iterate(0, row -> row + 1)
-                .limit(matrix.getNumRows())
-                .map(row -> new MatrixElement(row, col, matrix.get(row, col)));
-    }
-
-    public static void forEachElement(SimpleMatrix matrix, MatrixElementConsumer consumer) {
-        for (int row = 0; row < matrix.getNumRows(); row++) {
-            for (int col = 0; col < matrix.getNumCols(); col++) {
-                consumer.accept(new MatrixElement(row, col, matrix.get(row, col)));
-            }
-        }
-    }
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
     private Matrices() {
@@ -97,15 +67,6 @@ public class Matrices {
 // -------------------------- INNER CLASSES --------------------------
 
     public record PredictionTarget(int row, int col, double prediction, double target) {
-
-    }
-
-    @FunctionalInterface
-    public interface MatrixElementConsumer {
-
-// -------------------------- OTHER METHODS --------------------------
-
-        void accept(MatrixElement element);
 
     }
 

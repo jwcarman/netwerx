@@ -12,10 +12,6 @@ package org.jwcarman.netwerx.regression;
 public record RegressionModelStats(double mse, double mae, double r2) {
 
     public static RegressionModelStats of(double[] predictions, double[] targets) {
-        if (predictions.length != targets.length) {
-            throw new IllegalArgumentException("Predictions and targets must have the same length.");
-        }
-
         final int n = predictions.length;
         double sumSquaredErrors = 0.0;
         double sumAbsoluteErrors = 0.0;
