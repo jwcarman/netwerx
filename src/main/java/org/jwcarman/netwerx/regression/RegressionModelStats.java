@@ -40,7 +40,7 @@ public record RegressionModelStats(double mse, double mae, double r2) {
             totalVariance += diff * diff;
         }
 
-        double r2 = 1.0 - (sumSquaredErrors / totalVariance);
+        double r2 = totalVariance == 0.0 ? 0.0 : 1.0 - (sumSquaredErrors / totalVariance);
 
         return new RegressionModelStats(mse, mae, r2);
     }
