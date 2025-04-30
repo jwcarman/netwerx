@@ -6,6 +6,7 @@ import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
+import org.jwcarman.netwerx.optimization.Optimizers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,14 +57,10 @@ class TitanicTestCase {
 
         var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
                 .random(random)
-                .layer(layer -> layer
-                        .units(8)
-                )
-                .layer(layer -> layer
-                        .units(4)
-                )
+                .optimizer(Optimizers::sgd)
+                .layer(layer -> layer.units(8))
+                .layer(layer -> layer.units(4))
                 .binaryClassifier();
-
 
         classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 100);
 

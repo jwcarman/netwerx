@@ -137,10 +137,14 @@ boolean[] testPredictions = classifier.predict(testInputs);
 Netwerx has been successfully used to model Titanic survival prediction:
 
 - 6 input features (ticket class, age, sex, fare, parents/children, siblings/spouses)
-- Two hidden layers (8 neurons, then 4 neurons) with ReLU activation
-- Weighted binary cross-entropy loss to handle survivor imbalance
-- Momentum optimizer for smoother convergence
-- 300–500 epochs training
+- Two hidden layers (8 neurons, then 4 neurons) with ReLU activation functions
+- Binary cross-entropy loss function
+- Sigmoid output activation function
+- Stochastic Gradient Descent (SGD) optimizer
+- 100 epochs training
+- 78% accuracy on test set
+
+```java
 
 **Results:**
 - Predicts realistic survival rates (~120 survivors out of 418 test samples)
