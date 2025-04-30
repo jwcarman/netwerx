@@ -1,9 +1,19 @@
 package org.jwcarman.netwerx.regression;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
+import org.jwcarman.netwerx.loss.Loss;
 
 public interface RegressionModel {
+
+// -------------------------- STATIC METHODS --------------------------
+
+    static RegressionModel create(NeuralNetwork network, Loss loss) {
+        return new DefaultRegressionModel(network, loss);
+    }
+
+// -------------------------- OTHER METHODS --------------------------
 
     /**
      * Predict the outputs for a batch of inputs.
@@ -21,4 +31,5 @@ public interface RegressionModel {
      * @param observer a training observer for early stopping
      */
     void train(SimpleMatrix inputs, double[] labels, TrainingObserver observer);
+
 }

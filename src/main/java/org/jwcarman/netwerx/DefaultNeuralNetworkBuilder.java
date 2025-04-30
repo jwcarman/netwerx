@@ -2,12 +2,9 @@ package org.jwcarman.netwerx;
 
 import org.jwcarman.netwerx.activation.Activations;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifier;
-import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifier;
-import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifier;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
-import org.jwcarman.netwerx.regression.DefaultRegressionModel;
 import org.jwcarman.netwerx.regression.RegressionModel;
 import org.jwcarman.netwerx.util.Customizer;
 import org.jwcarman.netwerx.util.Randoms;
@@ -38,7 +35,9 @@ class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
         this.inputSize = inputSize;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface NeuralNetworkBuilder ---------------------
 
     @Override
     public DefaultNeuralNetworkBuilder biasOptimizer(Supplier<Optimizer> biasOptimizer) {
@@ -77,7 +76,17 @@ class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .biasOptimizer(config.getBiasOptimizer())
                 .random(config.getRandom()));
 
-        return new DefaultBinaryClassifier(build(), config.getLoss());
+        return BinaryClassifier.create(build(), config.getLoss());
+    }
+
+    /**
+     * Builds the neural network with the configured layers.
+     *
+     * @return a NeuralNetwork instance containing the configured layers
+     */
+    @Override
+    public DefaultNeuralNetwork build() {
+        return new DefaultNeuralNetwork(layerConfigs.stream().map(Layer::new).toList());
     }
 
     /**
@@ -96,16 +105,6 @@ class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
         layerConfigs.add(config);
         this.inputSize = config.getUnits();
         return this;
-    }
-
-    /**
-     * Builds the neural network with the configured layers.
-     *
-     * @return a NeuralNetwork instance containing the configured layers
-     */
-    @Override
-    public DefaultNeuralNetwork build() {
-        return new DefaultNeuralNetwork(layerConfigs.stream().map(Layer::new).toList());
     }
 
     /**
@@ -140,7 +139,7 @@ class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .random(config.getRandom())
         );
 
-        return new DefaultMultiClassifier(build(), config.getLoss(), config.getOutputClasses());
+        return MultiClassifier.create(build(), config.getLoss(), config.getOutputClasses());
     }
 
     @Override
@@ -188,7 +187,7 @@ class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
                 .random(config.getRandom())
         );
 
-        return new DefaultRegressionModel(build(), config.getLoss());
+        return RegressionModel.create(build(), config.getLoss());
     }
 
     @Override
