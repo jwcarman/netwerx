@@ -134,7 +134,7 @@ boolean[] testPredictions = classifier.predict(testInputs);
 
 ## 📈 Example: Titanic Dataset (Survival Prediction)
 
-Netwerx has been successfully used to model Titanic survival prediction:
+Netwerx has been successfully used to model [Titanic](src/test/java/org/jwcarman/netwerx/titanic/TitanicTestCase.java) survival prediction:
 
 - 6 input features (ticket class, age, sex, fare, parents/children, siblings/spouses)
 - Two hidden layers (8 neurons, then 4 neurons) with ReLU activation functions
