@@ -22,15 +22,6 @@ public class Matrices {
         return result;
     }
 
-    public static SimpleMatrix subtractColumnVector(SimpleMatrix a, SimpleMatrix columnVector) {
-        final SimpleMatrix result = new SimpleMatrix(a.getNumRows(), a.getNumCols());
-        for (int row = 0; row < a.getNumRows(); row++) {
-            for (int col = 0; col < a.getNumCols(); col++) {
-                result.set(row, col, a.get(row, col) - columnVector.get(row));
-            }
-        }
-        return result;
-    }
 
     public static SimpleMatrix filled(int rows, int cols, DoubleSupplier filler) {
         final SimpleMatrix result = new SimpleMatrix(rows, cols);

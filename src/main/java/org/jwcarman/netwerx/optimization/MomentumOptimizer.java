@@ -30,7 +30,7 @@ public class MomentumOptimizer implements Optimizer {
     @Override
     public SimpleMatrix optimize(SimpleMatrix params, SimpleMatrix gradient) {
         if (velocity == null) {
-            velocity = new SimpleMatrix(gradient);
+            velocity = new SimpleMatrix(gradient.getNumRows(), gradient.getNumCols());
         }
         velocity = velocity.scale(momentumFactor).plus(gradient.scale(learningRate));
         return params.minus(velocity);

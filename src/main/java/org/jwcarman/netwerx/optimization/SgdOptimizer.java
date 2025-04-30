@@ -2,8 +2,6 @@ package org.jwcarman.netwerx.optimization;
 
 import org.ejml.simple.SimpleMatrix;
 
-import static org.jwcarman.netwerx.util.Matrices.subtractColumnVector;
-
 public class SgdOptimizer implements Optimizer {
 
 // ------------------------------ FIELDS ------------------------------
@@ -28,6 +26,6 @@ public class SgdOptimizer implements Optimizer {
 
     @Override
     public SimpleMatrix optimize(SimpleMatrix parameter, SimpleMatrix gradient) {
-        return subtractColumnVector(parameter, gradient.scale(learningRate));
+        return parameter.minus(gradient.scale(learningRate));
     }
 }
