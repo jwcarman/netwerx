@@ -1,4 +1,4 @@
-package org.jwcarman.netwerx.regression;
+package org.jwcarman.netwerx;
 
 import org.jwcarman.netwerx.loss.Loss;
 import org.jwcarman.netwerx.loss.Losses;
@@ -8,11 +8,11 @@ import org.jwcarman.netwerx.util.Randoms;
 
 import java.util.Random;
 
-public class RegressionModelConfig {
+public class BinaryClassifierConfig {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private Loss loss = Losses.mse();
+    private Loss loss = Losses.bce();
     private Random random = Randoms.defaultRandom();
     private Optimizer weightOptimizer = Optimizers.sgd();
     private Optimizer biasOptimizer = Optimizers.sgd();
@@ -37,28 +37,28 @@ public class RegressionModelConfig {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public RegressionModelConfig biasOptimizer(Optimizer biasOptimizer) {
+    public BinaryClassifierConfig biasOptimizer(Optimizer biasOptimizer) {
         this.biasOptimizer = biasOptimizer;
         return this;
     }
 
-    public RegressionModelConfig loss(Loss loss) {
+    public BinaryClassifierConfig loss(Loss loss) {
         this.loss = loss;
         return this;
     }
 
-    public RegressionModelConfig optimizer(Optimizer optimizer) {
+    public BinaryClassifierConfig optimizer(Optimizer optimizer) {
         this.weightOptimizer = optimizer;
         this.biasOptimizer = optimizer;
         return this;
     }
 
-    public RegressionModelConfig random(Random random) {
+    public BinaryClassifierConfig random(Random random) {
         this.random = random;
         return this;
     }
 
-    public RegressionModelConfig weightOptimizer(Optimizer weightOptimizer) {
+    public BinaryClassifierConfig weightOptimizer(Optimizer weightOptimizer) {
         this.weightOptimizer = weightOptimizer;
         return this;
     }

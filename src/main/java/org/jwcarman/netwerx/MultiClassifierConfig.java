@@ -1,4 +1,4 @@
-package org.jwcarman.netwerx.classification.multi;
+package org.jwcarman.netwerx;
 
 import org.jwcarman.netwerx.loss.Loss;
 import org.jwcarman.netwerx.loss.Losses;

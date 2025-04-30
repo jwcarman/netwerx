@@ -23,6 +23,13 @@ jobs:
         java-version: '23'
         distribution: 'temurin'
         cache: maven
+    - name: Cache SonarQube Scanner
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: sonar-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          sonar-${{ runner.os }}-
     - name: Build with Maven
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
