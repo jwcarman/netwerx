@@ -1,7 +1,14 @@
 # Netwerx
 [![CI with Maven](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml/badge.svg)](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml)
-![Java](https://img.shields.io/badge/Java-23%2B-blue)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue)
+
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=coverage)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
 
 ---
 
