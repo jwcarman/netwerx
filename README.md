@@ -32,7 +32,7 @@ Built for Java developers who want to **understand** and **customize** neural ne
 - Training observer pattern (loss tracking, early stopping)
 - Reproducible random initialization with customizable `Random` sources
 - Lightweight — no external heavy dependencies (only EJML for efficient matrix math)
-
+- Extensible matrix abstraction for custom backends
 ---
 
 ## 🚀 Quickstart
@@ -131,6 +131,37 @@ boolean[] testPredictions = classifier.predict(testInputs);
 | **Regression Model** | Mean Squared Error (MSE), Mean Absolute Error (MAE), R² |
 
 ---
+
+## 🧮 Matrix Abstraction
+
+At the heart of this neural network library is the `Matrix<M extends Matrix<M>>` interface — a flexible and extensible abstraction for matrix operations. It provides a consistent API for building high-level machine learning features without locking into a specific numerical backend.
+
+### ✨ Key Benefits
+
+- **Decouples algorithm logic from math implementation**  
+  Enables writing reusable, backend-agnostic logic for training, loss computation, optimizers, etc.
+
+- **Default implementations for common operations**  
+  Many operations like `mean()`, `variance()`, `elementPower()`, `rowMax()`, etc. are provided with sensible default logic, which simplifies implementation and promotes consistency.
+
+- **Optimizable for performance**  
+  Backends like EJML can override default methods with highly efficient native implementations for performance-critical workloads.
+
+- **Supports broadcasting-style operations**  
+  Operations like `addRowVector`, `subtractColumnVector`, and `softmax` are built with broadcasting behavior in mind.
+
+- **Streaming & functional utilities**  
+  Matrix values can be accessed via Java streams for flexible computation patterns, and mapped with lambda-based operations.
+
+### 🧰 Implementing a Matrix
+
+To plug in a new backend (e.g., EJML, ND4J, or even a custom float-based engine), simply implement the `Matrix<M>` interface and override the core methods. Defaults handle the rest.
+
+```java
+public class EjmlMatrix implements Matrix<EjmlMatrix> {
+    // Implementation backed by EJML's SimpleMatrix
+}
+```
 
 ## 📈 Example: Titanic Dataset (Survival Prediction)
 
