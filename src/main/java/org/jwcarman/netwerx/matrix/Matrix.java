@@ -19,16 +19,8 @@ public interface Matrix<M extends Matrix<M>> {
      * @param other the matrix to add
      * @return a new matrix that is the result of the addition
      */
-    M add(M other);
-
-    /**
-     * Adds a column vector to each column of the matrix.
-     *
-     * @param columnVector the column vector to add
-     * @return a new matrix with the column vector added to each column
-     */
-    default M addColumnVector(M columnVector) {
-        return map((row, _, value) -> value + columnVector.valueAt(row, 0));
+    default M add(M other) {
+        return map((row, col, value) -> value + other.valueAt(row, col));
     }
 
     /**
@@ -47,6 +39,16 @@ public interface Matrix<M extends Matrix<M>> {
      * @return the value at the specified row and column
      */
     double valueAt(int row, int column);
+
+    /**
+     * Adds a column vector to each column of the matrix.
+     *
+     * @param columnVector the column vector to add
+     * @return a new matrix with the column vector added to each column
+     */
+    default M addColumnVector(M columnVector) {
+        return map((row, _, value) -> value + columnVector.valueAt(row, 0));
+    }
 
     /**
      * Adds a row vector to each row of the matrix.
@@ -95,14 +97,43 @@ public interface Matrix<M extends Matrix<M>> {
      * @param reducer the reducer function to apply to each column
      * @return a row vector with the values provided by the reducer
      */
-    M reduceColumns(ToDoubleFunction<M> reducer);
+    default M reduceColumns(ToDoubleFunction<M> reducer) {
+        var agg = likeKind(1, columnCount());
+        return agg.map((_, col, _) -> reducer.applyAsDouble(columnVector(col)));
+    }
+
+    /**
+     * Returns a new matrix of the same kind as this one, with the specified shape.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @return a new matrix of the same kind as this one, with the specified shape
+     */
+    M likeKind(int rows, int columns);
+
+    /**
+     * Returns the number of columns in the matrix.
+     *
+     * @return the number of columns
+     */
+    int columnCount();
+
+    /**
+     * Returns the specified column as a column vector.
+     *
+     * @param column the index of the column to extract
+     * @return the column vector
+     */
+    M columnVector(int column);
 
     /**
      * Returns the sum of all elements in the matrix.
      *
      * @return the sum of all elements
      */
-    double sum();
+    default double sum() {
+        return values().sum();
+    }
 
     /**
      * Returns the number of rows in the matrix.
@@ -203,13 +234,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns the number of columns in the matrix.
-     *
-     * @return the number of columns
-     */
-    int columnCount();
-
-    /**
      * Returns the sum of values in the specified column.
      *
      * @param column the index of the column
@@ -227,15 +251,6 @@ public interface Matrix<M extends Matrix<M>> {
     default M columnVariance() {
         return reduceColumns(col -> variance(col::values));
     }
-
-    /**
-     * Returns the specified column as a column vector.
-     *
-     * @param column the index of the column to extract
-     * @return the column vector
-     */
-    M columnVector(int column);
-
 
     /**
      * Returns a new matrix that is a copy of this matrix.
@@ -289,7 +304,9 @@ public interface Matrix<M extends Matrix<M>> {
      * @param other the matrix to multiply by
      * @return a new matrix that is the result of the element-wise multiplication (hadamard product)
      */
-    M elementMultiply(M other);
+    default M elementMultiply(M other) {
+        return map((row, col, value) -> value * other.valueAt(row, col));
+    }
 
     /**
      * Returns a new matrix with each element raised to the power of 0.5 (square root).
@@ -413,15 +430,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns a new matrix of the same kind as this one, with the specified shape.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @return a new matrix of the same kind as this one, with the specified shape
-     */
-    M likeKind(int rows, int columns);
-
-    /**
      * Returns a new matrix with each element replaced by its natural logarithm.
      *
      * @return a new matrix with each element replaced by its natural logarithm
@@ -448,7 +456,9 @@ public interface Matrix<M extends Matrix<M>> {
      *
      * @return the maximum absolute value
      */
-    double maxAbs();
+    default double maxAbs() {
+        return deref(values().map(Math::abs).max());
+    }
 
     /**
      * Returns the mean of all elements in the matrix.
@@ -456,7 +466,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return the mean of all elements
      */
     default double mean() {
-        return sum() / size();
+        return deref(values().average());
     }
 
     /**
@@ -481,7 +491,9 @@ public interface Matrix<M extends Matrix<M>> {
      *
      * @return a new matrix that is the negation of the original
      */
-    M negate();
+    default M negate() {
+        return map((_, _, value) -> -value);
+    }
 
     /**
      * Returns the L1 norm of the matrix.
@@ -527,7 +539,18 @@ public interface Matrix<M extends Matrix<M>> {
      * @param reducer the reducer function to apply to each row
      * @return a column vector with the values provided by the reducer
      */
-    M reduceRows(ToDoubleFunction<M> reducer);
+    default M reduceRows(ToDoubleFunction<M> reducer) {
+        var agg = likeKind(rowCount(), 1);
+        return agg.map((row, _, _) -> reducer.applyAsDouble(rowVector(row)));
+    }
+
+    /**
+     * Returns the specified row as a row vector.
+     *
+     * @param row the index of the row to extract
+     * @return the row vector
+     */
+    M rowVector(int row);
 
     /**
      * Returns the maximum value in the specified row.
@@ -645,14 +668,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns the specified row as a row vector.
-     *
-     * @param row the index of the row to extract
-     * @return the row vector
-     */
-    M rowVector(int row);
-
-    /**
      * Multiplies all elements of the matrix by a scalar.
      * <p>
      * This method is an alias for {@link #elementMultiply(double)}.
@@ -671,7 +686,9 @@ public interface Matrix<M extends Matrix<M>> {
      * @param scalar the scalar value to multiply by
      * @return a new matrix with each element multiplied by the scalar
      */
-    M elementMultiply(double scalar);
+    default M elementMultiply(double scalar) {
+        return map((_, _, value) -> value * scalar);
+    }
 
     /**
      * Returns a new matrix with each element replaced by the softmax of the corresponding element.
@@ -739,7 +756,9 @@ public interface Matrix<M extends Matrix<M>> {
      * @param other the matrix to subtract
      * @return a new matrix that is the result of the subtraction
      */
-    M subtract(M other);
+    default M subtract(M other) {
+        return map((row, col, value) -> value - other.valueAt(row, col));
+    }
 
     /**
      * Returns a new matrix that is the result of subtracting a column vector from each column of the matrix.
