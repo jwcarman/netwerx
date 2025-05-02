@@ -28,7 +28,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the column vector added to each column
      */
     default M addColumnVector(M columnVector) {
-        return map((row, col, value) -> value + columnVector.valueAt(row, 0));
+        return map((row, _, value) -> value + columnVector.valueAt(row, 0));
     }
 
     /**
@@ -39,6 +39,13 @@ public interface Matrix<M extends Matrix<M>> {
      */
     M map(ElementOperation operation);
 
+    /**
+     * Returns the value at the specified row and column.
+     *
+     * @param row    the index of the row
+     * @param column the index of the column
+     * @return the value at the specified row and column
+     */
     double valueAt(int row, int column);
 
     /**
@@ -48,21 +55,46 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the row vector added to each row
      */
     default M addRowVector(M rowVector) {
-        return map((row, col, value) -> value + rowVector.valueAt(0, col));
+        return map((_, col, value) -> value + rowVector.valueAt(0, col));
     }
 
+    /**
+     * Returns a new matrix with each element clamped to the specified range.
+     *
+     * @param min the minimum value
+     * @param max the maximum value
+     * @return a new matrix with each element clamped to the specified range
+     * @see Math#clamp(double, double, double)
+     */
     default M clamp(double min, double max) {
         return map((_, _, value) -> Math.clamp(value, min, max));
     }
 
+    /**
+     * Returns the maximum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the maximum value in the column
+     */
     default double columnMax(int column) {
         return columnValues(column).max().orElseThrow(NoSuchElementException::new);
     }
 
+    /**
+     * Returns a row vector containing the mean of each column.
+     *
+     * @return a new row vector with the mean of each column
+     */
     default M columnMean() {
         return reduceColumns(m -> m.sum() / m.rowCount());
     }
 
+    /**
+     * Returns a new row vector containing the values provided by the supplied reducer function.
+     *
+     * @param reducer the reducer function to apply to each column
+     * @return a row vector with the values provided by the reducer
+     */
     M reduceColumns(ToDoubleFunction<M> reducer);
 
     /**
@@ -79,49 +111,95 @@ public interface Matrix<M extends Matrix<M>> {
      */
     int rowCount();
 
+    /**
+     * Returns the mean value of the specified column.
+     *
+     * @param column the index of the column
+     * @return the mean value of the column
+     */
     default double columnMean(int column) {
         return columnValues(column).average().orElseThrow(NoSuchElementException::new);
     }
 
+    /**
+     * Returns a row vector containing the minimum value of each column.
+     *
+     * @return a new row vector with the minimum value of each column
+     */
     default M columnMin() {
         return reduceColumns(Matrix::min);
     }
 
+    /**
+     * Returns the minimum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the minimum value in the column
+     */
     default double columnMin(int column) {
         return columnValues(column).min().orElseThrow(NoSuchElementException::new);
     }
 
+    /**
+     * Returns a row vector containing the standard deviation of each column.
+     *
+     * @return a new row vector with the standard deviation of each column
+     */
     default M columnStd() {
         return reduceColumns(col -> Math.sqrt(col.variance()));
     }
 
+    /**
+     * Returns the variance of all elements in the matrix.
+     *
+     * @return the variance of all elements
+     */
     default double variance() {
         return variance(this::values);
     }
 
+    /**
+     * Returns the standard deviation of the specified column.
+     *
+     * @param column the index of the column
+     * @return the standard deviation of the column
+     */
     default double columnStd(int column) {
         return Math.sqrt(columnVariance(column));
     }
 
+    /**
+     * Returns the variance of the specified column.
+     *
+     * @param column the index of the column
+     * @return the variance of the column
+     */
     default double columnVariance(int column) {
         return variance(() -> columnValues(column));
     }
 
     private double variance(Supplier<DoubleStream> stream) {
         var mean = stream.get().average().orElse(0.0);
-        return stream.get()
-                .map(v -> Math.pow(v - mean, 2))
-                .average()
-                .orElse(0.0);
+        return stream.get().map(v -> Math.pow(v - mean, 2)).average().orElse(0.0);
     }
 
+    /**
+     * Returns a stream of the values in the specified column.
+     *
+     * @param column the index of the column
+     * @return a stream of the values in the column
+     */
     default DoubleStream columnValues(int column) {
         return columnVector(column).values();
     }
 
+    /**
+     * Returns a stream of all values in the matrix.
+     *
+     * @return a stream of all values
+     */
     default DoubleStream values() {
-        return IntStream.range(0, size())
-                .mapToDouble(index -> valueAt(index / columnCount(), index % columnCount()));
+        return IntStream.range(0, size()).mapToDouble(index -> valueAt(index / columnCount(), index % columnCount()));
     }
 
     /**
@@ -131,10 +209,21 @@ public interface Matrix<M extends Matrix<M>> {
      */
     int columnCount();
 
+    /**
+     * Returns the sum of values in the specified column.
+     *
+     * @param column the index of the column
+     * @return the sum of the column
+     */
     default double columnSum(int column) {
         return columnVector(column).sum();
     }
 
+    /**
+     * Returns a new row vector containing the variance of each column.
+     *
+     * @return a new row vector with the variance of each column
+     */
     default M columnVariance() {
         return reduceColumns(col -> variance(col::values));
     }
@@ -164,14 +253,32 @@ public interface Matrix<M extends Matrix<M>> {
         return map((_, _, value) -> Math.abs(value));
     }
 
+    /**
+     * Returns a new matrix with each element added to the specified value.
+     *
+     * @param value the value to add to each element
+     * @return a new matrix with each element added to the specified value
+     */
     default M elementAdd(double value) {
         return map((_, _, v) -> v + value);
     }
 
+    /**
+     * Returns a new matrix with each element divided by the specified value.
+     *
+     * @param value the value to divide each element by
+     * @return a new matrix with each element divided by the specified value
+     */
     default M elementDivide(double value) {
         return map((_, _, v) -> v / value);
     }
 
+    /**
+     * Returns a new matrix with each element divided by the corresponding element in another matrix.
+     *
+     * @param other the matrix to divide by
+     * @return a new matrix with each element divided by the corresponding element in another matrix
+     */
     default M elementDivide(M other) {
         return map((row, col, value) -> value / other.valueAt(row, col));
     }
@@ -184,10 +291,20 @@ public interface Matrix<M extends Matrix<M>> {
      */
     M elementMultiply(M other);
 
+    /**
+     * Returns a new matrix with each element raised to the power of 0.5 (square root).
+     *
+     * @return a new matrix with each element raised to the power of 0.5
+     */
     default M elementSqrt() {
         return map((_, _, v) -> Math.sqrt(v));
     }
 
+    /**
+     * Returns a new matrix with each element squared.
+     *
+     * @return a new matrix with each element squared
+     */
     default M elementSquare() {
         return elementPower(2.0);
     }
@@ -202,19 +319,35 @@ public interface Matrix<M extends Matrix<M>> {
         return map((_, _, value) -> Math.pow(value, exponent));
     }
 
+    /**
+     * Returns a new matrix with each element subtracted by the specified value.
+     *
+     * @param value the value to subtract from each element
+     * @return a new matrix with each element subtracted by the specified value
+     */
     default M elementSubtract(double value) {
         return map((_, _, v) -> v - value);
     }
 
+    /**
+     * Returns a stream of the elements in the matrix.
+     *
+     * @return a stream of the elements in the matrix
+     */
     default Stream<MatrixElement> elements() {
-        return IntStream.range(0, size())
-                .mapToObj(index -> {
-                    var row = index / columnCount();
-                    var column = index % columnCount();
-                    return new MatrixElement(row, column, valueAt(row, column));
-                });
+        return IntStream.range(0, size()).mapToObj(index -> {
+            var row = index / columnCount();
+            var column = index % columnCount();
+            return new MatrixElement(row, column, valueAt(row, column));
+        });
     }
 
+    /**
+     * Returns a new matrix with the same shape filled with the specified value.
+     *
+     * @param value the value to fill the matrix with
+     * @return a new matrix with the same shape filled with the specified value
+     */
     M fill(double value);
 
     /**
@@ -256,6 +389,13 @@ public interface Matrix<M extends Matrix<M>> {
         return reshape(1, size());
     }
 
+    /**
+     * Checks if the matrix is identical to another matrix within a specified tolerance.
+     *
+     * @param other     the matrix to compare with
+     * @param tolerance the tolerance for comparison
+     * @return true if the matrices are identical within the tolerance, false otherwise
+     */
     default boolean isIdentical(M other, double tolerance) {
         return elements().allMatch(e -> {
             var otherValue = other.valueAt(e.row(), e.column());
@@ -272,12 +412,29 @@ public interface Matrix<M extends Matrix<M>> {
         return rowCount() == columnCount();
     }
 
+    /**
+     * Returns a new matrix of the same kind as this one, with the specified shape.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @return a new matrix of the same kind as this one, with the specified shape
+     */
     M likeKind(int rows, int columns);
 
+    /**
+     * Returns a new matrix with each element replaced by its natural logarithm.
+     *
+     * @return a new matrix with each element replaced by its natural logarithm
+     */
     default M log() {
         return map((_, _, value) -> Math.log(value));
     }
 
+    /**
+     * Returns the maximum value in the matrix.
+     *
+     * @return the maximum value
+     */
     default double max() {
         return deref(values().max());
     }
@@ -286,6 +443,11 @@ public interface Matrix<M extends Matrix<M>> {
         return optional.orElseThrow(NoSuchElementException::new);
     }
 
+    /**
+     * Returns the maximum absolute value in the matrix.
+     *
+     * @return the maximum absolute value
+     */
     double maxAbs();
 
     /**
@@ -297,6 +459,11 @@ public interface Matrix<M extends Matrix<M>> {
         return sum() / size();
     }
 
+    /**
+     * Returns the minimum value in the matrix.
+     *
+     * @return the minimum value
+     */
     default double min() {
         return deref(values().min());
     }
@@ -316,60 +483,135 @@ public interface Matrix<M extends Matrix<M>> {
      */
     M negate();
 
+    /**
+     * Returns the L1 norm of the matrix.
+     *
+     * @return the L1 norm
+     */
     default double normL1() {
         return values().map(Math::abs).sum();
     }
 
+    /**
+     * Returns the L2 norm of the matrix.
+     *
+     * @return the L2 norm
+     */
     default double normL2() {
         return Math.sqrt(values().map(v -> v * v).sum());
     }
 
+    /**
+     * Returns the index of the maximum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the index of the maximum value in the row
+     */
     default int rowArgMax(int row) {
         var columnCount = columnCount();
-        return IntStream.range(0, columnCount)
-                .boxed()
-                .max(Comparator.comparingDouble(col -> valueAt(row, col)))
-                .orElseThrow(NoSuchElementException::new);
+        return IntStream.range(0, columnCount).boxed().max(Comparator.comparingDouble(col -> valueAt(row, col))).orElseThrow(NoSuchElementException::new);
     }
 
+    /**
+     * Returns a column vector containing the maximum value of each row.
+     *
+     * @return a new column vector with the maximum value of each row
+     */
     default M rowMax() {
         return reduceRows(Matrix::max);
     }
 
+    /**
+     * Returns a column vector containing the values provided by the supplied reducer function.
+     *
+     * @param reducer the reducer function to apply to each row
+     * @return a column vector with the values provided by the reducer
+     */
     M reduceRows(ToDoubleFunction<M> reducer);
 
+    /**
+     * Returns the maximum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the maximum value in the row
+     */
     default double rowMax(int row) {
         return deref(rowValues(row).max());
     }
 
+    /**
+     * Returns a column vector containing the mean of each row.
+     *
+     * @return a new column vector with the mean of each row
+     */
     default M rowMean() {
         return reduceRows(m -> m.sum() / m.columnCount());
     }
 
+    /**
+     * Returns the mean of the specified row.
+     *
+     * @param row the index of the row
+     * @return the mean of the row
+     */
     default double rowMean(int row) {
         return deref(rowValues(row).average());
     }
 
+    /**
+     * Returns a column vector containing the minimum value of each row.
+     *
+     * @return a new column vector with the minimum value of each row
+     */
     default M rowMin() {
         return reduceRows(Matrix::min);
     }
 
+    /**
+     * Returns the minimum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the minimum value in the row
+     */
     default double rowMin(int row) {
         return deref(rowValues(row).min());
     }
 
+    /**
+     * Returns a column vector containing the standard deviation of each row.
+     *
+     * @return a new column vector with the standard deviation of each row
+     */
     default M rowStd() {
         return reduceRows(row -> Math.sqrt(row.variance()));
     }
 
+    /**
+     * Returns the standard deviation of the specified row.
+     *
+     * @param row the index of the row
+     * @return the standard deviation of the row
+     */
     default double rowStd(int row) {
         return Math.sqrt(rowVariance(row));
     }
 
+    /**
+     * Returns the variance of the specified row.
+     *
+     * @param row the index of the row
+     * @return the variance of the row
+     */
     default double rowVariance(int row) {
         return variance(() -> rowValues(row));
     }
 
+    /**
+     * Returns a stream of the values in the specified row.
+     *
+     * @param row the index of the row
+     * @return a stream of the values in the row
+     */
     default DoubleStream rowValues(int row) {
         return rowVector(row).values();
     }
@@ -383,10 +625,21 @@ public interface Matrix<M extends Matrix<M>> {
         return reduceRows(Matrix::sum);
     }
 
+    /**
+     * Returns the sum of the specified row.
+     *
+     * @param row the index of the row
+     * @return the sum of the row
+     */
     default double rowSum(int row) {
         return rowVector(row).sum();
     }
 
+    /**
+     * Returns a column vector containing the variance of each row.
+     *
+     * @return a new column vector with the variance of each row
+     */
     default M rowVariance() {
         return reduceRows(row -> variance(row::values));
     }
@@ -420,21 +673,37 @@ public interface Matrix<M extends Matrix<M>> {
      */
     M elementMultiply(double scalar);
 
+    /**
+     * Returns a new matrix with each element replaced by the softmax of the corresponding element.
+     *
+     * @return a new matrix with softmax applied
+     */
     default M softmax() {
         M maxPerColumn = this.columnMax(); // shape: (1, columns)
         M stabilized = this.subtractRowVector(maxPerColumn);
         M exp = stabilized.exp();
         M sumPerColumn = exp.columnSum(); // shape: (1, columns)
 
-        return exp.map((row, col, value) -> value / sumPerColumn.valueAt(0, col));
+        return exp.map((_, col, value) -> value / sumPerColumn.valueAt(0, col));
     }
 
+    /**
+     * Returns a row vector containing the maximum value of each column.
+     *
+     * @return a new column vector with the maximum value of each column
+     */
     default M columnMax() {
         return reduceColumns(Matrix::max);
     }
 
+    /**
+     * Returns a new matrix with the specified row vector subtracted from each row of the matrix.
+     *
+     * @param rowVector the row vector to subtract
+     * @return a new matrix with the row vector subtracted from each row
+     */
     default M subtractRowVector(M rowVector) {
-        return map((row, col, value) -> value - rowVector.valueAt(0, col));
+        return map((_, col, value) -> value - rowVector.valueAt(0, col));
     }
 
     /**
@@ -446,18 +715,40 @@ public interface Matrix<M extends Matrix<M>> {
         return map((_, _, value) -> Math.exp(value));
     }
 
+    /**
+     * Returns a new column vector containing the sum of each column.
+     *
+     * @return a new column vector with the sum of each column
+     */
     default M columnSum() {
         return reduceColumns(Matrix::sum);
     }
 
+    /**
+     * Returns the standard deviation of all elements in the matrix.
+     *
+     * @return the standard deviation of all elements
+     */
     default double std() {
         return Math.sqrt(variance());
     }
 
+    /**
+     * Returns a new matrix that is the result of subtracting another matrix from this matrix.
+     *
+     * @param other the matrix to subtract
+     * @return a new matrix that is the result of the subtraction
+     */
     M subtract(M other);
 
+    /**
+     * Returns a new matrix that is the result of subtracting a column vector from each column of the matrix.
+     *
+     * @param columnVector the column vector to subtract
+     * @return a new matrix with the column vector subtracted from each column
+     */
     default M subtractColumnVector(M columnVector) {
-        return map((row, col, value) -> value - columnVector.valueAt(row, 0));
+        return map((row, _, value) -> value - columnVector.valueAt(row, 0));
     }
 
     /**
