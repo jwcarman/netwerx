@@ -14,7 +14,7 @@ public class Hinge implements Loss {
 
     @Override
     public <M extends Matrix<M>> double loss(M predictions, M targets) {
-        final var loss = Losses.predictionTargets(predictions, targets)
+        final var loss = PredictionTarget.of(predictions, targets)
                 .mapToDouble(pt -> Math.max(0.0, 1.0 - pt.target() * pt.prediction()))
                 .sum();
         return loss / predictions.size();

@@ -1,10 +1,5 @@
 package org.jwcarman.netwerx.loss;
 
-import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.util.Streams;
-
-import java.util.stream.Stream;
-
 public class Losses {
 
 // -------------------------- STATIC METHODS --------------------------
@@ -57,24 +52,7 @@ public class Losses {
         return new WeightedBinaryCrossEntropy(positiveWeight, negativeWeight, epsilon);
     }
 
-    public record PredictionTarget(int row, int col, double prediction, double target) {
-
-    }
-
-    public static <M extends Matrix<M>> Stream<PredictionTarget> predictionTargets(M predictions, M targets) {
-        return Streams.zip(
-                predictions.elements(),
-                targets.elements(),
-                (pred, target) -> new PredictionTarget(
-                        pred.row(),
-                        pred.column(),
-                        pred.value(),
-                        target.value()
-                )
-        );
-    }
-
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     private Losses() {
         // Prevent instantiation

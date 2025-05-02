@@ -20,7 +20,7 @@ public class MeanAbsoluteError implements Loss {
 
     @Override
     public <M extends Matrix<M>> double loss(M predictions, M targets) {
-        final var sum = Losses.predictionTargets(predictions, targets)
+        final var sum = PredictionTarget.of(predictions, targets)
                 .mapToDouble(pt -> Math.abs(pt.prediction() - pt.target()))
                 .sum();
 

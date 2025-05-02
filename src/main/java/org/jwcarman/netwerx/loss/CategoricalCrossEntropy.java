@@ -33,7 +33,7 @@ public class CategoricalCrossEntropy implements Loss {
 
     @Override
     public <M extends Matrix<M>> double loss(M predictions, M targets) {
-        var loss = Losses.predictionTargets(predictions, targets)
+        var loss = PredictionTarget.of(predictions, targets)
                 .mapToDouble(pt -> {
                     var yHat = clamp(pt.prediction(), epsilon, 1.0 - epsilon);
                     var y = pt.target();

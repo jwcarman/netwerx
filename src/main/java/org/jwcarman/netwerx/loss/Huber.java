@@ -16,7 +16,7 @@ public class Huber implements Loss {
 
     @Override
     public <M extends Matrix<M>> double loss(M predictions, M targets) {
-        final var sum = Losses.predictionTargets(predictions, targets)
+        final var sum = PredictionTarget.of(predictions, targets)
                 .mapToDouble(pt -> {
                     var diff = pt.prediction() - pt.target();
                     var absDiff = Math.abs(diff);

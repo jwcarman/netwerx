@@ -24,7 +24,7 @@ public class LogCosh implements Loss {
 
     @Override
     public <M extends Matrix<M>> double loss(M predictions, M targets) {
-        final var loss = Losses.predictionTargets(predictions, targets)
+        final var loss = PredictionTarget.of(predictions, targets)
                 .mapToDouble(pt -> Math.log(Math.cosh(pt.prediction() - pt.target())))
                 .sum();
         return loss / predictions.size();

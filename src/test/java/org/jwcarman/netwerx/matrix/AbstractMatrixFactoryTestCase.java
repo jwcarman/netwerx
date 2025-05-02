@@ -6,6 +6,7 @@ import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.jwcarman.netwerx.util.Tolerances.DEFAULT_TOLERANCE;
 
 public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
 
@@ -36,10 +37,10 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
         assertThat(matrix).isNotNull();
         assertThat(matrix.rowCount()).isEqualTo(2);
         assertThat(matrix.columnCount()).isEqualTo(2);
-        assertThat(matrix.valueAt(0, 0)).isBetween(min, max).usingRecursiveComparison().ignoringFields("value");
-        assertThat(matrix.valueAt(0, 1)).isBetween(min, max).usingRecursiveComparison().ignoringFields("value");
-        assertThat(matrix.valueAt(1, 0)).isBetween(min, max).usingRecursiveComparison().ignoringFields("value");
-        assertThat(matrix.valueAt(1, 1)).isBetween(min, max).usingRecursiveComparison().ignoringFields("value");
+        assertThat(matrix.valueAt(0, 0)).isBetween(min, max);
+        assertThat(matrix.valueAt(0, 1)).isBetween(min, max);
+        assertThat(matrix.valueAt(1, 0)).isBetween(min, max);
+        assertThat(matrix.valueAt(1, 1)).isBetween(min, max);
     }
 
     @Test
@@ -58,7 +59,36 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
             assertThat(value).isNotNaN();
             assertThat(value).isCloseTo(mean, within(2 * stddev));
         });
+    }
 
+    @Test
+    void testIsIdentical() {
+        M matrix1 = factory().from(new double[][]{
+                {1, 2},
+                {3, 4}
+        });
+
+        M matrix2 = factory().from(new double[][]{
+                {1, 2},
+                {3, 4}
+        });
+
+        assertThat(matrix1.isIdentical(matrix2, DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testIsNotIdentical() {
+        M matrix1 = factory().from(new double[][]{
+                {1, 2},
+                {3, 4}
+        });
+
+        M matrix2 = factory().from(new double[][]{
+                {1, 2},
+                {3, 5}
+        });
+
+        assertThat(matrix1.isIdentical(matrix2, DEFAULT_TOLERANCE)).isFalse();
     }
 
     @Test
