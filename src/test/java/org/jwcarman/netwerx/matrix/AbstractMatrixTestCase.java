@@ -593,10 +593,7 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 
     @Test
     void testValues() {
-        var m = factory().from(new double[][]{
-                {1.0, 2.0, 3.0},
-                {4.0, 5.0, 6.0}
-        });
+        var m = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
         var result = m.values().boxed().toList();
         assertThat(result).containsExactly(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     }

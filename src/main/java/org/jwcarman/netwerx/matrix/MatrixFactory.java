@@ -43,13 +43,40 @@ public interface MatrixFactory<M extends Matrix<M>> {
      * @param values  a supplier for the values to fill the matrix with
      * @return a new matrix with the specified dimensions and filled with values from the supplier
      */
-    M filled(int rows, int columns, DoubleSupplier values);
+    default M filled(int rows, int columns, DoubleSupplier values) {
+        return filled(rows, columns, (_, _) -> values.getAsDouble());
+    }
+
+    /**
+     * Creates a new matrix with the specified data.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @param values  the values to fill the matrix with
+     * @return a new matrix with the specified dimensions and filled with the values
+     */
+    default M from(int rows, int columns, double... values) {
+        if (values.length != rows * columns) {
+            throw new IllegalArgumentException(String.format("Invalid number of values (%d) for the specified dimensions (%d x %d), expecting %d values.", values.length, rows, columns, rows * columns));
+        }
+        return filled(rows, columns, (row, col) -> values[row * columns + col]);
+    }
+
+    /**
+     * Creates a new matrix with the specified data.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @param values  a supplier for the values to fill the matrix with
+     * @return a new matrix with the specified dimensions and filled with values from the supplier
+     */
+    M filled(int rows, int columns, MatrixValueSupplier values);
 
     /**
      * Creates a new matrix filled with the specified constant value.
      *
-     * @param rows    the number of rows
-     * @param columns the number of columns
+     * @param rows          the number of rows
+     * @param columns       the number of columns
      * @param constantValue the constant value to fill the matrix with
      * @return a new matrix with the specified dimensions and filled with the constant value
      */
@@ -64,7 +91,7 @@ public interface MatrixFactory<M extends Matrix<M>> {
      * @return a new matrix with the specified dimensions and filled with random values
      */
     default M random(int rows, int columns, Random random) {
-        return filled(rows, columns, random::nextDouble);
+        return filled(rows, columns, (_, _) -> random.nextDouble());
     }
 
     /**
@@ -94,5 +121,10 @@ public interface MatrixFactory<M extends Matrix<M>> {
      */
     default M gaussian(int rows, int columns, double mean, double stddev, Random random) {
         return filled(rows, columns, () -> random.nextGaussian() * stddev + mean);
+    }
+
+    @FunctionalInterface
+    interface MatrixValueSupplier {
+        double getValue(int row, int col);
     }
 }

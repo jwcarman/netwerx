@@ -3,8 +3,6 @@ package org.jwcarman.netwerx.matrix.ejml;
 import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 
-import java.util.function.DoubleSupplier;
-
 public class EjmlMatrixFactory implements MatrixFactory<EjmlMatrix> {
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -22,11 +20,11 @@ public class EjmlMatrixFactory implements MatrixFactory<EjmlMatrix> {
     }
 
     @Override
-    public EjmlMatrix filled(int rows, int columns, DoubleSupplier values) {
+    public EjmlMatrix filled(int rows, int columns, MatrixValueSupplier values) {
         var matrix = new SimpleMatrix(rows, columns);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
-                matrix.set(row, col, values.getAsDouble());
+                matrix.set(row, col, values.getValue(row, col));
             }
         }
         return new EjmlMatrix(matrix);

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.jwcarman.netwerx.util.Tolerances.DEFAULT_TOLERANCE;
 
@@ -63,30 +64,18 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
 
     @Test
     void testIsIdentical() {
-        M matrix1 = factory().from(new double[][]{
-                {1, 2},
-                {3, 4}
-        });
+        M matrix1 = factory().from(2, 2, 1.0, 2.0, 3.0, 4.0);
 
-        M matrix2 = factory().from(new double[][]{
-                {1, 2},
-                {3, 4}
-        });
+        M matrix2 = factory().from(2, 2, 1.0, 2.0, 3.0, 4.0);
 
         assertThat(matrix1.isIdentical(matrix2, DEFAULT_TOLERANCE)).isTrue();
     }
 
     @Test
     void testIsNotIdentical() {
-        M matrix1 = factory().from(new double[][]{
-                {1, 2},
-                {3, 4}
-        });
+        M matrix1 = factory().from(2, 2, 1.0, 2.0, 3.0, 4.0);
 
-        M matrix2 = factory().from(new double[][]{
-                {1, 2},
-                {3, 5}
-        });
+        M matrix2 = factory().from(2, 2, 1.0, 2.0, 3.0, 5.0);
 
         assertThat(matrix1.isIdentical(matrix2, DEFAULT_TOLERANCE)).isFalse();
     }
@@ -105,6 +94,7 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
         assertThat(matrix.valueAt(1, 0)).isNotNaN();
         assertThat(matrix.valueAt(1, 1)).isNotNaN();
     }
+
     @Test
     void testZeros() {
         M matrix = factory().zeros(2, 2);
@@ -119,11 +109,35 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
     }
 
     @Test
-    public void testCreateWithData() {
-        M matrix = factory().from(new double[][]{
-                {1, 2},
-                {3, 4}
-        });
+    public void testFromArray() {
+        M matrix = factory().from(2, 2, 1.0, 2.0, 3.0, 4.0);
+
+        assertThat(matrix).isNotNull();
+        assertThat(matrix.rowCount()).isEqualTo(2);
+        assertThat(matrix.columnCount()).isEqualTo(2);
+        assertThat(matrix.valueAt(0, 0)).isEqualTo(1);
+        assertThat(matrix.valueAt(0, 1)).isEqualTo(2);
+        assertThat(matrix.valueAt(1, 0)).isEqualTo(3);
+        assertThat(matrix.valueAt(1, 1)).isEqualTo(4);
+    }
+
+    @Test
+    void testFromArrayWithInvalidDimensions() {
+        MatrixFactory<M> factory = factory();
+
+        assertThatThrownBy(() -> factory.from(3, 2, 1.0, 2.0, 3.0, 4.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid number of values (4) for the specified dimensions (3 x 2), expecting 6 values.");
+    }
+
+    @Test
+    void testFrom2DArray() {
+        double[][] data = {
+                {1.0, 2.0},
+                {3.0, 4.0}
+        };
+
+        M matrix = factory().from(data);
 
         assertThat(matrix).isNotNull();
         assertThat(matrix.rowCount()).isEqualTo(2);
