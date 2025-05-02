@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -16,33 +16,33 @@ class LogCoshTest {
 
     @Test
     void testLogCoshGradientSmallDifferences() {
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {1.0, 2.0, 3.0}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.1, 1.9, 3.2}
         });
 
         var gradient = Losses.logCosh().gradient(predictions, targets);
 
-        assertThat(gradient.getNumRows()).isEqualTo(predictions.getNumRows());
-        assertThat(gradient.getNumCols()).isEqualTo(predictions.getNumCols());
+        assertThat(gradient.rowCount()).isEqualTo(predictions.rowCount());
+        assertThat(gradient.columnCount()).isEqualTo(predictions.columnCount());
 
-        for (int row = 0; row < gradient.getNumRows(); row++) {
-            for (int col = 0; col < gradient.getNumCols(); col++) {
-                double diff = predictions.get(row, col) - targets.get(row, col);
+        for (int row = 0; row < gradient.rowCount(); row++) {
+            for (int col = 0; col < gradient.columnCount(); col++) {
+                double diff = predictions.valueAt(row, col) - targets.valueAt(row, col);
                 double expected = Math.tanh(diff);
-                assertThat(gradient.get(row, col)).isCloseTo(expected, within(EPSILON));
+                assertThat(gradient.valueAt(row, col)).isCloseTo(expected, within(EPSILON));
             }
         }
     }
 
     @Test
     void testLogCoshLossSmallDifferences() {
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {1.0, 2.0, 3.0}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.1, 1.9, 3.2}
         });
 

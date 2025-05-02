@@ -1,7 +1,6 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.util.Matrices;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public class BinaryCrossEntropy implements Loss {
 
@@ -24,20 +23,21 @@ public class BinaryCrossEntropy implements Loss {
 
 // --------------------- Interface Loss ---------------------
 
+
     @Override
-    public double loss(SimpleMatrix a, SimpleMatrix y) {
-        var clamped = Matrices.clamp(a, epsilon, 1 - epsilon);
-
-        SimpleMatrix term1 = y.elementMult(clamped.elementLog());
-        SimpleMatrix term2 = y.scale(-1).plus(1)
-                .elementMult(clamped.scale(-1).plus(1).elementLog());
-
-        return - (term1.plus(term2)).elementSum() / (a.getNumCols() * a.getNumRows());
+    public <M extends Matrix<M>> M gradient(M a, M y) {
+        return a.subtract(y);
     }
 
     @Override
-    public SimpleMatrix gradient(SimpleMatrix a, SimpleMatrix y) {
-        return a.minus(y);
+    public <M extends Matrix<M>> double loss(M a, M y) {
+        var clamped = a.clamp(epsilon, 1 - epsilon);
+
+        M term1 = y.elementMultiply(clamped.log());
+        M term2 = y.negate().elementAdd(1)
+                .elementMultiply(clamped.negate().elementAdd(1).log());
+
+        return -(term1.add(term2)).sum() / (a.size());
     }
 
 }

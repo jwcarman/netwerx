@@ -1,11 +1,15 @@
 package org.jwcarman.netwerx.wine;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
+import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
+import org.jwcarman.netwerx.optimization.Optimizers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,17 +55,20 @@ class WineTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
+        var classifier = new DefaultNeuralNetworkBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount())
                 .random(random)
-                .layer(layer -> layer
-                        .units(16)
-                )
-                .layer(layer -> layer
-                        .units(8)
-                )
+                .layer(layer -> layer.units(16))
+                .layer(layer -> layer.units(8))
                 .multiClassifier();
 
-        classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 600);
+        var optimizerProvider = Optimizers.<EjmlMatrix>uniform(Optimizers::sgd);
+
+        classifier.train(trainInputs, trainTargets, optimizerProvider, new TrainingObserver() {
+            @Override
+            public <M extends Matrix<M>> boolean onEpoch(int epoch, double loss, M yHat, M y) {
+                return epoch < 100;
+            }
+        });
 
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());
@@ -71,8 +78,8 @@ class WineTestCase {
         assertThat(stats.f1()).isGreaterThanOrEqualTo(0.75);
     }
 
-    private static SimpleMatrix features(List<Wine> list) {
-        SimpleMatrix features = Datasets.features(list,
+    private static EjmlMatrix features(List<Wine> list) {
+        EjmlMatrix features = Datasets.features(list,
                 Wine::alcohol,
                 Wine::malicAcid,
                 Wine::ash,

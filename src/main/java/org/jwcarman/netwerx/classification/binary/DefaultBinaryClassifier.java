@@ -1,25 +1,24 @@
 package org.jwcarman.netwerx.classification.binary;
 
-import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.loss.Loss;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
-import java.util.stream.IntStream;
-
-public class DefaultBinaryClassifier implements BinaryClassifier {
+public class DefaultBinaryClassifier<M extends Matrix<M>> implements BinaryClassifier<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
     public static final double TRUE = 1.0;
     public static final double FALSE = 0.0;
     public static final double THRESHOLD = 0.5;
-    private final NeuralNetwork network;
+    private final NeuralNetwork<M> network;
     private final Loss loss;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultBinaryClassifier(NeuralNetwork network, Loss loss) {
+    public DefaultBinaryClassifier(NeuralNetwork<M> network, Loss loss) {
         this.network = network;
         this.loss = loss;
     }
@@ -29,26 +28,23 @@ public class DefaultBinaryClassifier implements BinaryClassifier {
 // --------------------- Interface BinaryClassifier ---------------------
 
     @Override
-    public boolean[] predict(SimpleMatrix input) {
+    public boolean[] predict(M input) {
         var probabilities = network.predict(input);
-        var predictions = new boolean[probabilities.getNumCols()];
+        var predictions = new boolean[probabilities.columnCount()];
 
-        for (int col = 0; col < probabilities.getNumCols(); col++) {
-            predictions[col] = probabilities.get(0, col) > THRESHOLD;
+        for (int col = 0; col < probabilities.columnCount(); col++) {
+            predictions[col] = probabilities.valueAt(0, col) > THRESHOLD;
         }
 
         return predictions;
     }
 
     @Override
-    public void train(SimpleMatrix x, boolean[] labels, TrainingObserver observer) {
-        network.train(x, convertLabels(labels), loss, observer);
+    public void train(M x, boolean[] labels, OptimizerProvider<M> optimizerProvider, TrainingObserver observer) {
+        network.train(x, convertLabels(x, labels), loss, optimizerProvider, observer);
     }
 
-    private static SimpleMatrix convertLabels(boolean[] labels) {
-        var numSamples = labels.length;
-        var y = new SimpleMatrix(1, numSamples);
-        IntStream.range(0, numSamples).forEach(i -> y.set(0, i, labels[i] ? TRUE : FALSE));
-        return y;
+    private M convertLabels(M input, boolean[] labels) {
+        return input.likeKind(1, input.columnCount()).map((row, col, value) -> labels[col] ? TRUE : FALSE);
     }
 }

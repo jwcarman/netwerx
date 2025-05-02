@@ -10,8 +10,8 @@ import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifier;
 import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifier;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierConfig;
-import org.jwcarman.netwerx.optimization.Optimizer;
-import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.regression.DefaultRegressionModel;
 import org.jwcarman.netwerx.regression.RegressionModel;
 import org.jwcarman.netwerx.regression.RegressionModelConfig;
@@ -21,15 +21,13 @@ import org.jwcarman.netwerx.util.Randoms;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Supplier;
 
-public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
+public class DefaultNeuralNetworkBuilder<M extends Matrix<M>> implements NeuralNetworkBuilder<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
+    private final MatrixFactory<M> factory;
     private final List<DefaultLayerConfig> layerConfigs = new LinkedList<>();
-    private Supplier<Optimizer> weightOptimizer = Optimizers::sgd;
-    private Supplier<Optimizer> biasOptimizer = Optimizers::sgd;
     private Random random = Randoms.defaultRandom();
     private int inputSize;
 
@@ -40,7 +38,8 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      *
      * @param inputSize the size of the input layer
      */
-    public DefaultNeuralNetworkBuilder(int inputSize) {
+    public DefaultNeuralNetworkBuilder(MatrixFactory<M> factory, int inputSize) {
+        this.factory = factory;
         this.inputSize = inputSize;
     }
 
@@ -48,19 +47,13 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
 
 // --------------------- Interface NeuralNetworkBuilder ---------------------
 
-    @Override
-    public DefaultNeuralNetworkBuilder biasOptimizer(Supplier<Optimizer> biasOptimizer) {
-        this.biasOptimizer = biasOptimizer;
-        return this;
-    }
-
     /**
      * Creates a binary classifier with default configuration.
      *
      * @return a BinaryClassifier instance with default settings
      */
     @Override
-    public BinaryClassifier binaryClassifier() {
+    public BinaryClassifier<M> binaryClassifier() {
         return binaryClassifier(Customizer.noop());
     }
 
@@ -71,21 +64,16 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a BinaryClassifier instance configured with the provided customizer
      */
     @Override
-    public BinaryClassifier binaryClassifier(Customizer<BinaryClassifierConfig> customizer) {
+    public BinaryClassifier<M> binaryClassifier(Customizer<BinaryClassifierConfig> customizer) {
         DefaultBinaryClassifierConfig config = new DefaultBinaryClassifierConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
         customizer.customize(config);
 
         layer(layer -> layer
                 .units(1)
                 .activation(Activations.sigmoid())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom()));
+        );
 
-        return new DefaultBinaryClassifier(build(), config.getLoss());
+        return new DefaultBinaryClassifier<>(build(), config.getLoss());
     }
 
     /**
@@ -94,8 +82,8 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a NeuralNetwork instance containing the configured layers
      */
     @Override
-    public NeuralNetwork build() {
-        return new DefaultNeuralNetwork(layerConfigs.stream().map(Layer::new).toList());
+    public NeuralNetwork<M> build() {
+        return new DefaultNeuralNetwork<>(layerConfigs.stream().map(config -> new Layer<>(factory, random, config)).toList());
     }
 
     /**
@@ -105,11 +93,8 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return this NeuralNetworkBuilder instance for method chaining
      */
     @Override
-    public DefaultNeuralNetworkBuilder layer(Customizer<LayerConfig> customizer) {
+    public DefaultNeuralNetworkBuilder<M> layer(Customizer<LayerConfig> customizer) {
         DefaultLayerConfig config = new DefaultLayerConfig(inputSize);
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
         customizer.customize(config);
         layerConfigs.add(config);
         this.inputSize = config.getUnits();
@@ -122,7 +107,7 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a MultiClassifier instance with default settings
      */
     @Override
-    public MultiClassifier multiClassifier() {
+    public MultiClassifier<M> multiClassifier() {
         return multiClassifier(Customizer.noop());
     }
 
@@ -133,33 +118,20 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a MultiClassifier instance configured with the provided customizer
      */
     @Override
-    public MultiClassifier multiClassifier(Customizer<MultiClassifierConfig> customizer) {
+    public MultiClassifier<M> multiClassifier(Customizer<MultiClassifierConfig> customizer) {
         var config = new DefaultMultiClassifierConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
         customizer.customize(config);
 
         layer(layer -> layer
                 .units(config.getOutputClasses())
                 .activation(Activations.softmax())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom())
         );
 
-        return new DefaultMultiClassifier(build(), config.getLoss(), config.getOutputClasses());
+        return new DefaultMultiClassifier<>(build(), config.getLoss(), config.getOutputClasses());
     }
 
     @Override
-    public DefaultNeuralNetworkBuilder optimizer(Supplier<Optimizer> optimizer) {
-        this.weightOptimizer = optimizer;
-        this.biasOptimizer = optimizer;
-        return this;
-    }
-
-    @Override
-    public DefaultNeuralNetworkBuilder random(Random random) {
+    public DefaultNeuralNetworkBuilder<M> random(Random random) {
         this.random = random;
         return this;
     }
@@ -170,7 +142,7 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a RegressionModel instance with default settings
      */
     @Override
-    public RegressionModel regressionModel() {
+    public RegressionModel<M> regressionModel() {
         return regressionModel(Customizer.noop());
     }
 
@@ -181,28 +153,16 @@ public class DefaultNeuralNetworkBuilder implements NeuralNetworkBuilder {
      * @return a RegressionModel instance configured with the provided customizer
      */
     @Override
-    public RegressionModel regressionModel(Customizer<RegressionModelConfig> customizer) {
+    public RegressionModel<M> regressionModel(Customizer<RegressionModelConfig> customizer) {
         DefaultRegressionModelConfig config = new DefaultRegressionModelConfig();
-        config.random(random);
-        config.weightOptimizer(weightOptimizer.get());
-        config.biasOptimizer(biasOptimizer.get());
         customizer.customize(config);
 
         layer(layer -> layer
                 .units(1)
                 .activation(Activations.linear())
-                .weightOptimizer(config.getWeightOptimizer())
-                .biasOptimizer(config.getBiasOptimizer())
-                .random(config.getRandom())
         );
 
-        return new DefaultRegressionModel(build(), config.getLoss());
-    }
-
-    @Override
-    public DefaultNeuralNetworkBuilder weightOptimizer(Supplier<Optimizer> weightOptimizer) {
-        this.weightOptimizer = weightOptimizer;
-        return this;
+        return new DefaultRegressionModel<>(build(), config.getLoss());
     }
 
 }

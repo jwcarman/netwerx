@@ -1,20 +1,19 @@
 package org.jwcarman.netwerx.activation;
 
-import org.ejml.simple.SimpleMatrix;
-import org.ejml.simple.SimpleOperations;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public abstract class ScalarActivation implements Activation {
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface ActivationFunction ---------------------
+// --------------------- Interface Activation ---------------------
 
-    public SimpleMatrix apply(SimpleMatrix input) {
-        return input.elementOp((SimpleOperations.ElementOpReal) (_, _, v) -> apply(v));
+    public <M extends Matrix<M>> M apply(M input) {
+        return input.map((row, col, v) -> apply(v));
     }
 
-    public SimpleMatrix derivative(SimpleMatrix input) {
-        return input.elementOp((SimpleOperations.ElementOpReal) (_, _, v) -> derivative(v));
+    public <M extends Matrix<M>> M derivative(M input) {
+        return input.map((row, col, v) -> derivative(v));
     }
 
 // -------------------------- OTHER METHODS --------------------------

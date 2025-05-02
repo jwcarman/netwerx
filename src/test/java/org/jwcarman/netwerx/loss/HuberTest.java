@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -12,25 +12,25 @@ class HuberTest {
     void testHuberLossAndGradientWithDefaultDelta() {
         var huber = Losses.huber(); // Default delta = 1.0
 
-        var predictions = new SimpleMatrix(new double[][] {
+        var predictions = Matrices.of(new double[][] {
                 {2.5, 0.0, 1.0}
         });
 
-        var targets = new SimpleMatrix(new double[][] {
+        var targets = Matrices.of(new double[][] {
                 {3.0, -1.0, 1.5}
         });
 
         double loss = huber.loss(predictions, targets);
         assertThat(loss).isCloseTo(0.25, within(0.0001));
 
-        var expectedGrad = new SimpleMatrix(new double[][] {
+        var expectedGrad = Matrices.of(new double[][] {
                 {-0.5 / 3.0, 1.0 / 3.0, -0.5 / 3.0}
         });
 
         var grad = huber.gradient(predictions, targets);
 
-        for (int col = 0; col < grad.getNumCols(); col++) {
-            assertThat(grad.get(0, col)).isCloseTo(expectedGrad.get(0, col), within(0.0001));
+        for (int col = 0; col < grad.columnCount(); col++) {
+            assertThat(grad.valueAt(0, col)).isCloseTo(expectedGrad.valueAt(0, col), within(0.0001));
         }
     }
 
@@ -38,11 +38,11 @@ class HuberTest {
     void testHuberLossAndGradientWithCustomDelta() {
         var huber = Losses.huber(0.5); // Custom smaller delta
 
-        var predictions = new SimpleMatrix(new double[][] {
+        var predictions = Matrices.of(new double[][] {
                 {0.0, 2.0, 4.0}
         });
 
-        var targets = new SimpleMatrix(new double[][] {
+        var targets = Matrices.of(new double[][] {
                 {0.2, 0.0, 6.0}
         });
 
@@ -69,8 +69,8 @@ class HuberTest {
 
         double[] expectedGrads = {-0.2 / 3.0, 0.5 / 3.0, -0.5 / 3.0};
 
-        for (int col = 0; col < grad.getNumCols(); col++) {
-            assertThat(grad.get(0, col)).isCloseTo(expectedGrads[col], within(0.0001));
+        for (int col = 0; col < grad.columnCount(); col++) {
+            assertThat(grad.valueAt(0, col)).isCloseTo(expectedGrads[col], within(0.0001));
         }
     }
 }

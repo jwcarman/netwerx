@@ -1,30 +1,21 @@
 package org.jwcarman.netwerx.activation;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public class Softmax implements Activation {
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Activation ---------------------
+
     @Override
-    public SimpleMatrix apply(SimpleMatrix input) {
-        var output = new SimpleMatrix(input.getNumRows(), input.getNumCols());
-
-        for (int col = 0; col < input.getNumCols(); col++) {
-            var column = input.extractVector(false, col);
-
-            var max = column.elementMaxAbs();
-            var stabilized = column.minus(max);
-            var exp = stabilized.elementExp();
-            var sumExp = exp.elementSum();
-            for (int row = 0; row < exp.getNumRows(); row++) {
-                output.set(row, col, exp.get(row) / sumExp);
-            }
-        }
-
-        return output;
+    public <M extends Matrix<M>> M apply(M logits) {
+        return logits.softmax();
     }
 
     @Override
-    public SimpleMatrix derivative(SimpleMatrix input) {
-        return SimpleMatrix.filled(input.getNumRows(), input.getNumCols(), 1.0);
+    public <M extends Matrix<M>> M derivative(M input) {
+        return input.map((row, col, value) -> 1.0);
     }
+
 }

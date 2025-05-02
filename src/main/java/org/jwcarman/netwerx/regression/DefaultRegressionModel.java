@@ -1,32 +1,28 @@
 package org.jwcarman.netwerx.regression;
 
-import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.loss.Loss;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
-public class DefaultRegressionModel implements RegressionModel {
+public class DefaultRegressionModel<M extends Matrix<M>> implements RegressionModel<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private final NeuralNetwork network;
+    private final NeuralNetwork<M> network;
     private final Loss loss;
 
 // -------------------------- STATIC METHODS --------------------------
 
 // -------------------------- HELPER METHODS --------------------------
-    private static SimpleMatrix convertLabels(double[] labels) {
-        var numSamples = labels.length;
-        var y = new SimpleMatrix(1, numSamples);
-        for (int col = 0; col < numSamples; col++) {
-            y.set(0, col, labels[col]);
-        }
-        return y;
+    private M convertLabels(M inputs, double[] labels) {
+        return inputs.likeKind(1, inputs.columnCount()).map((_, col, _) -> labels[col]);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultRegressionModel(NeuralNetwork network, Loss loss) {
+    public DefaultRegressionModel(NeuralNetwork<M> network, Loss loss) {
         this.network = network;
         this.loss = loss;
     }
@@ -36,18 +32,18 @@ public class DefaultRegressionModel implements RegressionModel {
 // --------------------- Interface RegressionModel ---------------------
 
     @Override
-    public double[] predict(SimpleMatrix input) {
+    public double[] predict(M input) {
         var output = network.predict(input);
-        var predictions = new double[output.getNumCols()];
-        for (int col = 0; col < output.getNumCols(); col++) {
-            predictions[col] = output.get(0, col);
+        var predictions = new double[output.columnCount()];
+        for (int col = 0; col < output.columnCount(); col++) {
+            predictions[col] = output.valueAt(0, col);
         }
         return predictions;
     }
 
     @Override
-    public void train(SimpleMatrix inputs, double[] labels, TrainingObserver observer) {
-        network.train(inputs, convertLabels(labels), loss, observer);
+    public void train(M inputs, double[] labels, OptimizerProvider<M> optimizerProvider, TrainingObserver observer) {
+        network.train(inputs, convertLabels(inputs, labels), loss, optimizerProvider, observer);
     }
 
 }

@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static java.lang.Math.log;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,12 +12,12 @@ class CategoricalCrossEntropyTest {
     void testUnweightedCCE_Loss() {
         var loss = Losses.cce();
         // 3 classes, 2 samples
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {0.7, 0.1},
                 {0.2, 0.7},
                 {0.1, 0.2}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0, 0.0},
                 {0.0, 1.0},
                 {0.0, 0.0}
@@ -31,10 +31,10 @@ class CategoricalCrossEntropyTest {
     @Test
     void testClampingBehaviorPreventsLog0() {
         var loss = Losses.cce();
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {1e-20}, {0.0}, {1.0}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0}, {0.0}, {0.0}
         });
 
@@ -48,20 +48,20 @@ class CategoricalCrossEntropyTest {
     @Test
     void testGradient() {
         var loss = Losses.cce();
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {0.7}, {0.2}, {0.1}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0}, {0.0}, {0.0}
         });
 
         var grad = loss.gradient(predictions, targets);
 
-        assertThat(grad.getNumRows()).isEqualTo(3);
-        assertThat(grad.getNumCols()).isEqualTo(1);
-        assertThat(grad.get(0)).isCloseTo(-0.3, withinTolerance());
-        assertThat(grad.get(1)).isCloseTo(0.2, withinTolerance());
-        assertThat(grad.get(2)).isCloseTo(0.1, withinTolerance());
+        assertThat(grad.rowCount()).isEqualTo(3);
+        assertThat(grad.columnCount()).isEqualTo(1);
+        assertThat(grad.valueAt(0,0)).isCloseTo(-0.3, withinTolerance());
+        assertThat(grad.valueAt(1,0)).isCloseTo(0.2, withinTolerance());
+        assertThat(grad.valueAt(2,0)).isCloseTo(0.1, withinTolerance());
     }
 
     @Test
@@ -69,10 +69,10 @@ class CategoricalCrossEntropyTest {
         double customEpsilon = 1e-5;
         var loss = Losses.cce(customEpsilon);
 
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {0.0}, {0.0}, {1.0}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0}, {0.0}, {0.0}
         });
 

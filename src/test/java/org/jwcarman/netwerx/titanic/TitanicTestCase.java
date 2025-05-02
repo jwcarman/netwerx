@@ -1,11 +1,15 @@
 package org.jwcarman.netwerx.titanic;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
+import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
+import org.jwcarman.netwerx.optimization.OptimizerProvider;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,14 +59,20 @@ class TitanicTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = new DefaultNeuralNetworkBuilder(trainInputs.getNumRows())
+        var classifier = new DefaultNeuralNetworkBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount())
                 .random(random)
-                .optimizer(Optimizers::sgd)
                 .layer(layer -> layer.units(8))
                 .layer(layer -> layer.units(4))
                 .binaryClassifier();
 
-        classifier.train(trainInputs, trainTargets, (epoch, _, _, _) -> epoch < 100);
+        OptimizerProvider<EjmlMatrix> provider = Optimizers.uniform(Optimizers::sgd);
+
+        classifier.train(trainInputs, trainTargets, provider, new TrainingObserver() {
+            @Override
+            public <M extends Matrix<M>> boolean onEpoch(int epoch, double loss, M yHat, M y) {
+                return epoch < 100;
+            }
+        });
 
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());
@@ -76,8 +86,8 @@ class TitanicTestCase {
         return Datasets.binaryLabels(list, TitanicPassenger::survived);
     }
 
-    private static SimpleMatrix features(List<TitanicPassenger> list) {
-        SimpleMatrix features = Datasets.features(list,
+    private static EjmlMatrix features(List<TitanicPassenger> list) {
+        EjmlMatrix features = Datasets.features(list,
                 TitanicPassenger::ticketClass,
                 TitanicPassenger::age,
                 TitanicPassenger::sex,

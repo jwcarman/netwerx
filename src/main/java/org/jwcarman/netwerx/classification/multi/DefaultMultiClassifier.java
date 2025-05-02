@@ -1,21 +1,22 @@
 package org.jwcarman.netwerx.classification.multi;
 
-import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.loss.Loss;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
-public class DefaultMultiClassifier implements MultiClassifier {
+public class DefaultMultiClassifier<M extends Matrix<M>> implements MultiClassifier<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private final NeuralNetwork network;
+    private final NeuralNetwork<M> network;
     private final Loss loss;
     private final int outputClasses;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultMultiClassifier(NeuralNetwork network, Loss loss, int outputClasses) {
+    public DefaultMultiClassifier(NeuralNetwork<M> network, Loss loss, int outputClasses) {
         this.network = network;
         this.loss = loss;
         this.outputClasses = outputClasses;
@@ -24,17 +25,17 @@ public class DefaultMultiClassifier implements MultiClassifier {
 // ------------------------ INTERFACE METHODS ------------------------
 
     @Override
-    public int[] predict(SimpleMatrix input) {
+    public int[] predict(M input) {
         var probabilities = network.predict(input);
-        int[] predictions = new int[probabilities.getNumCols()];
+        int[] predictions = new int[probabilities.columnCount()];
 
-        for (int col = 0; col < probabilities.getNumCols(); col++) {
+        for (int col = 0; col < probabilities.columnCount(); col++) {
             int maxIndex = 0;
-            double maxValue = probabilities.get(0, col);
+            double maxValue = probabilities.valueAt(0, col);
 
-            for (int row = 1; row < probabilities.getNumRows(); row++) {
-                if (probabilities.get(row, col) > maxValue) {
-                    maxValue = probabilities.get(row, col);
+            for (int row = 1; row < probabilities.rowCount(); row++) {
+                if (probabilities.valueAt(row, col) > maxValue) {
+                    maxValue = probabilities.valueAt(row, col);
                     maxIndex = row;
                 }
             }
@@ -46,15 +47,12 @@ public class DefaultMultiClassifier implements MultiClassifier {
     }
 
     @Override
-    public void train(SimpleMatrix x, int[] labels, TrainingObserver observer) {
-        network.train(x, convertLabels(labels), loss, observer);
+    public void train(M x, int[] labels, OptimizerProvider<M> optimizerProvider, TrainingObserver observer) {
+        network.train(x, convertLabels(x, labels), loss, optimizerProvider, observer);
     }
 
-    private SimpleMatrix convertLabels(int[] labels) {
-        var matrix = new SimpleMatrix(outputClasses, labels.length);
-        for (int i = 0; i < labels.length; i++) {
-            matrix.set(labels[i], i, 1.0);
-        }
-        return matrix;
+    private M convertLabels(M input, int[] labels) {
+        return input.likeKind(outputClasses, labels.length)
+                .map((row, col, value) -> labels[col] == row ? 1.0 : 0.0);
     }
 }

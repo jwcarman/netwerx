@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,10 +9,10 @@ class WeightedBinaryCrossEntropyTest {
     @Test
     void computesLossAndGradientCorrectly() {
         // Binary labels (0 and 1)
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {0.9, 0.2, 0.8, 0.1}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0, 0.0, 1.0, 0.0}
         });
 
@@ -23,17 +23,17 @@ class WeightedBinaryCrossEntropyTest {
         assertThat(result).isBetween(0.1, 1.0);
 
         var grad = loss.gradient(predictions, targets);
-        assertThat(grad.getNumRows()).isEqualTo(1);
-        assertThat(grad.getNumCols()).isEqualTo(4);
+        assertThat(grad.rowCount()).isEqualTo(1);
+        assertThat(grad.columnCount()).isEqualTo(4);
     }
 
     @Test
     void supportsCustomEpsilon() {
         // Force very small predictions to test epsilon clamping
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {1e-20, 1.0 - 1e-20}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0, 0.0}
         });
 

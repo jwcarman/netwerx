@@ -1,13 +1,13 @@
 package org.jwcarman.netwerx.optimization;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 /**
  * RMSProp optimizer.
- *
+ * <p>
  * Reference: Tieleman & Hinton (2012).
  */
-public class RmsPropOptimizer implements Optimizer {
+public class RmsPropOptimizer<M extends Matrix<M>> implements Optimizer<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -15,7 +15,7 @@ public class RmsPropOptimizer implements Optimizer {
     private final double beta;
     private final double epsilon;
 
-    private SimpleMatrix v; // Moving average of squared gradients
+    private M v; // Moving average of squared gradients
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -34,18 +34,18 @@ public class RmsPropOptimizer implements Optimizer {
 // --------------------- Interface Optimizer ---------------------
 
     @Override
-    public SimpleMatrix optimize(SimpleMatrix param, SimpleMatrix grad) {
+    public M optimize(M param, M grad) {
         if (v == null) {
-            v = new SimpleMatrix(grad.getNumRows(), grad.getNumCols());
+            v = grad.fill(0.0);
         }
 
         // v = beta * v + (1 - beta) * grad^2
-        v = v.scale(beta).plus(grad.elementMult(grad).scale(1.0 - beta));
+        v = v.scale(beta).add(grad.elementMultiply(grad).scale(1.0 - beta));
 
         // param = param - learningRate * grad / (sqrt(v) + epsilon)
-        var update = grad.elementDiv(v.elementPower(0.5).plus(epsilon)).scale(learningRate);
+        var update = grad.elementDivide(v.elementPower(0.5).elementAdd(epsilon)).scale(learningRate);
 
-        return param.minus(update);
+        return param.subtract(update);
     }
 
 }

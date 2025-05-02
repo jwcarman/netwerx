@@ -1,8 +1,19 @@
 package org.jwcarman.netwerx.optimization;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
-public class MomentumOptimizer implements Optimizer {
+/**
+ * Momentum optimizer (Polyak, 1964).
+ * <p>
+ * Updates parameters using momentum-based gradient descent:
+ *     v = μ * v + η * ∇θ
+ *     θ = θ - v
+ * <p>
+ * Where:
+ *     μ = momentum factor
+ *     η = learning rate
+ */
+public class MomentumOptimizer<M extends Matrix<M>> implements Optimizer<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -10,7 +21,7 @@ public class MomentumOptimizer implements Optimizer {
     public static final double DEFAULT_MOMENTUM_FACTOR = 0.9;
     private final double learningRate;
     private final double momentumFactor;
-    private SimpleMatrix velocity;
+    private M velocity;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -28,12 +39,12 @@ public class MomentumOptimizer implements Optimizer {
 // --------------------- Interface Optimizer ---------------------
 
     @Override
-    public SimpleMatrix optimize(SimpleMatrix params, SimpleMatrix gradient) {
+    public M optimize(M params, M gradient) {
         if (velocity == null) {
-            velocity = new SimpleMatrix(gradient.getNumRows(), gradient.getNumCols());
+            velocity = gradient.fill(0.0); // Initialize velocity to zero
         }
-        velocity = velocity.scale(momentumFactor).plus(gradient.scale(learningRate));
-        return params.minus(velocity);
+        velocity = velocity.scale(momentumFactor).add(gradient.scale(learningRate));
+        return params.subtract(velocity);
     }
 
 }

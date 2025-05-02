@@ -1,13 +1,13 @@
 package org.jwcarman.netwerx.activation;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 import java.util.Random;
 
 public interface Activation {
-    SimpleMatrix apply(SimpleMatrix input);
+    <M extends Matrix<M>> M apply(M input);
 
-    SimpleMatrix derivative(SimpleMatrix input);
+    <M extends Matrix<M>> M derivative(M input);
 
     default double generateInitialWeight(Random rand, int fanIn, int fanOut) {
         double limit = Math.sqrt(6.0 / (fanIn + fanOut));

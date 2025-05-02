@@ -1,8 +1,8 @@
 package org.jwcarman.netwerx.optimization;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 @FunctionalInterface
-public interface Optimizer {
-    SimpleMatrix optimize(SimpleMatrix parameter, SimpleMatrix gradient);
+public interface Optimizer<M extends Matrix<M>> {
+    M optimize(M parameter, M gradient);
 }

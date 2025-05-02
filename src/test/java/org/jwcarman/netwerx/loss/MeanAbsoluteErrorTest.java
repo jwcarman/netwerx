@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Matrices;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -16,33 +16,33 @@ class MeanAbsoluteErrorTest {
 
     @Test
     void testMeanAbsoluteErrorGradient() {
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {2.5, 0.0, 2.1}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {3.0, -0.5, 2.0}
         });
 
         var gradient = Losses.mae().gradient(predictions, targets);
 
-        assertThat(gradient.getNumRows()).isEqualTo(predictions.getNumRows());
-        assertThat(gradient.getNumCols()).isEqualTo(predictions.getNumCols());
+        assertThat(gradient.rowCount()).isEqualTo(predictions.rowCount());
+        assertThat(gradient.columnCount()).isEqualTo(predictions.columnCount());
 
-        for (int row = 0; row < gradient.getNumRows(); row++) {
-            for (int col = 0; col < gradient.getNumCols(); col++) {
-                double diff = predictions.get(row, col) - targets.get(row, col);
-                double expected = Math.signum(diff) / (predictions.getNumRows() * predictions.getNumCols());
-                assertThat(gradient.get(row, col)).isCloseTo(expected, within(EPSILON));
+        for (int row = 0; row < gradient.rowCount(); row++) {
+            for (int col = 0; col < gradient.columnCount(); col++) {
+                double diff = predictions.valueAt(row, col) - targets.valueAt(row, col);
+                double expected = Math.signum(diff) / predictions.size();
+                assertThat(gradient.valueAt(row, col)).isCloseTo(expected, within(EPSILON));
             }
         }
     }
 
     @Test
     void testMeanAbsoluteErrorLoss() {
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {2.5, 0.0, 2.1}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {3.0, -0.5, 2.0}
         });
 
@@ -56,10 +56,10 @@ class MeanAbsoluteErrorTest {
 
     @Test
     void testPerfectPredictionsHaveZeroLoss() {
-        var predictions = new SimpleMatrix(new double[][]{
+        var predictions = Matrices.of(new double[][]{
                 {1.0, 2.0, 3.0}
         });
-        var targets = new SimpleMatrix(new double[][]{
+        var targets = Matrices.of(new double[][]{
                 {1.0, 2.0, 3.0}
         });
 

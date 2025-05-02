@@ -1,24 +1,30 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
-import org.jwcarman.netwerx.util.Matrices;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public class MeanAbsoluteError implements Loss {
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Loss ---------------------
+
+
     @Override
-    public double loss(SimpleMatrix predictions, SimpleMatrix targets) {
-        final var sum = Matrices.predictionTargets(predictions, targets)
+    public <M extends Matrix<M>> M gradient(M predictions, M targets) {
+        return predictions.map((row, col, yHat) -> {
+            var y = targets.valueAt(row, col);
+            var diff = yHat - y;
+            return Math.signum(diff) / predictions.size();
+        });
+    }
+
+    @Override
+    public <M extends Matrix<M>> double loss(M predictions, M targets) {
+        final var sum = Losses.predictionTargets(predictions, targets)
                 .mapToDouble(pt -> Math.abs(pt.prediction() - pt.target()))
                 .sum();
 
-        return sum / (predictions.getNumRows() * predictions.getNumCols());
+        return sum / predictions.size();
     }
 
-    @Override
-    public SimpleMatrix gradient(SimpleMatrix predictions, SimpleMatrix targets) {
-        var grad = new SimpleMatrix(predictions.getNumRows(), predictions.getNumCols());
-        Matrices.predictionTargets(predictions, targets)
-                .forEach(pt -> grad.set(pt.row(), pt.col(), Math.signum(pt.prediction() - pt.target())));
-        return grad.divide(1.0 * predictions.getNumRows() * predictions.getNumCols());
-    }
 }

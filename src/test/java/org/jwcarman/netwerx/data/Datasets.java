@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.data;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
+import org.jwcarman.netwerx.util.Matrices;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,23 +19,15 @@ public class Datasets {
 // -------------------------- STATIC METHODS --------------------------
 
     @SafeVarargs
-    public static <T> SimpleMatrix features(List<T> data, Function<T, Double>... featureExtractors) {
+    public static <T> EjmlMatrix features(List<T> data, Function<T, Double>... featureExtractors) {
         if (data.isEmpty()) {
-            return new SimpleMatrix(featureExtractors.length, 0);
+            return Matrices.of(featureExtractors.length, 0);
         }
 
         final var rows = featureExtractors.length;
         final var cols = data.size();
-        final var features = new SimpleMatrix(rows, cols);
-
-        for (int col = 0; col < cols; col++) {
-            var item = data.get(col);
-            for (int row = 0; row < rows; row++) {
-                features.set(row, col, featureExtractors[row].apply(item));
-            }
-        }
-
-        return features;
+        return Matrices.of(rows, cols)
+                .map((row, col, value) -> featureExtractors[row].apply(data.get(col)));
     }
 
     public static <T> double[] regressionLabels(List<T> data, Function<T, Double> labelExtractor) {
@@ -76,25 +69,25 @@ public class Datasets {
      * @param matrix The SimpleMatrix containing the features.
      * @param row    The row index of the feature to normalize
      */
-    public static void normalizeFeature(SimpleMatrix matrix, int row) {
+    public static void normalizeFeature(EjmlMatrix matrix, int row) {
         double min = Double.POSITIVE_INFINITY;
         double max = Double.NEGATIVE_INFINITY;
 
-        for (int col = 0; col < matrix.getNumCols(); col++) {
-            double value = matrix.get(row, col);
+        for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
+            double value = matrix.valueAt(row, col);
             if (value < min) min = value;
             if (value > max) max = value;
         }
 
         double range = max - min;
         if (range == 0) {
-            for (int col = 0; col < matrix.getNumCols(); col++) {
-                matrix.set(row, col, 0.5);  // Uniform
+            for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
+                matrix.getDelegate().set(row, col, 0.5);  // Uniform
             }
         } else {
-            for (int col = 0; col < matrix.getNumCols(); col++) {
-                double value = matrix.get(row, col);
-                matrix.set(row, col, (value - min) / range);
+            for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
+                double value = matrix.valueAt(row, col);
+                matrix.getDelegate().set(row, col, (value - min) / range);
             }
         }
     }

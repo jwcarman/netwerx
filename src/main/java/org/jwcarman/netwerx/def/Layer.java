@@ -1,82 +1,89 @@
 package org.jwcarman.netwerx.def;
 
-import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.activation.Activation;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.optimization.Optimizer;
-import org.jwcarman.netwerx.util.Matrices;
 
-import static org.jwcarman.netwerx.util.Matrices.addColumnVector;
+import java.util.Random;
 
-class Layer {
+class Layer<M extends Matrix<M>> {
 
 // ------------------------------ FIELDS ------------------------------
 
-    private SimpleMatrix weights;
-    private SimpleMatrix biases;
+    private M weights;
+    private M biases;
     private final Activation activation;
-    private final Optimizer weightOptimizer;
-    private final Optimizer biasOptimizer;
 
-// -------------------------- STATIC METHODS --------------------------
-
-    private static SimpleMatrix sumColumns(SimpleMatrix matrix) {
-        SimpleMatrix sum = new SimpleMatrix(matrix.getNumRows(), 1);
-        for (int row = 0; row < matrix.getNumRows(); row++) {
-            sum.set(row, 0, matrix.extractVector(true, row).elementSum());
-        }
-        return sum;
-    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Layer(DefaultLayerConfig config) {
-        this.weights = Matrices.filled(config.getUnits(), config.getInputSize(), () -> config.getActivation().generateInitialWeight(config.getRandom(), config.getInputSize(), config.getUnits()));
-        this.biases = SimpleMatrix.filled(config.getUnits(), 1, config.getActivation().generateInitialBias());
+    public Layer(MatrixFactory<M> factory, Random random, DefaultLayerConfig config) {
+        this.weights = factory.filled(config.getUnits(), config.getInputSize(), () -> config.getActivation().generateInitialWeight(random, config.getInputSize(), config.getUnits()));
+        this.biases = factory.filled(config.getUnits(), 1, () -> config.getActivation().generateInitialBias());
         this.activation = config.getActivation();
-        this.weightOptimizer = config.getWeightOptimizer();
-        this.biasOptimizer = config.getBiasOptimizer();
     }
 
 // -------------------------- OTHER METHODS --------------------------
 
-    public Backprop forward(final SimpleMatrix aPrev) {
-        final var z = addColumnVector(weights.mult(aPrev), biases);
+    public Backprop<M> forward(final M aPrev, Optimizer<M> weightOptimizer, Optimizer<M> biasOptimizer) {
+        final var z = weights.multiply(aPrev).addColumnVector(biases);
         final var a = activation.apply(z);
-        return new Backprop() {
+        return new LayerBackprop(aPrev, z, a, weightOptimizer, biasOptimizer);
+    }
 
-            @Override
-            public SimpleMatrix a() {
-                return a;
-            }
-
-            @Override
-            public SimpleMatrix apply(SimpleMatrix gradOutput) {
-                final var dz = gradOutput.elementMult(activation.derivative(z));
-
-                final var m = gradOutput.getNumCols();
-
-                final var originalWeights = weights.copy();
-
-                final var dw = dz.mult(aPrev.transpose()).divide(m);
-                weights = weightOptimizer.optimize(weights, dw);
-
-                final var db = sumColumns(dz).divide(m);
-                biases = biasOptimizer.optimize(biases, db);
-
-                return originalWeights.transpose().mult(dz);
-            }
-
-        };
+    public M inference(final M aPrev) {
+        final var z = weights.multiply(aPrev).addColumnVector(biases);
+        return activation.apply(z);
     }
 
 // -------------------------- INNER CLASSES --------------------------
 
-    public interface Backprop {
+    private class LayerBackprop implements Backprop<M> {
 
-// -------------------------- OTHER METHODS --------------------------
+// ------------------------------ FIELDS ------------------------------
 
-        SimpleMatrix a();
-        SimpleMatrix apply(SimpleMatrix gradOutput);
+        private final M aPrev;
+        private final M z;
+        private final M a;
+        private final Optimizer<M> weightOptimizer;
+        private final Optimizer<M> biasOptimizer;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+        public LayerBackprop(M aPrev, M z, M a, Optimizer<M> weightOptimizer, Optimizer<M> biasOptimizer) {
+            this.aPrev = aPrev;
+            this.z = z;
+            this.a = a;
+            this.weightOptimizer = weightOptimizer;
+            this.biasOptimizer = biasOptimizer;
+        }
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Backprop ---------------------
+
+        @Override
+        public M a() {
+            return a;
+        }
+
+        @Override
+        public M apply(M gradOutput) {
+            final var dz = gradOutput.elementMultiply(activation.derivative(z));
+
+            final var m = gradOutput.columnCount();
+
+            final var originalWeights = weights.copy();
+
+            final var dw = dz.multiply(aPrev.transpose()).elementDivide(m);
+            weights = weightOptimizer.optimize(weights, dw);
+
+            final var db = dz.rowSum().elementDivide(m);
+            biases = biasOptimizer.optimize(biases, db);
+
+            return originalWeights.transpose().multiply(dz);
+        }
 
     }
 

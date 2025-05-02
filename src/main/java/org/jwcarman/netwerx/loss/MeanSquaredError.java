@@ -1,17 +1,23 @@
 package org.jwcarman.netwerx.loss;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public class MeanSquaredError implements Loss {
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface Loss ---------------------
+
+
     @Override
-    public double loss(SimpleMatrix predictions, SimpleMatrix targets) {
-        var diff = predictions.minus(targets);
-        return diff.elementPower(2).elementSum() / (predictions.getNumCols() * predictions.getNumRows());
+    public <M extends Matrix<M>> M gradient(M predictions, M targets) {
+        return predictions.subtract(targets).scale(2.0 / predictions.size());
     }
 
     @Override
-    public SimpleMatrix gradient(SimpleMatrix predictions, SimpleMatrix targets) {
-        return predictions.minus(targets).scale(2.0 / (predictions.getNumCols() * predictions.getNumRows()));
+    public <M extends Matrix<M>> double loss(M predictions, M targets) {
+        var diff = predictions.subtract(targets);
+        return diff.elementPower(2).sum() / predictions.size();
     }
+
 }

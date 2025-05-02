@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
 public interface TrainingObserver {
 
@@ -11,10 +11,10 @@ public interface TrainingObserver {
      *
      * @param epoch the current epoch number
      * @param loss  the loss value for the epoch
-     * @param a     the output of the model for the epoch
+     * @param yHat     the output of the model for the epoch
      * @param y     the target values for the epoch
      * @return true if training should continue, false to stop training
      */
-    boolean onEpoch(int epoch, double loss, SimpleMatrix a, SimpleMatrix y);
+    <M extends Matrix<M>> boolean onEpoch(int epoch, double loss, M yHat, M y);
 
 }

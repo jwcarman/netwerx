@@ -1,20 +1,21 @@
 package org.jwcarman.netwerx.classification.multi;
 
-import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.TrainingObserver;
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
-public interface MultiClassifier {
+public interface MultiClassifier<M extends Matrix<M>> {
 
 // -------------------------- OTHER METHODS --------------------------
 
     /**
      * Predicts the class index for each input column.
      */
-    int[] predict(SimpleMatrix input);
+    int[] predict(M input);
 
     /**
      * Trains the classifier on the provided inputs and one-hot encoded labels.
      */
-    void train(SimpleMatrix x, int[] labels, TrainingObserver observer);
+    void train(M x, int[] labels, OptimizerProvider<M> optimizerProvider, TrainingObserver observer);
 
 }

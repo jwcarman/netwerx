@@ -1,8 +1,16 @@
 package org.jwcarman.netwerx.optimization;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
-public class SgdOptimizer implements Optimizer {
+/**
+ * Standard Stochastic Gradient Descent (SGD) optimizer.
+ * <p>
+ * Updates parameters using:
+ *   θ = θ - η * ∇θ
+ * <p>
+ * No momentum or adaptive behavior — simple and efficient.
+ */
+public class SgdOptimizer<M extends Matrix<M>> implements Optimizer<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -25,7 +33,8 @@ public class SgdOptimizer implements Optimizer {
 // --------------------- Interface Optimizer ---------------------
 
     @Override
-    public SimpleMatrix optimize(SimpleMatrix parameter, SimpleMatrix gradient) {
-        return parameter.minus(gradient.scale(learningRate));
+    public M optimize(M parameter, M gradient) {
+        return parameter.subtract(gradient.scale(learningRate));
     }
+
 }

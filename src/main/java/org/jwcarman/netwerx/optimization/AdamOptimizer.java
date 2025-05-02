@@ -1,8 +1,8 @@
 package org.jwcarman.netwerx.optimization;
 
-import org.ejml.simple.SimpleMatrix;
+import org.jwcarman.netwerx.matrix.Matrix;
 
-public class AdamOptimizer implements Optimizer {
+public class AdamOptimizer<M extends Matrix<M>> implements Optimizer<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
@@ -11,8 +11,8 @@ public class AdamOptimizer implements Optimizer {
     private final double beta2;
     private final double epsilon;
 
-    private SimpleMatrix m; // First moment vector (mean)
-    private SimpleMatrix v; // Second moment vector (uncentered variance)
+    private M m; // First moment vector (mean)
+    private M v; // Second moment vector (uncentered variance)
     private int t; // Time step
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -34,29 +34,29 @@ public class AdamOptimizer implements Optimizer {
 // --------------------- Interface Optimizer ---------------------
 
     @Override
-    public SimpleMatrix optimize(SimpleMatrix param, SimpleMatrix grad) {
+    public M optimize(M param, M grad) {
         if (m == null) {
-            m = new SimpleMatrix(grad.getNumRows(), grad.getNumCols());
-            v = new SimpleMatrix(grad.getNumRows(), grad.getNumCols());
+            m = grad.fill(0);
+            v = grad.fill(0);
         }
 
         t++;
 
         // m = beta1 * m + (1 - beta1) * grad
-        m = m.scale(beta1).plus(grad.scale(1.0 - beta1));
+        m = m.scale(beta1).add(grad.scale(1.0 - beta1));
 
         // v = beta2 * v + (1 - beta2) * (grad element-wise squared)
-        var gradSquared = grad.elementMult(grad);
-        v = v.scale(beta2).plus(gradSquared.scale(1.0 - beta2));
+        var gradSquared = grad.elementMultiply(grad);
+        v = v.scale(beta2).add(gradSquared.scale(1.0 - beta2));
 
         // Bias correction
-        var mHat = m.divide(1.0 - Math.pow(beta1, t));
-        var vHat = v.divide(1.0 - Math.pow(beta2, t));
+        var mHat = m.elementDivide(1.0 - Math.pow(beta1, t));
+        var vHat = v.elementDivide(1.0 - Math.pow(beta2, t));
 
         // param = param - learningRate * mHat / (sqrt(vHat) + epsilon)
-        var update = mHat.elementDiv(vHat.elementPower(0.5).plus(epsilon)).scale(learningRate);
+        var update = mHat.elementDivide(vHat.elementPower(0.5).elementAdd(epsilon)).scale(learningRate);
 
-        return param.minus(update);
+        return param.subtract(update);
     }
 
 }
