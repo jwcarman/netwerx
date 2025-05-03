@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public class MeanAbsoluteError implements Loss {
+public class MeanAbsoluteError implements LossFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

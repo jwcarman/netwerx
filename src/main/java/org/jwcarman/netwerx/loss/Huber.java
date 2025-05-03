@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public class Huber implements Loss {
+public class Huber implements LossFunction {
 
     private final double delta;
 

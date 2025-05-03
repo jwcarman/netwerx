@@ -8,6 +8,12 @@ public class EjmlMatrixFactory implements MatrixFactory<EjmlMatrix> {
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface MatrixFactory ---------------------
+    private static final EjmlMatrix EMPTY = new EjmlMatrix(new SimpleMatrix(0, 0));
+
+    @Override
+    public EjmlMatrix empty() {
+        return EMPTY;
+    }
 
     @Override
     public EjmlMatrix from(double[][] data) {

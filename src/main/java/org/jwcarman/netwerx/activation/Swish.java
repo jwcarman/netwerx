@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class Swish extends HeActivation {
+public class Swish extends HeInitializedActivationFunction {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

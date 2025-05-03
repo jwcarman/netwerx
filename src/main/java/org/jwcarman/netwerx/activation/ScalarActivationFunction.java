@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.activation;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public abstract class ScalarActivation implements Activation {
+public abstract class ScalarActivationFunction implements ActivationFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

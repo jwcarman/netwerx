@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class LeakyReLU extends HeActivation {
+public class LeakyReLU extends HeInitializedActivationFunction {
 
 // ------------------------------ FIELDS ------------------------------
 

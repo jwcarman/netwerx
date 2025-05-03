@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class Sigmoid extends ScalarActivation {
+public class Sigmoid extends ScalarActivationFunction {
 
 // -------------------------- OTHER METHODS --------------------------
 

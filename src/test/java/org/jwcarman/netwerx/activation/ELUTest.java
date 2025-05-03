@@ -9,7 +9,7 @@ import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 class ELUTest {
     @Test
     void apply_shouldApplyELUFunctionToEachElement_defaultAlpha() {
-        var elu = Activations.elu(); // default alpha = 1.0
+        var elu = ActivationFunctions.elu(); // default alpha = 1.0
         var input = Matrices.of(new double[][]{
                 {1.0, 0.0, -1.0}
         });
@@ -24,7 +24,7 @@ class ELUTest {
     @Test
     void apply_shouldApplyELUFunctionToEachElement_customAlpha() {
         var alpha = 2.0;
-        var elu = Activations.elu(0.0, alpha);
+        var elu = ActivationFunctions.elu(0.0, alpha);
         var input = Matrices.of(new double[][]{
                 {2.0, -0.5}
         });
@@ -37,7 +37,7 @@ class ELUTest {
 
     @Test
     void derivative_shouldApplyDerivativeOfELUFunction_defaultAlpha() {
-        var elu = Activations.elu(); // alpha = 1.0
+        var elu = ActivationFunctions.elu(); // alpha = 1.0
         var input = Matrices.of(new double[][]{
                 {2.0, 0.0, -1.0}
         });
@@ -52,7 +52,7 @@ class ELUTest {
     @Test
     void derivative_shouldApplyDerivativeOfELUFunction_customAlpha() {
         var alpha = 1.5;
-        var elu = Activations.elu(0.0, alpha);
+        var elu = ActivationFunctions.elu(0.0, alpha);
         var input = Matrices.of(new double[][]{
                 {-2.0, 1.0}
         });

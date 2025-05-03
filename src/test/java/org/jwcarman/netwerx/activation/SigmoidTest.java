@@ -9,7 +9,7 @@ import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 class SigmoidTest {
     @Test
     void apply_shouldMapInputsToSigmoidValues() {
-        var sigmoid = Activations.sigmoid();
+        var sigmoid = ActivationFunctions.sigmoid();
         var input = Matrices.of(new double[][]{
                 {-2.0, 0.0, 2.0}
         });
@@ -22,7 +22,7 @@ class SigmoidTest {
 
     @Test
     void derivative_shouldBeCorrectForEachElement() {
-        var sigmoid = Activations.sigmoid();
+        var sigmoid = ActivationFunctions.sigmoid();
         var input = Matrices.of(new double[][]{
                 {-2.0, 0.0, 2.0}
         });

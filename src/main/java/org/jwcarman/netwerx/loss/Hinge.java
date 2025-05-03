@@ -6,7 +6,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
  * Hinge Loss function (for binary classification).
  * Assumes labels are -1 or +1.
  */
-public class Hinge implements Loss {
+public class Hinge implements LossFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

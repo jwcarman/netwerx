@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public class BinaryCrossEntropy implements Loss {
+public class BinaryCrossEntropy implements LossFunction {
 
 // ------------------------------ FIELDS ------------------------------
 

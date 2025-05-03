@@ -1,16 +1,17 @@
 package org.jwcarman.netwerx.concrete;
 
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.TrainingObserver;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
+import org.jwcarman.netwerx.observer.TrainingObserver;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
-import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
+import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,20 +46,15 @@ class ConcreteTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var regressionModel = new DefaultNeuralNetworkBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount())
-                .random(random)
-                .layer(layer -> layer.units(16))
-                .layer(layer -> layer.units(8))
-                .regressionModel();
+        var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
+                .defaultOptimizer(() -> Optimizers.momentum(0.25, 0.9))
+                .stoppingAdvisor(new EpochCountStoppingAdvisor(2000))
+                .denseLayer(layer -> layer.units(16))
+                .denseLayer(layer -> layer.units(8))
+                .buildRegressionModelTrainer();
 
-        var optimizerProvider = Optimizers.uniform(ConcreteTestCase::optimizer);
+        var regressionModel = trainer.train(trainInputs, trainTargets);
 
-        regressionModel.train(trainInputs, trainTargets, optimizerProvider, new TrainingObserver() {
-            @Override
-            public <M extends Matrix<M>> boolean onEpoch(int epoch, double loss, M yHat, M y) {
-                return epoch < 2000;
-            }
-        });
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());
         var predictions = regressionModel.predict(testInputs);
@@ -67,10 +63,6 @@ class ConcreteTestCase {
         logger.info("Stats: {}", stats);
         assertThat(stats.r2()).isGreaterThan(0.8);
 
-    }
-
-    private static Optimizer<EjmlMatrix> optimizer() {
-        return Optimizers.momentum(0.25, 0.9);
     }
 
     private static double[] labels(List<Concrete> list) {

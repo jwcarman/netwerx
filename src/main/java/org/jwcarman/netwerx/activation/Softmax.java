@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.activation;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public class Softmax implements Activation {
+public class Softmax implements ActivationFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

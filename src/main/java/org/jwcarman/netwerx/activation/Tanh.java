@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class Tanh extends ScalarActivation {
+public class Tanh extends ScalarActivationFunction {
 
 // -------------------------- OTHER METHODS --------------------------
 

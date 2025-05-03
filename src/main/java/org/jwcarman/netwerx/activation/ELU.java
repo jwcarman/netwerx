@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class ELU extends HeActivation {
+public class ELU extends HeInitializedActivationFunction {
 
 // ------------------------------ FIELDS ------------------------------
 

@@ -12,7 +12,7 @@ class TanhTest {
 
     @Test
     void apply_shouldMapInputsToRangeNegativeOneToOne() {
-        var tanh = Activations.tanh();
+        var tanh = ActivationFunctions.tanh();
         var input = Matrices.of(new double[][]{
                 {-10.0},
                 {0.0},
@@ -27,7 +27,7 @@ class TanhTest {
 
     @Test
     void derivative_shouldMatchExpectedBehavior() {
-        var tanh = Activations.tanh();
+        var tanh = ActivationFunctions.tanh();
         var input = Matrices.of(new double[][]{
                 {-10.0},
                 {0.0},

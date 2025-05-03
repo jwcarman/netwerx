@@ -12,7 +12,7 @@ class SoftmaxTest {
 
     @Test
     void apply_shouldBeNumericallyStableForLargeValues() {
-        var softmax = Activations.softmax();
+        var softmax = ActivationFunctions.softmax();
         var input = Matrices.of(new double[][]{
                 {1.0},
                 {2.0},
@@ -40,7 +40,7 @@ class SoftmaxTest {
 
     @Test
     void apply_shouldOutputProbabilitiesSummingToOnePerColumn() {
-        var softmax = Activations.softmax();
+        var softmax = ActivationFunctions.softmax();
         var input = Matrices.of(new double[][]{
                 {1.0, 5.0},
                 {2.0, 4.0},
@@ -55,7 +55,7 @@ class SoftmaxTest {
 
     @Test
     void apply_shouldOutputSameShape() {
-        var softmax = Activations.softmax();
+        var softmax = ActivationFunctions.softmax();
         var input = Matrices.of(new double[][]{
                 {1.0, 2.0},
                 {3.0, 4.0},

@@ -1,9 +1,9 @@
 package org.jwcarman.netwerx.classification.multi;
 
 import org.jwcarman.netwerx.NeuralNetwork;
-import org.jwcarman.netwerx.TrainingObserver;
-import org.jwcarman.netwerx.loss.Loss;
+import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.observer.TrainingObserver;
 import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
 public class DefaultMultiClassifier<M extends Matrix<M>> implements MultiClassifier<M> {
@@ -11,18 +11,16 @@ public class DefaultMultiClassifier<M extends Matrix<M>> implements MultiClassif
 // ------------------------------ FIELDS ------------------------------
 
     private final NeuralNetwork<M> network;
-    private final Loss loss;
-    private final int outputClasses;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultMultiClassifier(NeuralNetwork<M> network, Loss loss, int outputClasses) {
+    public DefaultMultiClassifier(NeuralNetwork<M> network) {
         this.network = network;
-        this.loss = loss;
-        this.outputClasses = outputClasses;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
+
+// --------------------- Interface MultiClassifier ---------------------
 
     @Override
     public int[] predict(M input) {
@@ -46,13 +44,4 @@ public class DefaultMultiClassifier<M extends Matrix<M>> implements MultiClassif
         return predictions;
     }
 
-    @Override
-    public void train(M x, int[] labels, OptimizerProvider<M> optimizerProvider, TrainingObserver observer) {
-        network.train(x, convertLabels(x, labels), loss, optimizerProvider, observer);
-    }
-
-    private M convertLabels(M input, int[] labels) {
-        return input.likeKind(outputClasses, labels.length)
-                .map((row, col, value) -> labels[col] == row ? 1.0 : 0.0);
-    }
 }

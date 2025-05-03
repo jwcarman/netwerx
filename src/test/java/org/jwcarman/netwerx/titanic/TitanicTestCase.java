@@ -1,16 +1,14 @@
 package org.jwcarman.netwerx.titanic;
 
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.TrainingObserver;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
-import org.jwcarman.netwerx.def.DefaultNeuralNetworkBuilder;
-import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
-import org.jwcarman.netwerx.optimization.OptimizerProvider;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,20 +57,14 @@ class TitanicTestCase {
         var trainInputs = features(split.trainingSet());
         var trainTargets = labels(split.trainingSet());
 
-        var classifier = new DefaultNeuralNetworkBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount())
-                .random(random)
-                .layer(layer -> layer.units(8))
-                .layer(layer -> layer.units(4))
-                .binaryClassifier();
+        var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
+                .defaultOptimizer(Optimizers::sgd)
+                .stoppingAdvisor(new EpochCountStoppingAdvisor(200))
+                .denseLayer(layer -> layer.units(8))
+                .denseLayer(layer -> layer.units(4))
+                .buildBinaryClassifierTrainer();
 
-        OptimizerProvider<EjmlMatrix> provider = Optimizers.uniform(Optimizers::sgd);
-
-        classifier.train(trainInputs, trainTargets, provider, new TrainingObserver() {
-            @Override
-            public <M extends Matrix<M>> boolean onEpoch(int epoch, double loss, M yHat, M y) {
-                return epoch < 100;
-            }
-        });
+        var classifier = trainer.train(trainInputs, trainTargets);
 
         var testInputs = features(split.testSet());
         var testTargets = labels(split.testSet());

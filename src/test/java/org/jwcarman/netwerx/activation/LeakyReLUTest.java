@@ -10,7 +10,7 @@ class LeakyReLUTest {
 
     @Test
     void apply_shouldMatchExpectedBehavior_withDefaults() {
-        var activation = Activations.leakyRelu(); // Uses default alpha = 0.01
+        var activation = ActivationFunctions.leakyRelu(); // Uses default alpha = 0.01
         var input = Matrices.of(new double[][]{{-1.0, 2.0}});
 
         var output = activation.apply(input);
@@ -21,7 +21,7 @@ class LeakyReLUTest {
 
     @Test
     void derivative_shouldMatchExpectedBehavior_withDefaults() {
-        var activation = Activations.leakyRelu(); // Uses default alpha = 0.01
+        var activation = ActivationFunctions.leakyRelu(); // Uses default alpha = 0.01
         var input = Matrices.of(new double[][]{{-1.0, 2.0}});
 
         var derivative = activation.derivative(input);
@@ -32,7 +32,7 @@ class LeakyReLUTest {
 
     @Test
     void apply_shouldMatchExpectedBehavior_withCustomAlpha() {
-        var activation = Activations.leakyRelu(0.01, 0.05);
+        var activation = ActivationFunctions.leakyRelu(0.01, 0.05);
         var input = Matrices.of(new double[][]{{-2.0, 3.0}});
 
         var output = activation.apply(input);
@@ -43,7 +43,7 @@ class LeakyReLUTest {
 
     @Test
     void derivative_shouldMatchExpectedBehavior_withCustomAlpha() {
-        var activation = Activations.leakyRelu(0.01, 0.05);
+        var activation = ActivationFunctions.leakyRelu(0.01, 0.05);
         var input = Matrices.of(new double[][]{{-2.0, 3.0}});
 
         var derivative = activation.derivative(input);

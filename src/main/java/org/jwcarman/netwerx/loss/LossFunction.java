@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public interface Loss {
+public interface LossFunction {
 
 // -------------------------- OTHER METHODS --------------------------
 

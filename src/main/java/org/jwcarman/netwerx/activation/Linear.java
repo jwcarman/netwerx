@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class Linear extends ScalarActivation {
+public class Linear extends ScalarActivationFunction {
 
 // -------------------------- OTHER METHODS --------------------------
 

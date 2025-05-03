@@ -2,7 +2,7 @@ package org.jwcarman.netwerx.loss;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-public class MeanSquaredError implements Loss {
+public class MeanSquaredError implements LossFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

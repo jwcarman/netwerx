@@ -4,51 +4,51 @@ public class Losses {
 
 // -------------------------- STATIC METHODS --------------------------
 
-    public static Loss bce() {
+    public static LossFunction bce() {
         return new BinaryCrossEntropy();
     }
 
-    public static Loss bce(double epsilon) {
+    public static LossFunction bce(double epsilon) {
         return new BinaryCrossEntropy(epsilon);
     }
 
-    public static Loss mse() {
+    public static LossFunction mse() {
         return new MeanSquaredError();
     }
 
-    public static Loss cce() {
+    public static LossFunction cce() {
         return new CategoricalCrossEntropy();
     }
 
-    public static Loss cce(double epsilon) {
+    public static LossFunction cce(double epsilon) {
         return new CategoricalCrossEntropy(epsilon);
     }
 
-    public static Loss mae() {
+    public static LossFunction mae() {
         return new MeanAbsoluteError();
     }
 
-    public static Loss huber() {
+    public static LossFunction huber() {
         return new Huber();
     }
 
-    public static Loss huber(double delta) {
+    public static LossFunction huber(double delta) {
         return new Huber(delta);
     }
 
-    public static Loss hinge() {
+    public static LossFunction hinge() {
         return new Hinge();
     }
 
-    public static Loss logCosh() {
+    public static LossFunction logCosh() {
         return new LogCosh();
     }
 
-    public static Loss weightedBce(double positiveWeight, double negativeWeight) {
+    public static LossFunction weightedBce(double positiveWeight, double negativeWeight) {
         return new WeightedBinaryCrossEntropy(positiveWeight, negativeWeight);
     }
 
-    public static Loss weightedBce(double positiveWeight, double negativeWeight, double epsilon) {
+    public static LossFunction weightedBce(double positiveWeight, double negativeWeight, double epsilon) {
         return new WeightedBinaryCrossEntropy(positiveWeight, negativeWeight, epsilon);
     }
 

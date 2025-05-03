@@ -12,7 +12,7 @@ class LinearTest {
 
     @Test
     void apply_shouldReturnSameMatrix() {
-        var linear = Activations.linear();
+        var linear = ActivationFunctions.linear();
         var input = Matrices.of(new double[][]{
                 {1.5, -2.0, 0.0}
         });
@@ -30,7 +30,7 @@ class LinearTest {
 
     @Test
     void derivative_shouldReturnMatrixOfOnes() {
-        var linear = Activations.linear();
+        var linear = ActivationFunctions.linear();
         var input = Matrices.of(new double[][]{
                 {3.2, -1.1, 0.0}
         });

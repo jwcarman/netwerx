@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.activation;
 
-public class ReLU extends HeActivation {
+public class ReLU extends HeInitializedActivationFunction {
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

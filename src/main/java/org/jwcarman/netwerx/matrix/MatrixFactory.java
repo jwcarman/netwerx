@@ -8,44 +8,19 @@ public interface MatrixFactory<M extends Matrix<M>> {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
+     * Creates an empty (zero-sized) matrix.
+     *
+     * @return a new empty matrix instance
+     */
+    M empty();
+
+    /**
      * Creates a new matrix from the specified data.
      *
      * @param data the data for the matrix
      * @return a new matrix filled with the specified data
      */
     M from(double[][] data);
-
-    /**
-     * Creates a new matrix with the specified number of rows and columns.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @return a new matrix with the specified dimensions (filled with zeros)
-     */
-    M zeros(int rows, int columns);
-
-    /**
-     * Creates a new matrix filled with ones.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @return a new matrix with the specified dimensions and filled with ones
-     */
-    default M ones(int rows, int columns) {
-        return filled(rows, columns, 1.0);
-    }
-
-    /**
-     * Creates a new matrix with the specified data.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @param values  a supplier for the values to fill the matrix with
-     * @return a new matrix with the specified dimensions and filled with values from the supplier
-     */
-    default M filled(int rows, int columns, DoubleSupplier values) {
-        return filled(rows, columns, (_, _) -> values.getAsDouble());
-    }
 
     /**
      * Creates a new matrix with the specified data.
@@ -71,6 +46,31 @@ public interface MatrixFactory<M extends Matrix<M>> {
      * @return a new matrix with the specified dimensions and filled with values from the supplier
      */
     M filled(int rows, int columns, MatrixValueSupplier values);
+
+    /**
+     * Creates a new matrix filled with Gaussian-distributed random values.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @param mean    the mean of the Gaussian distribution
+     * @param stddev  the standard deviation of the Gaussian distribution
+     * @param random  a Random instance to generate random values
+     * @return a new matrix with the specified dimensions and filled with Gaussian-distributed random values
+     */
+    default M gaussian(int rows, int columns, double mean, double stddev, Random random) {
+        return filled(rows, columns, () -> random.nextGaussian() * stddev + mean);
+    }
+
+    /**
+     * Creates a new matrix filled with ones.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @return a new matrix with the specified dimensions and filled with ones
+     */
+    default M ones(int rows, int columns) {
+        return filled(rows, columns, 1.0);
+    }
 
     /**
      * Creates a new matrix filled with the specified constant value.
@@ -110,21 +110,35 @@ public interface MatrixFactory<M extends Matrix<M>> {
     }
 
     /**
-     * Creates a new matrix filled with Gaussian-distributed random values.
+     * Creates a new matrix with the specified data.
      *
      * @param rows    the number of rows
      * @param columns the number of columns
-     * @param mean    the mean of the Gaussian distribution
-     * @param stddev  the standard deviation of the Gaussian distribution
-     * @param random  a Random instance to generate random values
-     * @return a new matrix with the specified dimensions and filled with Gaussian-distributed random values
+     * @param values  a supplier for the values to fill the matrix with
+     * @return a new matrix with the specified dimensions and filled with values from the supplier
      */
-    default M gaussian(int rows, int columns, double mean, double stddev, Random random) {
-        return filled(rows, columns, () -> random.nextGaussian() * stddev + mean);
+    default M filled(int rows, int columns, DoubleSupplier values) {
+        return filled(rows, columns, (_, _) -> values.getAsDouble());
     }
+
+    /**
+     * Creates a new matrix with the specified number of rows and columns.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @return a new matrix with the specified dimensions (filled with zeros)
+     */
+    M zeros(int rows, int columns);
+
+// -------------------------- INNER CLASSES --------------------------
 
     @FunctionalInterface
     interface MatrixValueSupplier {
+
+// -------------------------- OTHER METHODS --------------------------
+
         double getValue(int row, int col);
+
     }
+
 }

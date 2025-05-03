@@ -10,7 +10,7 @@ import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 class SwishTest {
     @Test
     void apply_shouldReturnExpectedSwishValues() {
-        var swish = Activations.swish();  // default bias
+        var swish = ActivationFunctions.swish();  // default bias
         var input = Matrices.of(new double[][]{
                 {-2.0},
                 {0.0},
@@ -28,7 +28,7 @@ class SwishTest {
 
     @Test
     void derivative_shouldReturnExpectedSwishGradient() {
-        var swish = Activations.swish();
+        var swish = ActivationFunctions.swish();
         var input = Matrices.of(new double[][]{
                 {-2.0},
                 {0.0},
@@ -47,7 +47,7 @@ class SwishTest {
 
     @Test
     void customBiasConstructor_shouldNotAffectFunctionality() {
-        var swish = Activations.swish(0.42);  // Custom initial bias
+        var swish = ActivationFunctions.swish(0.42);  // Custom initial bias
         var input = Matrices.of(new double[][] {
                 {1.0}
         });

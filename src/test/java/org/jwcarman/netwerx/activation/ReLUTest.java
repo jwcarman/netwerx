@@ -2,6 +2,7 @@ package org.jwcarman.netwerx.activation;
 
 import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.util.Matrices;
+import org.jwcarman.netwerx.util.Randoms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
@@ -12,7 +13,7 @@ class ReLUTest {
 
     @Test
     void apply_shouldZeroOutNegatives() {
-        var relu = Activations.relu();
+        var relu = ActivationFunctions.relu();
         var input = Matrices.of(new double[][]{
                 {-2.0, 0.0, 1.5}
         });
@@ -28,7 +29,7 @@ class ReLUTest {
 
     @Test
     void derivative_shouldBeZeroForNegativesAndOneForPositives() {
-        var relu = Activations.relu();
+        var relu = ActivationFunctions.relu();
         var input = Matrices.of(new double[][]{
                 {-1.0, 0.0, 2.5}
         });
@@ -44,8 +45,8 @@ class ReLUTest {
 
     @Test
     void constructor_withInitialBias_setsExpectedBias() {
-        var relu = Activations.relu(0.01);
-        var weight = relu.generateInitialBias();
+        var relu = ActivationFunctions.relu(0.01);
+        var weight = relu.initialBias(Randoms.defaultRandom(), 1, 1);
         assertThat(weight).isCloseTo(0.01, withinTolerance());
     }
 

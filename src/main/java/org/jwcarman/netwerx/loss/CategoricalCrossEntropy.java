@@ -4,7 +4,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
 
 import static java.lang.Math.clamp;
 
-public class CategoricalCrossEntropy implements Loss {
+public class CategoricalCrossEntropy implements LossFunction {
 
 // ------------------------------ FIELDS ------------------------------
 

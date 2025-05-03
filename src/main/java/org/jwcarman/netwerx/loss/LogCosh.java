@@ -6,7 +6,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
  * Log-Cosh Loss function.
  * A smooth approximation to Mean Absolute Error (MAE).
  */
-public class LogCosh implements Loss {
+public class LogCosh implements LossFunction {
 
 // ------------------------ INTERFACE METHODS ------------------------
 

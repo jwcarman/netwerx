@@ -10,6 +10,11 @@ public class Streams {
 
 // -------------------------- STATIC METHODS --------------------------
 
+    public static <A,B> Stream<Pair<A,B>> zip(Stream<? extends A> a,
+                                                Stream<? extends B> b) {
+        return zip(a, b, Pair::new);
+    }
+
     public static <A, B, C> Stream<C> zip(
             Stream<? extends A> a,
             Stream<? extends B> b,
@@ -38,5 +43,9 @@ public class Streams {
     private Streams() {
         // Prevent instantiation
     }
+
+// -------------------------- INNER CLASSES --------------------------
+
+    public record Pair<A,B>(A left, B right) {}
 
 }
