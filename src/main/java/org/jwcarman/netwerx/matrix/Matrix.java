@@ -360,14 +360,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns a new matrix with the same shape filled with the specified value.
-     *
-     * @param value the value to fill the matrix with
-     * @return a new matrix with the same shape filled with the specified value
-     */
-    M fill(double value);
-
-    /**
      * Returns a new 1-column matrix containing all elements in row-major order.
      * This is equivalent to flattening the matrix into an N × 1 shape.
      *
@@ -404,6 +396,10 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default M flattenToRow() {
         return reshape(1, size());
+    }
+
+    default boolean isEmpty() {
+        return rowCount() == 0 || columnCount() == 0;
     }
 
     /**
@@ -511,6 +507,82 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double normL2() {
         return Math.sqrt(values().map(v -> v * v).sum());
+    }
+
+    default M normalizeColumn(int col) {
+        var max = columnMax(col);
+        var min = columnMin(col);
+        var range = max - min;
+
+        return map((r, c, value) -> {
+            if (c == col) {
+                return range <= 0 ? 0.5 : (value - min) / range;
+            }
+            return value;
+        });
+    }
+
+    default M normalizeRow(int row) {
+        double min = rowMin(row);
+        double max = rowMax(row);
+        double range = max - min;
+
+        return map((r, c, value) -> {
+            if (r == row) {
+                return range <= 0 ? 0.5 : (value - min) / range;
+            }
+            return value;
+        });
+    }
+
+    default M normalizeRows() {
+        var rowMax = rowMax();
+        var rowMin = rowMin();
+        return map((row, col, value) -> {
+            var range = rowMax.valueAt(row, 0) - rowMin.valueAt(row, 0);
+            if (range <= 0) {
+                return 0.5; // Uniform distribution
+            }
+            return (value - rowMin.valueAt(row, 0)) / range;
+        });
+
+
+    }
+    default M normalizeColumns() {
+        var colMax = columnMax();
+        var colMin = columnMin();
+        return map((row, col, value) -> {
+            var range = colMax.valueAt(0, col) - colMin.valueAt(0, col);
+            if (range <= 0) {
+                return 0.5; // Uniform distribution
+            }
+            return (value - colMin.valueAt(0, col)) / range;
+        });
+    }
+
+    /**
+     * Returns a new matrix with the same shape filled with the specified value.
+     *
+     * @param value the value to fill the matrix with
+     * @return a new matrix with the same shape filled with the specified value
+     */
+    M fill(double value);
+
+
+    default M binaryClassifierOutput(boolean[] labels) {
+        if (labels.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
+        }
+        return likeKind(1, labels.length)
+                .map((row, col, value) -> labels[col] ? 1.0 : 0.0);
+    }
+
+    default M multiClassifierOutputs(int classCount, int[] labels) {
+        if(labels.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
+        }
+        return likeKind(classCount, labels.length)
+                .map((row, col, value) -> labels[col] == row ? 1.0 : 0.0);
     }
 
     /**

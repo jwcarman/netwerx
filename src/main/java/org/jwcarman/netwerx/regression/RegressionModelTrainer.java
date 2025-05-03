@@ -2,13 +2,14 @@ package org.jwcarman.netwerx.regression;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.observer.TrainingObserver;
+import org.jwcarman.netwerx.observer.TrainingObservers;
 
 public interface RegressionModelTrainer<M extends Matrix<M>> {
 
 // -------------------------- OTHER METHODS --------------------------
 
     default RegressionModel<M> train(M inputs, double[] labels) {
-        return train(inputs, labels, TrainingObserver.noop());
+        return train(inputs, labels, TrainingObservers.noop());
     }
 
     /**

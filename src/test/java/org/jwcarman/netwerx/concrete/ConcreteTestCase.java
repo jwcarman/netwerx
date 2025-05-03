@@ -1,14 +1,14 @@
 package org.jwcarman.netwerx.concrete;
 
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
-import org.jwcarman.netwerx.observer.TrainingObserver;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
+import org.jwcarman.netwerx.dataset.Dataset;
+import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
+import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
-import org.jwcarman.netwerx.optimization.Optimizer;
+import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
 import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jwcarman.netwerx.data.Datasets.normalizeFeature;
 
 class ConcreteTestCase {
 
@@ -42,21 +41,27 @@ class ConcreteTestCase {
             return new Concrete(cement, blastFurnaceSlag, flyAsh, water, superplasticizer, coarseAggregate, fineAggregate, age, strength);
         });
 
-        var split = Datasets.split(concretes, 0.8f, random);
-        var trainInputs = features(split.trainingSet());
-        var trainTargets = labels(split.trainingSet());
+        var factory = new EjmlMatrixFactory();
 
-        var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
+        var split = Datasets.split(concretes, 0.8f, 0.1f, 0.1f, random);
+        var trainInputs = features(factory, split.train());
+        var trainTargets = labels(split.train());
+        var validationInputs = features(factory, split.validation());
+        var validationTargets = factory.from(1, validationInputs.columnCount(), labels(split.validation()));
+
+        var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
                 .defaultOptimizer(() -> Optimizers.momentum(0.25, 0.9))
+                .validationDataset(new Dataset<>(validationInputs, validationTargets))
                 .stoppingAdvisor(new EpochCountStoppingAdvisor(2000))
                 .denseLayer(layer -> layer.units(16))
-                .denseLayer(layer -> layer.units(8))
+                .denseLayer(layer -> layer.units(4))
+                .denseLayer(layer -> layer.units(4))
                 .buildRegressionModelTrainer();
 
-        var regressionModel = trainer.train(trainInputs, trainTargets);
+        var regressionModel = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
 
-        var testInputs = features(split.testSet());
-        var testTargets = labels(split.testSet());
+        var testInputs = features(factory, split.test());
+        var testTargets = labels(split.test());
         var predictions = regressionModel.predict(testInputs);
 
         var stats = RegressionModelStats.of(predictions, testTargets);
@@ -69,8 +74,8 @@ class ConcreteTestCase {
         return Datasets.regressionLabels(list, Concrete::strength);
     }
 
-    private static EjmlMatrix features(List<Concrete> list) {
-        EjmlMatrix features = Datasets.features(list,
+    private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<Concrete> list) {
+        M features = Datasets.features(factory, list,
                 Concrete::cement,
                 Concrete::blastFurnaceSlag,
                 Concrete::flyAsh,
@@ -80,15 +85,7 @@ class ConcreteTestCase {
                 Concrete::fineAggregate,
                 Concrete::age);
 
-        normalizeFeature(features, 0); // Cement
-        normalizeFeature(features, 1); // Blast Furnace Slag
-        normalizeFeature(features, 2); // Fly Ash
-        normalizeFeature(features, 3); // Water
-        normalizeFeature(features, 4); // Superplasticizer
-        normalizeFeature(features, 5); // Coarse Aggregate
-        normalizeFeature(features, 6); // Fine Aggregate
-        normalizeFeature(features, 7); // Age
-        return features;
+        return features.normalizeRows();
     }
 
     // Cement	Blast Furnace Slag	Fly Ash	Water	Superplasticizer	Coarse Aggregate	Fine Aggregate	Age	Strength

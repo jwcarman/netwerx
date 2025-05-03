@@ -1,14 +1,15 @@
 package org.jwcarman.netwerx.wine;
 
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
-import org.jwcarman.netwerx.observer.TrainingObserver;
+import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
+import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jwcarman.netwerx.data.Datasets.normalizeFeature;
 
 class WineTestCase {
 
@@ -26,7 +26,7 @@ class WineTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(WineTestCase.class);
 
-    private static final Random random = new Random(42);
+    private static final Random random = new Random(4587985);
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -51,30 +51,35 @@ class WineTestCase {
                     nonFlavanoidPhenols, proanthocyanins, colorIntensity, hue, od280Od315OfDilutedWines, proline);
         });
 
-        var split = Datasets.split(wines, 0.8f, random);
+        var factory = new EjmlMatrixFactory();
+        var split = Datasets.split(wines, 0.7f, 0.15f, 0.15f, random);
 
-        var trainInputs = features(split.trainingSet());
-        var trainTargets = labels(split.trainingSet());
+        var trainInputs = features(factory, split.train());
+        var trainTargets = labels(split.train());
+
+        var validationInputs = features(factory, split.validation());
+        var validationTargets = validationInputs.multiClassifierOutputs(3, labels(split.validation()));
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
                 .defaultOptimizer(Optimizers::sgd)
-                .stoppingAdvisor(new EpochCountStoppingAdvisor(100))
+                .validationDataset(new Dataset<>(validationInputs, validationTargets))
+                .stoppingAdvisor(new EpochCountStoppingAdvisor(1200))
                 .denseLayer(layer -> layer.units(16))
                 .denseLayer(layer -> layer.units(8))
                 .buildMultiClassifierTrainer(3);
 
-        var classifier = trainer.train(trainInputs, trainTargets);
+        var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
 
-        var testInputs = features(split.testSet());
-        var testTargets = labels(split.testSet());
+        var testInputs = features(factory, split.test());
+        var testTargets = labels(split.test());
         var predictions = classifier.predict(testInputs);
         var stats = MultiClassifierStats.of(predictions, testTargets, 3);
         logger.info("Stats: {}", stats);
         assertThat(stats.f1()).isGreaterThanOrEqualTo(0.75);
     }
 
-    private static EjmlMatrix features(List<Wine> list) {
-        EjmlMatrix features = Datasets.features(list,
+    private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<Wine> list) {
+        M features = Datasets.features(factory, list,
                 Wine::alcohol,
                 Wine::malicAcid,
                 Wine::ash,
@@ -88,20 +93,7 @@ class WineTestCase {
                 Wine::hue,
                 Wine::od280Od315OfDilutedWines,
                 Wine::proline);
-        normalizeFeature(features, 0); // Alcohol
-        normalizeFeature(features, 1); // Malic Acid
-        normalizeFeature(features, 2); // Ash
-        normalizeFeature(features, 3); // Alcalinity of Ash
-        normalizeFeature(features, 4); // Magnesium
-        normalizeFeature(features, 5); // Total Phenols
-        normalizeFeature(features, 6); // Flavanoids
-        normalizeFeature(features, 7); // Non-Flavanoid Phenols
-        normalizeFeature(features, 8); // Proanthocyanins
-        normalizeFeature(features, 9); // Color Intensity
-        normalizeFeature(features, 10); // Hue
-        normalizeFeature(features, 11); // OD280/OD315 of Diluted Wines
-        normalizeFeature(features, 12); // Proline
-        return features;
+        return features.normalizeRows();
     }
 
     private static int[] labels(List<Wine> list) {

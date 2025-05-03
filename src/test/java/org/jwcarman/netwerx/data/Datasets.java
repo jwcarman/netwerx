@@ -1,5 +1,7 @@
 package org.jwcarman.netwerx.data;
 
+import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.util.Matrices;
 
@@ -19,15 +21,19 @@ public class Datasets {
 // -------------------------- STATIC METHODS --------------------------
 
     @SafeVarargs
-    public static <T> EjmlMatrix features(List<T> data, Function<T, Double>... featureExtractors) {
+    public static <T,M extends Matrix<M>> M features(MatrixFactory<M> factory, List<T> data, Function<T, Double>... featureExtractors) {
         if (data.isEmpty()) {
-            return Matrices.of(featureExtractors.length, 0);
+            return factory.zeros(featureExtractors.length, 0);
+        }
+        final double[][] arr = new double[featureExtractors.length][data.size()];
+        for (int i = 0; i < featureExtractors.length; i++) {
+            final Function<T, Double> extractor = featureExtractors[i];
+            for (int j = 0; j < data.size(); j++) {
+                arr[i][j] = extractor.apply(data.get(j));
+            }
         }
 
-        final var rows = featureExtractors.length;
-        final var cols = data.size();
-        return Matrices.of(rows, cols)
-                .map((row, col, value) -> featureExtractors[row].apply(data.get(col)));
+        return factory.from(arr);
     }
 
     public static <T> double[] regressionLabels(List<T> data, Function<T, Double> labelExtractor) {
@@ -93,33 +99,37 @@ public class Datasets {
     }
 
     /**
-     * Splits a list of data points into a training set and a test set.
+     * Splits a list into training, validation, and test sets based on given ratios.
      *
-     * @param data       The full dataset.
-     * @param trainRatio The ratio of data to use for training (e.g., 0.8 for 80%).
-     * @param random     The random number generator to use for shuffling.
-     * @param <T>        The type of data points.
-     * @return A Split containing the training and test sets.
+     * @param data            the full dataset
+     * @param trainRatio      the ratio of data to allocate to training (e.g. 0.7)
+     * @param validationRatio the ratio of data for validation (e.g. 0.15)
+     * @param testRatio       the ratio of data for testing (e.g. 0.15)
+     * @param <T>             the type of data
+     * @return a Triple of (train, validation, test) sets
+     * @throws IllegalArgumentException if ratios do not sum to 1.0 ± ε
      */
-    public static <T> Split<T> split(List<T> data, float trainRatio, Random random) {
-        if (trainRatio <= 0.0 || trainRatio >= 1.0) {
-            throw new IllegalArgumentException("Training ratio must be between 0 and 1 (exclusive).");
+    public static <T> Split<T> split(List<T> data, double trainRatio, double validationRatio, double testRatio, Random random) {
+        final double total = trainRatio + validationRatio + testRatio;
+        if (Math.abs(total - 1.0) > 1e-6) {
+            throw new IllegalArgumentException("Ratios must sum to 1.0");
         }
+
+        int totalSize = data.size();
+        int trainSize = (int) Math.round(trainRatio * totalSize);
+        int validationSize = (int) Math.round(validationRatio * totalSize);
 
         var shuffled = new ArrayList<>(data);
         Collections.shuffle(shuffled, random);
 
-        var splitIndex = Math.round(shuffled.size() * trainRatio);
-        var trainingSet = shuffled.subList(0, splitIndex);
-        var testSet = shuffled.subList(splitIndex, shuffled.size());
+        var train = shuffled.subList(0, trainSize);
+        var validation = shuffled.subList(trainSize, trainSize + validationSize);
+        var test = shuffled.subList(trainSize + validationSize, totalSize);
 
-        return new Split<>(trainingSet, testSet);
+        return new Split<>(train, validation, test);
     }
 
-// -------------------------- INNER CLASSES --------------------------
-
-    public record Split<T>(List<T> trainingSet, List<T> testSet) {
-
+    public record Split<T>(List<T> train, List<T> validation, List<T> test) {
     }
 
 }

@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.def;
 
-import org.jwcarman.netwerx.Dataset;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.DenseLayerConfig;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.NeuralNetworkTrainerBuilder;

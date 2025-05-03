@@ -2,6 +2,7 @@ package org.jwcarman.netwerx;
 
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierTrainer;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.optimization.Optimizer;

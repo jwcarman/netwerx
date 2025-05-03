@@ -130,6 +130,7 @@ public interface MatrixFactory<M extends Matrix<M>> {
      */
     M zeros(int rows, int columns);
 
+
 // -------------------------- INNER CLASSES --------------------------
 
     @FunctionalInterface
