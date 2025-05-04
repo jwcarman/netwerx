@@ -1,10 +1,7 @@
 package org.jwcarman.netwerx.regression;
 
 import org.jwcarman.netwerx.NeuralNetwork;
-import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
-import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
 public class DefaultRegressionModel<M extends Matrix<M>> implements RegressionModel<M> {
 

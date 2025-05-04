@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.regression;
 
-import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.observer.TrainingObserver;
 

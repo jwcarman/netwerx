@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.classification.binary;
 
-import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.observer.TrainingObserver;
 
@@ -29,14 +29,9 @@ public class DefaultBinaryClassifierTrainer<M extends Matrix<M>> implements Bina
         if (labels.length != inputs.columnCount()) {
             throw new IllegalArgumentException("Label count must match input row count.");
         }
-        var network = networkTrainer.train(new Dataset<>(inputs, convertLabels(inputs, labels)), observer);
+
+        var network = networkTrainer.train(new Dataset<>(inputs, inputs.binaryClassifierOutputs(labels)), observer);
         return new DefaultBinaryClassifier<>(network);
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    private M convertLabels(M input, boolean[] labels) {
-        return input.likeKind(1, input.columnCount()).map((row, col, value) -> labels[col] ? TRUE : FALSE);
     }
 
 }
