@@ -30,4 +30,8 @@ public class DenseLayer<M extends Matrix<M>> implements Layer<M> {
         return activationFunction.apply(z);
     }
 
+    @Override
+    public int inputSize() {
+        return weights.columnCount();
+    }
 }

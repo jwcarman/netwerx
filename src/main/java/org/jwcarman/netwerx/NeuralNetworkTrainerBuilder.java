@@ -1,5 +1,6 @@
 package org.jwcarman.netwerx;
 
+import org.jwcarman.netwerx.autoencoder.AutoencoderTrainer;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
@@ -26,4 +27,6 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
     BinaryClassifierTrainer<M> buildBinaryClassifierTrainer();
 
     MultiClassifierTrainer<M> buildMultiClassifierTrainer(int outputClasses);
+
+    AutoencoderTrainer<M> buildAutoencoderTrainer();
 }

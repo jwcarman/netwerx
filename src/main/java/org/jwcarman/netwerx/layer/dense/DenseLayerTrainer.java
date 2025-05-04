@@ -42,6 +42,16 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
 // --------------------- Interface LayerTrainer ---------------------
 
     @Override
+    public int inputSize() {
+        return weights.columnCount();
+    }
+
+    @Override
+    public int outputSize() {
+        return biases.rowCount();
+    }
+
+    @Override
     public LayerBackprop<M> forwardPass(M aPrev) {
         final var z = weights.multiply(aPrev).addColumnVector(biases);
         final var a = activationFunction.apply(z);

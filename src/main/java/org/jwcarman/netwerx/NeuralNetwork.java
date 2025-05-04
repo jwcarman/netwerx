@@ -1,9 +1,6 @@
 package org.jwcarman.netwerx;
 
-import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
-import org.jwcarman.netwerx.optimization.OptimizerProvider;
 
 /**
  * Interface representing a neural network model.
@@ -20,4 +17,7 @@ public interface NeuralNetwork<M extends Matrix<M>> {
      */
     M predict(M x);
 
+    NeuralNetwork<M> subNetwork(int startIndex, int endIndex);
+
+    int layerCount();
 }

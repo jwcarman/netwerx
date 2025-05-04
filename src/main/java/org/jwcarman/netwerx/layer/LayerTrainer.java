@@ -8,6 +8,10 @@ public interface LayerTrainer<M extends Matrix<M>> {
 
     void applyUpdates(LayerUpdate<M> gradients);
 
+    int inputSize();
+
+    int outputSize();
+
     Layer<M> createLayer();
 
     LayerBackprop<M> forwardPass(M input);

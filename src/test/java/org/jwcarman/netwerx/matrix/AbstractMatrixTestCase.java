@@ -35,6 +35,36 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
+    void testRowSlice() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        assertThatThrownBy(() -> matrix.rowSlice(-4, 2))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.rowSlice(0, 5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.rowSlice(2, 1))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        var slice = matrix.rowSlice(0, 1);
+        assertThat(slice.rowCount()).isEqualTo(1);
+        assertThat(slice.columnCount()).isEqualTo(matrix.columnCount());
+    }
+
+    @Test
+    void testColumnSlice() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        assertThatThrownBy(() -> matrix.columnSlice(-4, 2))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.columnSlice(0, 5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.columnSlice(2, 1))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        var slice = matrix.columnSlice(0, 1);
+        assertThat(slice.rowCount()).isEqualTo(matrix.rowCount());
+        assertThat(slice.columnCount()).isEqualTo(1);
+    }
+
+    @Test
     void testNormalizeColumnWithZeroRange() {
         M matrix = factory().from(2, 3, 1, 2, 3, 1, 5, 6);
         M result = matrix.normalizeColumn(0);

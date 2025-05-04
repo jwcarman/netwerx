@@ -1,8 +1,8 @@
 package org.jwcarman.netwerx.classification.multi;
 
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.def.DefaultNeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
+import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

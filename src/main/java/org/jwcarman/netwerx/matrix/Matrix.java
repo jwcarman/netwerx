@@ -615,6 +615,20 @@ public interface Matrix<M extends Matrix<M>> {
         return deref(rowValues(row).max());
     }
 
+    default M columnSlice(int start, int end) {
+        if (start < 0 || end > columnCount() || start >= end) {
+            throw new IllegalArgumentException(String.format("Invalid column slice: start=%d, end=%d, columns=%d", start, end, columnCount()));
+        }
+        return reshape(rowCount(), end - start).map((row, col, _) -> valueAt(row, col + start));
+    }
+
+    default M rowSlice(int start, int end) {
+        if (start < 0 || end > rowCount() || start >= end) {
+            throw new IllegalArgumentException(String.format("Invalid row slice: start=%d, end=%d, rows=%d", start, end, rowCount()));
+        }
+        return reshape(end - start, columnCount()).map((row, col, _) -> valueAt(row + start, col));
+    }
+
     default M normalizeRows() {
         var rowMax = rowMax();
         var rowMin = rowMin();
