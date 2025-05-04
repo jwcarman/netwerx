@@ -2,8 +2,6 @@ package org.jwcarman.netwerx.data;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
-import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
-import org.jwcarman.netwerx.util.Matrices;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,35 +65,6 @@ public class Datasets {
             labels[i] = labelExtractor.apply(data.get(i));
         }
         return labels;
-    }
-
-    /**
-     * Normalizes a feature row in a SimpleMatrix to the range [0, 1].
-     *
-     * @param matrix The SimpleMatrix containing the features.
-     * @param row    The row index of the feature to normalize
-     */
-    public static void normalizeFeature(EjmlMatrix matrix, int row) {
-        double min = Double.POSITIVE_INFINITY;
-        double max = Double.NEGATIVE_INFINITY;
-
-        for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
-            double value = matrix.valueAt(row, col);
-            if (value < min) min = value;
-            if (value > max) max = value;
-        }
-
-        double range = max - min;
-        if (range == 0) {
-            for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
-                matrix.getDelegate().set(row, col, 0.5);  // Uniform
-            }
-        } else {
-            for (int col = 0; col < matrix.getDelegate().getNumCols(); col++) {
-                double value = matrix.valueAt(row, col);
-                matrix.getDelegate().set(row, col, (value - min) / range);
-            }
-        }
     }
 
     /**

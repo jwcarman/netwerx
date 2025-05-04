@@ -1,9 +1,9 @@
 package org.jwcarman.netwerx.def;
 
-import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.EpochOutcome;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
+import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.layer.LayerBackprop;
 import org.jwcarman.netwerx.layer.LayerTrainer;
 import org.jwcarman.netwerx.layer.LayerUpdate;
@@ -27,7 +27,11 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultNeuralNetworkTrainer(List<LayerTrainer<M>> layerTrainers, StoppingAdvisor stoppingAdvisor, LossFunction lossFunction, Dataset<M> validationDataset) {
+    public DefaultNeuralNetworkTrainer(
+            List<LayerTrainer<M>> layerTrainers,
+            StoppingAdvisor stoppingAdvisor,
+            LossFunction lossFunction,
+            Dataset<M> validationDataset) {
         this.layerTrainers = layerTrainers;
         this.stoppingAdvisor = stoppingAdvisor;
         this.lossFunction = lossFunction;
@@ -44,10 +48,17 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
         boolean continueTraining;
         do {
             var result = performTrainingStep(trainingDataset);
+            var regularizationPenalty = layerTrainers.stream()
+                    .mapToDouble(LayerTrainer::regularizationPenalty)
+                    .sum();
+
             Streams.zip(layerTrainers.stream(), result.layerUpdates().stream())
                     .forEach(pair -> pair.left().applyUpdates(pair.right()));
+
             var validationLoss = calculateValidationLoss();
-            var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss);
+            var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
+
+
             observer.onEpoch(outcome);
             continueTraining = !stoppingAdvisor.shouldStopAfter(outcome);
             epoch++;
@@ -64,7 +75,7 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
         if (validationDataset.inputs().isEmpty()) {
             return Double.NaN;
         }
-        var inferred = layerTrainers.stream().reduce(validationDataset.inputs(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, b) -> a);
+        var inferred = layerTrainers.stream().reduce(validationDataset.inputs(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
         return lossFunction.loss(inferred, validationDataset.outputs());
     }
 

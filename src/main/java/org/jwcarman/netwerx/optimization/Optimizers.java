@@ -2,25 +2,9 @@ package org.jwcarman.netwerx.optimization;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-import java.util.function.Supplier;
-
 public class Optimizers {
 
 // -------------------------- STATIC METHODS --------------------------
-
-    public static <M extends Matrix<M>> OptimizerProvider<M> uniform(Supplier<Optimizer<M>> supplier) {
-        return new OptimizerProvider<>() {
-            @Override
-            public Optimizer<M> weightOptimizer(int layer) {
-                return supplier.get();
-            }
-
-            @Override
-            public Optimizer<M> biasOptimizer(int layer) {
-                return supplier.get();
-            }
-        };
-    }
 
     public static <M extends Matrix<M>> Optimizer<M> sgd() {
         return new SgdOptimizer<>();

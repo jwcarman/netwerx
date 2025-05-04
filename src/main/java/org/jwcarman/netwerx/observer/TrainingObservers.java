@@ -18,13 +18,14 @@ public class TrainingObservers {
         };
     }
 
-    public static TrainingObserver logging(Logger logger, int step){
+    public static TrainingObserver logging(Logger logger, int step) {
         return outcome -> {
             if (outcome.epoch() % step == 0) {
-                logger.info("Epoch {}: Training Loss = {}, Validation Loss = {}",
-                            outcome.epoch(),
-                            outcome.trainingLoss(),
-                            outcome.validationLoss());
+                logger.info("Epoch {}: Training Loss = {}, Validation Loss = {}, Regularization Penalty = {}",
+                        outcome.epoch(),
+                        outcome.trainingLoss(),
+                        outcome.validationLoss(),
+                        outcome.regularizationPenalty());
             }
         };
     }

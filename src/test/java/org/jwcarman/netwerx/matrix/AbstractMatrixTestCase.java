@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.util.Tolerances;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
@@ -12,6 +13,89 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 
     protected abstract MatrixFactory<M> factory();
 
+    @Test
+    void testIsEmpty() {
+        assertThat(factory().zeros(0, 0).isEmpty()).isTrue();
+        assertThat(factory().zeros(1, 0).isEmpty()).isTrue();
+        assertThat(factory().zeros(0, 1).isEmpty()).isTrue();
+    }
+
+    @Test
+    void testNormalizeColumn() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeColumn(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 2.0, 3.0, 1.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeColumns() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeColumns();
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    }
+
+    @Test
+    void testNormalizeColumnWithZeroRange() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 1, 5, 6);
+        M result = matrix.normalizeColumn(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.5, 2.0, 3.0, 0.5, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeRow() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeRow(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 4.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeRows() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeRows();
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 0.0, 0.5, 1.0);
+    }
+
+    @Test
+    void testNormalizeRowWithZeroRange() {
+        M matrix = factory().from(2, 3, 1, 1, 1, 4, 5, 6);
+        M result = matrix.normalizeRow(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.5, 0.5, 0.5, 4.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testMultiClassifierOutput() {
+        var m = factory().zeros(3, 3)
+                .multiClassifierOutputs(3, new int[]{0, 1, 2});
+        assertThat(m.values().boxed()).containsExactly(
+                1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0);
+    }
+
+    @Test
+    void testMultiClassifierOutputWithInvalidDims() {
+        var matrix = factory().zeros(3, 1);
+        var labels = new int[]{0, 1, 2};
+
+        assertThatThrownBy(() -> matrix.multiClassifierOutputs(3, labels))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testBinaryClassifierOutputs() {
+        var m = factory().zeros(3, 3)
+                .binaryClassifierOutputs(new boolean[]{true, false, true});
+        assertThat(m.values().boxed()).containsExactly(1.0, 0.0, 1.0);
+    }
+
+    @Test
+    void testBinaryClassifierOutputsWithInvalidDims() {
+        var matrix = factory().zeros(3, 1);
+        var labels = new boolean[]{true, false, true};
+
+        assertThatThrownBy(() -> matrix.binaryClassifierOutputs(labels))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
     @Test
     void testAdd() {

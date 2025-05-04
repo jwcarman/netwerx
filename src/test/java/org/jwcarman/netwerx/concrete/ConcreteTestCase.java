@@ -11,6 +11,7 @@ import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
+import org.jwcarman.netwerx.regularization.Regularizations;
 import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +53,10 @@ class ConcreteTestCase {
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
                 .defaultOptimizer(() -> Optimizers.momentum(0.25, 0.9))
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                .stoppingAdvisor(new EpochCountStoppingAdvisor(2000))
+                .stoppingAdvisor(new EpochCountStoppingAdvisor(400))
                 .denseLayer(layer -> layer.units(16))
                 .denseLayer(layer -> layer.units(4))
-                .denseLayer(layer -> layer.units(4))
+                .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildRegressionModelTrainer();
 
         var regressionModel = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));

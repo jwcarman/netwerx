@@ -11,6 +11,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.regularization.Regularizations;
 import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +64,9 @@ class WineTestCase {
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
                 .defaultOptimizer(Optimizers::sgd)
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                .stoppingAdvisor(new EpochCountStoppingAdvisor(1200))
+                .stoppingAdvisor(new EpochCountStoppingAdvisor(700))
                 .denseLayer(layer -> layer.units(16))
-                .denseLayer(layer -> layer.units(8))
+                .denseLayer(layer -> layer.units(8).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildMultiClassifierTrainer(3);
 
         var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
@@ -75,7 +76,7 @@ class WineTestCase {
         var predictions = classifier.predict(testInputs);
         var stats = MultiClassifierStats.of(predictions, testTargets, 3);
         logger.info("Stats: {}", stats);
-        assertThat(stats.f1()).isGreaterThanOrEqualTo(0.75);
+        assertThat(stats.f1()).isGreaterThanOrEqualTo(0.8);
     }
 
     private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<Wine> list) {

@@ -3,18 +3,12 @@ package org.jwcarman.netwerx.util;
 import java.util.Iterator;
 import java.util.Spliterators;
 import java.util.function.BiFunction;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Streams {
 
 // -------------------------- STATIC METHODS --------------------------
-
-    public static Stream<Boolean> ofBooleans(boolean[] arr) {
-        return IntStream.range(0, arr.length)
-                .mapToObj(i -> arr[i]);
-    }
 
     public static <A,B> Stream<Pair<A,B>> zip(Stream<? extends A> a,
                                                 Stream<? extends B> b) {

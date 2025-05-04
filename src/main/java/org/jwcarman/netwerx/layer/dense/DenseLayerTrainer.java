@@ -4,11 +4,12 @@ import org.jwcarman.netwerx.activation.ActivationFunction;
 import org.jwcarman.netwerx.layer.Layer;
 import org.jwcarman.netwerx.layer.LayerBackprop;
 import org.jwcarman.netwerx.layer.LayerBackpropResult;
-import org.jwcarman.netwerx.layer.LayerUpdate;
 import org.jwcarman.netwerx.layer.LayerTrainer;
+import org.jwcarman.netwerx.layer.LayerUpdate;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.optimization.Optimizer;
+import org.jwcarman.netwerx.regularization.RegularizationFunction;
 
 import java.util.Random;
 
@@ -23,6 +24,7 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
     private final ActivationFunction activationFunction;
     private final Optimizer<M> weightsOptimizer;
     private final Optimizer<M> biasesOptimizer;
+    private final RegularizationFunction<M> regularizationFunction;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -32,6 +34,7 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
         this.biases = factory.filled(config.getUnits(), 1, () -> activationFunction.initialBias(random, config.getInputSize(), config.getUnits()));
         this.weightsOptimizer = config.getWeightOptimizerSupplier().get();
         this.biasesOptimizer = config.getBiasOptimizerSupplier().get();
+        this.regularizationFunction = config.getRegularizationFunction();
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -54,6 +57,11 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
     @Override
     public Layer<M> createLayer() {
         return new DenseLayer<>(weights, biases, activationFunction);
+    }
+
+    @Override
+    public double regularizationPenalty() {
+        return regularizationFunction.penalty(weights);
     }
 
 // -------------------------- INNER CLASSES --------------------------
@@ -87,11 +95,13 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
         public LayerBackpropResult<M> apply(M outputGradient) {
             var dz = outputGradient.elementMultiply(activationFunction.derivative(z));
             var m = outputGradient.columnCount();
+
             var dW = dz.multiply(aPrev.transpose()).elementDivide(m);
+            var dRegularization = regularizationFunction.gradient(weights);
             var db = dz.rowSum().elementDivide(m);
 
             var gradients = new LayerUpdate<M>();
-            gradients.addGradient(WEIGHTS_GRADIENT, dW);
+            gradients.addGradient(WEIGHTS_GRADIENT, dW.add(dRegularization));
             gradients.addGradient(BIASES_GRADIENT, db);
 
             return new LayerBackpropResult<>(weights.transpose().multiply(dz), gradients);

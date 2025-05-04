@@ -6,6 +6,8 @@ import org.jwcarman.netwerx.activation.ActivationFunctions;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.regularization.RegularizationFunction;
+import org.jwcarman.netwerx.regularization.Regularizations;
 
 import java.util.function.Supplier;
 
@@ -18,6 +20,7 @@ public class DefaultDenseLayerConfig<M extends Matrix<M>> implements DenseLayerC
     private ActivationFunction activationFunction = ActivationFunctions.relu();
     private Supplier<Optimizer<M>> weightOptimizerSupplier = Optimizers::sgd;
     private Supplier<Optimizer<M>> biasOptimizerSupplier = Optimizers::sgd;
+    private RegularizationFunction<M> regularizationFunction = Regularizations.noop();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -37,6 +40,10 @@ public class DefaultDenseLayerConfig<M extends Matrix<M>> implements DenseLayerC
 
     public int getInputSize() {
         return inputSize;
+    }
+
+    public RegularizationFunction<M> getRegularizationFunction() {
+        return regularizationFunction;
     }
 
     public int getUnits() {
@@ -79,6 +86,13 @@ public class DefaultDenseLayerConfig<M extends Matrix<M>> implements DenseLayerC
     @Override
     public DenseLayerConfig<M> biasOptimizer(Supplier<Optimizer<M>> biasOptimizerSupplier) {
         this.biasOptimizerSupplier = biasOptimizerSupplier;
+        return this;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public DenseLayerConfig<M> regularizationFunction(RegularizationFunction<M> regularizationFunction) {
+        this.regularizationFunction = regularizationFunction;
         return this;
     }
 

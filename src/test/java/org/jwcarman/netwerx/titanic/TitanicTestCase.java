@@ -11,8 +11,8 @@ import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.regularization.Regularizations;
 import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
-import org.jwcarman.netwerx.util.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ class TitanicTestCase {
         var testInputs = features(factory, split.test());
         var testTargets = labels(split.test());
         var validationInputs = features(factory, split.validation());
-        var validationTargets = factory.from(new double[][]{Streams.ofBooleans(labels(split.validation())).mapToDouble(l -> l ? 1.0 : 0.0).toArray()});
+        var validationTargets = validationInputs.binaryClassifierOutputs(labels(split.validation()));
 
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
@@ -74,7 +74,7 @@ class TitanicTestCase {
                 .denseLayer(layer -> layer.units(8)
                         .weightOptimizer(Optimizers::sgd)
                         .biasOptimizer(Optimizers::sgd))
-                .denseLayer(layer -> layer.units(4))
+                .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildBinaryClassifierTrainer();
 
         var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));

@@ -60,6 +60,14 @@ public interface Matrix<M extends Matrix<M>> {
         return map((_, col, value) -> value + rowVector.valueAt(0, col));
     }
 
+    default M binaryClassifierOutputs(boolean[] labels) {
+        if (labels.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
+        }
+        return likeKind(1, labels.length)
+                .map((_, col, _) -> labels[col] ? 1.0 : 0.0);
+    }
+
     /**
      * Returns a new matrix with each element clamped to the specified range.
      *
@@ -70,16 +78,6 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default M clamp(double min, double max) {
         return map((_, _, value) -> Math.clamp(value, min, max));
-    }
-
-    /**
-     * Returns the maximum value in the specified column.
-     *
-     * @param column the index of the column
-     * @return the maximum value in the column
-     */
-    default double columnMax(int column) {
-        return columnValues(column).max().orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -150,25 +148,6 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double columnMean(int column) {
         return columnValues(column).average().orElseThrow(NoSuchElementException::new);
-    }
-
-    /**
-     * Returns a row vector containing the minimum value of each column.
-     *
-     * @return a new row vector with the minimum value of each column
-     */
-    default M columnMin() {
-        return reduceColumns(Matrix::min);
-    }
-
-    /**
-     * Returns the minimum value in the specified column.
-     *
-     * @param column the index of the column
-     * @return the minimum value in the column
-     */
-    default double columnMin(int column) {
-        return columnValues(column).min().orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -360,6 +339,14 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
+     * Returns a new matrix with the same shape filled with the specified value.
+     *
+     * @param value the value to fill the matrix with
+     * @return a new matrix with the same shape filled with the specified value
+     */
+    M fill(double value);
+
+    /**
      * Returns a new 1-column matrix containing all elements in row-major order.
      * This is equivalent to flattening the matrix into an N × 1 shape.
      *
@@ -474,6 +461,14 @@ public interface Matrix<M extends Matrix<M>> {
         return deref(values().min());
     }
 
+    default M multiClassifierOutputs(int classCount, int[] labels) {
+        if (labels.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
+        }
+        return likeKind(classCount, labels.length)
+                .map((row, col, _) -> labels[col] == row ? 1.0 : 0.0);
+    }
+
     /**
      * Multiplies the matrix by another matrix.
      *
@@ -497,6 +492,15 @@ public interface Matrix<M extends Matrix<M>> {
      * @return the L1 norm
      */
     default double normL1() {
+        return sumOfAbs();
+    }
+
+    /**
+     * Returns the sum of the absolute values of all elements in the matrix.
+     *
+     * @return the sum of absolute values of all elements
+     */
+    default double sumOfAbs() {
         return values().map(Math::abs).sum();
     }
 
@@ -506,94 +510,115 @@ public interface Matrix<M extends Matrix<M>> {
      * @return the L2 norm
      */
     default double normL2() {
-        return Math.sqrt(values().map(v -> v * v).sum());
+        return Math.sqrt(sumOfSquares());
+    }
+
+    /**
+     * Returns the sum of squares of all elements in the matrix.
+     *
+     * @return the sum of squares of all elements
+     */
+    default double sumOfSquares() {
+        return values().map(v -> v * v).sum();
     }
 
     default M normalizeColumn(int col) {
         var max = columnMax(col);
         var min = columnMin(col);
-        var range = max - min;
 
-        return map((r, c, value) -> {
+        return map((_, c, value) -> {
             if (c == col) {
-                return range <= 0 ? 0.5 : (value - min) / range;
+                return normalizeValue(value, min, max);
             }
             return value;
         });
+    }
+
+    /**
+     * Returns the maximum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the maximum value in the column
+     */
+    default double columnMax(int column) {
+        return columnValues(column).max().orElseThrow(NoSuchElementException::new);
+    }
+
+    /**
+     * Returns the minimum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the minimum value in the column
+     */
+    default double columnMin(int column) {
+        return columnValues(column).min().orElseThrow(NoSuchElementException::new);
+    }
+
+    private static double normalizeValue(double value, double min, double max) {
+        var range = max - min;
+        return range <= 0 ? 0.5 : (value - min) / range;
+    }
+
+    default M normalizeColumns() {
+        var colMax = columnMax();
+        var colMin = columnMin();
+        return map((_, col, value) -> normalizeValue(value, colMin.valueAt(0, col), colMax.valueAt(0, col)));
+    }
+
+    /**
+     * Returns a row vector containing the maximum value of each column.
+     *
+     * @return a new column vector with the maximum value of each column
+     */
+    default M columnMax() {
+        return reduceColumns(Matrix::max);
+    }
+
+    /**
+     * Returns a row vector containing the minimum value of each column.
+     *
+     * @return a new row vector with the minimum value of each column
+     */
+    default M columnMin() {
+        return reduceColumns(Matrix::min);
     }
 
     default M normalizeRow(int row) {
         double min = rowMin(row);
         double max = rowMax(row);
-        double range = max - min;
 
-        return map((r, c, value) -> {
+        return map((r, _, value) -> {
             if (r == row) {
-                return range <= 0 ? 0.5 : (value - min) / range;
+                return normalizeValue(value, min, max);
             }
             return value;
         });
     }
 
+    /**
+     * Returns the minimum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the minimum value in the row
+     */
+    default double rowMin(int row) {
+        return deref(rowValues(row).min());
+    }
+
+    /**
+     * Returns the maximum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the maximum value in the row
+     */
+    default double rowMax(int row) {
+        return deref(rowValues(row).max());
+    }
+
     default M normalizeRows() {
         var rowMax = rowMax();
         var rowMin = rowMin();
-        return map((row, col, value) -> {
-            var range = rowMax.valueAt(row, 0) - rowMin.valueAt(row, 0);
-            if (range <= 0) {
-                return 0.5; // Uniform distribution
-            }
-            return (value - rowMin.valueAt(row, 0)) / range;
-        });
-
-
-    }
-    default M normalizeColumns() {
-        var colMax = columnMax();
-        var colMin = columnMin();
-        return map((row, col, value) -> {
-            var range = colMax.valueAt(0, col) - colMin.valueAt(0, col);
-            if (range <= 0) {
-                return 0.5; // Uniform distribution
-            }
-            return (value - colMin.valueAt(0, col)) / range;
-        });
-    }
-
-    /**
-     * Returns a new matrix with the same shape filled with the specified value.
-     *
-     * @param value the value to fill the matrix with
-     * @return a new matrix with the same shape filled with the specified value
-     */
-    M fill(double value);
-
-
-    default M binaryClassifierOutput(boolean[] labels) {
-        if (labels.length != columnCount()) {
-            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
-        }
-        return likeKind(1, labels.length)
-                .map((row, col, value) -> labels[col] ? 1.0 : 0.0);
-    }
-
-    default M multiClassifierOutputs(int classCount, int[] labels) {
-        if(labels.length != columnCount()) {
-            throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
-        }
-        return likeKind(classCount, labels.length)
-                .map((row, col, value) -> labels[col] == row ? 1.0 : 0.0);
-    }
-
-    /**
-     * Returns the index of the maximum value in the specified row.
-     *
-     * @param row the index of the row
-     * @return the index of the maximum value in the row
-     */
-    default int rowArgMax(int row) {
-        var columnCount = columnCount();
-        return IntStream.range(0, columnCount).boxed().max(Comparator.comparingDouble(col -> valueAt(row, col))).orElseThrow(NoSuchElementException::new);
+        return map((row, _, value) -> normalizeValue(value, rowMin.valueAt(row, 0), rowMax.valueAt(row, 0)));
     }
 
     /**
@@ -625,13 +650,23 @@ public interface Matrix<M extends Matrix<M>> {
     M rowVector(int row);
 
     /**
-     * Returns the maximum value in the specified row.
+     * Returns a column vector containing the minimum value of each row.
+     *
+     * @return a new column vector with the minimum value of each row
+     */
+    default M rowMin() {
+        return reduceRows(Matrix::min);
+    }
+
+    /**
+     * Returns the index of the maximum value in the specified row.
      *
      * @param row the index of the row
-     * @return the maximum value in the row
+     * @return the index of the maximum value in the row
      */
-    default double rowMax(int row) {
-        return deref(rowValues(row).max());
+    default int rowArgMax(int row) {
+        var columnCount = columnCount();
+        return IntStream.range(0, columnCount).boxed().max(Comparator.comparingDouble(col -> valueAt(row, col))).orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -651,25 +686,6 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double rowMean(int row) {
         return deref(rowValues(row).average());
-    }
-
-    /**
-     * Returns a column vector containing the minimum value of each row.
-     *
-     * @return a new column vector with the minimum value of each row
-     */
-    default M rowMin() {
-        return reduceRows(Matrix::min);
-    }
-
-    /**
-     * Returns the minimum value in the specified row.
-     *
-     * @param row the index of the row
-     * @return the minimum value in the row
-     */
-    default double rowMin(int row) {
-        return deref(rowValues(row).min());
     }
 
     /**
@@ -774,15 +790,6 @@ public interface Matrix<M extends Matrix<M>> {
         M sumPerColumn = exp.columnSum(); // shape: (1, columns)
 
         return exp.map((_, col, value) -> value / sumPerColumn.valueAt(0, col));
-    }
-
-    /**
-     * Returns a row vector containing the maximum value of each column.
-     *
-     * @return a new column vector with the maximum value of each column
-     */
-    default M columnMax() {
-        return reduceColumns(Matrix::max);
     }
 
     /**
