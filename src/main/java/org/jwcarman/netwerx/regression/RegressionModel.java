@@ -7,10 +7,10 @@ public interface RegressionModel<M extends Matrix<M>> {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * Predict the outputs for a batch of inputs.
+     * Predict the labels for a batch of features.
      *
      * @param inputs the feature matrix (shape: features x samples)
-     * @return the predicted outputs as an array of doubles
+     * @return the predicted labels as an array of doubles
      */
     double[] predict(M inputs);
 }

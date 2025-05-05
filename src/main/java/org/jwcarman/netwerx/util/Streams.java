@@ -1,5 +1,7 @@
 package org.jwcarman.netwerx.util;
 
+import org.jwcarman.netwerx.util.tuple.Pair;
+
 import java.util.Iterator;
 import java.util.Spliterators;
 import java.util.function.BiFunction;
@@ -11,7 +13,7 @@ public class Streams {
 // -------------------------- STATIC METHODS --------------------------
 
     public static <A,B> Stream<Pair<A,B>> zip(Stream<? extends A> a,
-                                                Stream<? extends B> b) {
+                                              Stream<? extends B> b) {
         return zip(a, b, Pair::new);
     }
 
@@ -45,7 +47,5 @@ public class Streams {
     }
 
 // -------------------------- INNER CLASSES --------------------------
-
-    public record Pair<A,B>(A left, B right) {}
 
 }

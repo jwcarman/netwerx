@@ -34,7 +34,7 @@ public class DefaultRegressionModelTrainer<M extends Matrix<M>> implements Regre
 // -------------------------- OTHER METHODS --------------------------
 
     private M convertLabels(M inputs, double[] labels) {
-        return inputs.likeKind(1, inputs.columnCount()).map((_, col, _) -> labels[col]);
+        return inputs.likeKind(1, inputs.columnCount(), (_, col) -> labels[col]);
     }
 
 }

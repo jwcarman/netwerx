@@ -10,12 +10,12 @@ public class Softmax implements ActivationFunction {
 
     @Override
     public <M extends Matrix<M>> M apply(M logits) {
-        return logits.softmax();
+        return logits.columnSoftmax();
     }
 
     @Override
     public <M extends Matrix<M>> M derivative(M input) {
-        return input.map((row, col, value) -> 1.0);
+        return input.map((_, _, _) -> 1.0);
     }
 
 }

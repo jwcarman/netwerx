@@ -1,7 +1,10 @@
 package org.jwcarman.netwerx.matrix;
 
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.util.Randoms;
 import org.jwcarman.netwerx.util.Tolerances;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -12,120 +15,6 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 // -------------------------- OTHER METHODS --------------------------
 
     protected abstract MatrixFactory<M> factory();
-
-    @Test
-    void testIsEmpty() {
-        assertThat(factory().zeros(0, 0).isEmpty()).isTrue();
-        assertThat(factory().zeros(1, 0).isEmpty()).isTrue();
-        assertThat(factory().zeros(0, 1).isEmpty()).isTrue();
-    }
-
-    @Test
-    void testNormalizeColumn() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeColumn(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 2.0, 3.0, 1.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeColumns() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeColumns();
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
-    }
-
-    @Test
-    void testRowSlice() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        assertThatThrownBy(() -> matrix.rowSlice(-4, 2))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> matrix.rowSlice(0, 5))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> matrix.rowSlice(2, 1))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        var slice = matrix.rowSlice(0, 1);
-        assertThat(slice.rowCount()).isEqualTo(1);
-        assertThat(slice.columnCount()).isEqualTo(matrix.columnCount());
-    }
-
-    @Test
-    void testColumnSlice() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        assertThatThrownBy(() -> matrix.columnSlice(-4, 2))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> matrix.columnSlice(0, 5))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> matrix.columnSlice(2, 1))
-                .isInstanceOf(IllegalArgumentException.class);
-
-        var slice = matrix.columnSlice(0, 1);
-        assertThat(slice.rowCount()).isEqualTo(matrix.rowCount());
-        assertThat(slice.columnCount()).isEqualTo(1);
-    }
-
-    @Test
-    void testNormalizeColumnWithZeroRange() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 1, 5, 6);
-        M result = matrix.normalizeColumn(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.5, 2.0, 3.0, 0.5, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeRow() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeRow(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 4.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeRows() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeRows();
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 0.0, 0.5, 1.0);
-    }
-
-    @Test
-    void testNormalizeRowWithZeroRange() {
-        M matrix = factory().from(2, 3, 1, 1, 1, 4, 5, 6);
-        M result = matrix.normalizeRow(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.5, 0.5, 0.5, 4.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testMultiClassifierOutput() {
-        var m = factory().zeros(3, 3)
-                .multiClassifierOutputs(3, new int[]{0, 1, 2});
-        assertThat(m.values().boxed()).containsExactly(
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 0.0, 1.0);
-    }
-
-    @Test
-    void testMultiClassifierOutputWithInvalidDims() {
-        var matrix = factory().zeros(3, 1);
-        var labels = new int[]{0, 1, 2};
-
-        assertThatThrownBy(() -> matrix.multiClassifierOutputs(3, labels))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void testBinaryClassifierOutputs() {
-        var m = factory().zeros(3, 3)
-                .binaryClassifierOutputs(new boolean[]{true, false, true});
-        assertThat(m.values().boxed()).containsExactly(1.0, 0.0, 1.0);
-    }
-
-    @Test
-    void testBinaryClassifierOutputsWithInvalidDims() {
-        var matrix = factory().zeros(3, 1);
-        var labels = new boolean[]{true, false, true};
-
-        assertThatThrownBy(() -> matrix.binaryClassifierOutputs(labels))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 
     @Test
     void testAdd() {
@@ -158,6 +47,30 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         M result = a.addRowVector(b);
 
         assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testBinaryClassifierOutputs() {
+        var m = factory().zeros(3, 3)
+                .binaryClassifierOutputs(new boolean[]{true, false, true});
+        assertThat(m.values().boxed()).containsExactly(1.0, 0.0, 1.0);
+    }
+
+    @Test
+    void testBinaryClassifierOutputsWithInvalidDims() {
+        var matrix = factory().zeros(3, 1);
+        var labels = new boolean[]{true, false, true};
+
+        assertThatThrownBy(() -> matrix.binaryClassifierOutputs(labels))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testClamp() {
+        M a = factory().filled(2, 2, 10.0);
+
+        assertThat(factory().filled(2, 2, 1.5).isIdentical(a.clamp(0.5, 1.5), Tolerances.DEFAULT_TOLERANCE)).isTrue();
+        assertThat(factory().filled(2, 2, 20).isIdentical(a.clamp(20, 30), Tolerances.DEFAULT_TOLERANCE)).isTrue();
     }
 
     @Test
@@ -218,6 +131,176 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         double result = a.columnMin(0);
 
         assertEquals(expected, result, Tolerances.DEFAULT_TOLERANCE);
+    }
+
+    @Test
+    void testColumnSelect() {
+        M a = factory().filled(2, 2, 1.0);
+        M expected = factory().filled(2, 1, 1.0);
+
+        M result = a.columnSelect(List.of(1));
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testColumnShuffle() {
+        M a = factory().from(2, 2,
+                1, 2,
+                3, 4);
+
+        M result = a.columnShuffle(Randoms.defaultRandom());
+
+        M sums = result.columnSum();
+
+        assertThat(sums.values()).containsExactlyInAnyOrder(4.0, 6.0);
+    }
+
+    @Test
+    void testRowShuffle() {
+        M a = factory().from(2, 2,
+                1, 2,
+                4, 3);
+
+        M result = a.rowShuffle(Randoms.defaultRandom());
+
+        M sums = result.rowSum();
+
+        assertThat(sums.values()).containsExactlyInAnyOrder(3.0, 7.0);
+    }
+
+    @Test
+    void testRowReorder() {
+
+        M a = factory().from(2, 2,
+                1, 2,
+                3, 4);
+
+        M result = a.rowReorder(List.of(1, 0));
+
+        M expected = factory().from(2, 2,
+                3, 4,
+                1, 2);
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testRowSoftmax() {
+        M input = factory().from(2, 2,
+                1.0, 2.0,
+                3.0, 4.0);
+
+        M result = input.rowSoftmax();
+
+        M expected = factory().from(2, 2,
+                0.26894142, 0.73105858,
+                0.26894142, 0.73105858);
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testColumnSoftmax() {
+        M input = factory().from(2, 2,
+                1.0, 1.0,
+                2.0, 3.0);
+
+        M result = input.columnSoftmax();
+
+        M expected = factory().from(2, 2,
+                0.26894142, 0.11920292,
+                0.73105858, 0.88079708);
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testElementAdd() {
+        M a = factory().filled(2, 2, 1.0);
+        M expected = factory().filled(2, 2, 3.0);
+
+        M result = a.elementAdd(2.0);
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testIsIdentical() {
+        M a = factory().filled(2, 2, 1.0);
+        M b = factory().filled(2, 2, 1.0);
+        M c = factory().filled(2, 2, 2.0);
+
+        assertThat(a.isIdentical(b, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+        assertThat(a.isIdentical(c, Tolerances.DEFAULT_TOLERANCE)).isFalse();
+    }
+
+    @Test
+    void testLog() {
+        M a = factory().filled(2, 2, Math.E); // e
+        M expected = factory().filled(2, 2, 1.0); // log(e) = 1
+
+        M result = a.log();
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testSubtract() {
+        M a = factory().filled(2, 2, 3.0);
+        M b = factory().filled(2, 2, 1.0);
+        M expected = factory().filled(2, 2, 2.0);
+
+        M result = a.subtract(b);
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testRowReorderWithInvalidIndices() {
+        M a = factory().from(2, 2,
+                1, 2,
+                3, 4);
+
+        var badIndices = List.of(0, 1, 2);
+        assertThatThrownBy(() -> a.rowReorder(badIndices))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testColumnReorderWithInvalidIndices() {
+        M a = factory().from(2, 2,
+                1, 2,
+                3, 4);
+
+        var badIndices = List.of(0, 1, 2);
+        assertThatThrownBy(() -> a.columnReorder(badIndices))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testNegate() {
+        M a = factory().filled(2, 2, 1.0);
+        M expected = factory().filled(2, 2, -1.0);
+
+        M result = a.negate();
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testColumnSlice() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        assertThatThrownBy(() -> matrix.columnSlice(-4, 2))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.columnSlice(0, 5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.columnSlice(2, 1))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        var slice = matrix.columnSlice(0, 1);
+        assertThat(slice.rowCount()).isEqualTo(matrix.rowCount());
+        assertThat(slice.columnCount()).isEqualTo(1);
     }
 
     @Test
@@ -391,6 +474,13 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
+    void testIsEmpty() {
+        assertThat(factory().zeros(0, 0).isEmpty()).isTrue();
+        assertThat(factory().zeros(1, 0).isEmpty()).isTrue();
+        assertThat(factory().zeros(0, 1).isEmpty()).isTrue();
+    }
+
+    @Test
     void testIsNotSquare() {
         M a = factory().filled(2, 3, 1.0);
         boolean expected = false;
@@ -417,6 +507,14 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 
         M result = a.likeKind(2, 3);
 
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testLikeKindWithValues() {
+        M a = factory().empty();
+        M result = a.likeKind(2, 3, (r, _) -> r);
+        M expected = factory().from(2, 3, 0, 0, 0, 1, 1, 1);
         assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
     }
 
@@ -504,6 +602,25 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
+    void testMultiClassifierOutput() {
+        var m = factory().zeros(3, 3)
+                .multiClassifierOutputs(3, new int[]{0, 1, 2});
+        assertThat(m.values().boxed()).containsExactly(
+                1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0);
+    }
+
+    @Test
+    void testMultiClassifierOutputWithInvalidDims() {
+        var matrix = factory().zeros(3, 1);
+        var labels = new int[]{0, 1, 2};
+
+        assertThatThrownBy(() -> matrix.multiClassifierOutputs(3, labels))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void testNormL1() {
         M a = factory().filled(2, 2, 1.0);
         double expected = 4.0;
@@ -521,6 +638,48 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         double result = a.normL2();
 
         assertEquals(expected, result, Tolerances.DEFAULT_TOLERANCE);
+    }
+
+    @Test
+    void testNormalizeColumn() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeColumn(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 2.0, 3.0, 1.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeColumnWithZeroRange() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 1, 5, 6);
+        M result = matrix.normalizeColumn(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.5, 2.0, 3.0, 0.5, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeColumns() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeColumns();
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    }
+
+    @Test
+    void testNormalizeRow() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeRow(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 4.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeRowWithZeroRange() {
+        M matrix = factory().from(2, 3, 1, 1, 1, 4, 5, 6);
+        M result = matrix.normalizeRow(0);
+        assertThat(result.values().boxed().toList()).containsExactly(0.5, 0.5, 0.5, 4.0, 5.0, 6.0);
+    }
+
+    @Test
+    void testNormalizeRows() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        M result = matrix.normalizeRows();
+        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 0.0, 0.5, 1.0);
     }
 
     @Test
@@ -601,6 +760,31 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         double result = a.rowMin(0);
 
         assertEquals(expected, result, Tolerances.DEFAULT_TOLERANCE);
+    }
+
+    @Test
+    void testRowSelect() {
+        M a = factory().filled(2, 2, 1.0);
+        M expected = factory().filled(1, 2, 1.0);
+
+        M result = a.rowSelect(List.of(1));
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testRowSlice() {
+        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
+        assertThatThrownBy(() -> matrix.rowSlice(-4, 2))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.rowSlice(0, 5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> matrix.rowSlice(2, 1))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        var slice = matrix.rowSlice(0, 1);
+        assertThat(slice.rowCount()).isEqualTo(1);
+        assertThat(slice.columnCount()).isEqualTo(matrix.columnCount());
     }
 
     @Test

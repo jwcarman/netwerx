@@ -3,6 +3,8 @@ package org.jwcarman.netwerx.network;
 import org.jwcarman.netwerx.EpochOutcome;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
+import org.jwcarman.netwerx.batch.TrainingExecutor;
+import org.jwcarman.netwerx.batch.TrainingResult;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.layer.LayerBackprop;
 import org.jwcarman.netwerx.layer.LayerTrainer;
@@ -24,6 +26,7 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
     private final StoppingAdvisor stoppingAdvisor;
     private final LossFunction lossFunction;
     private final Dataset<M> validationDataset;
+    private final TrainingExecutor<M> trainingExecutor;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -31,11 +34,12 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
             List<LayerTrainer<M>> layerTrainers,
             StoppingAdvisor stoppingAdvisor,
             LossFunction lossFunction,
-            Dataset<M> validationDataset) {
+            Dataset<M> validationDataset, TrainingExecutor<M> trainingExecutor) {
         this.layerTrainers = layerTrainers;
         this.stoppingAdvisor = stoppingAdvisor;
         this.lossFunction = lossFunction;
         this.validationDataset = validationDataset;
+        this.trainingExecutor = trainingExecutor;
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -44,23 +48,21 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
     @Override
     public NeuralNetwork<M> train(Dataset<M> trainingDataset, TrainingObserver observer) {
-        if(layerTrainers.getFirst().inputSize() != trainingDataset.inputs().rowCount()) {
+        if(layerTrainers.getFirst().inputSize() != trainingDataset.features().rowCount()) {
             throw new IllegalArgumentException(String.format("Dataset input must have input size %d.", layerTrainers.getFirst().inputSize()));
         }
         int epoch = 1;
         boolean continueTraining;
         do {
-            var result = performTrainingStep(trainingDataset);
+            var result = trainingExecutor.execute(trainingDataset, this::performTrainingStep);
             var regularizationPenalty = layerTrainers.stream()
                     .mapToDouble(LayerTrainer::regularizationPenalty)
                     .sum();
 
-            Streams.zip(layerTrainers.stream(), result.layerUpdates().stream())
-                    .forEach(pair -> pair.left().applyUpdates(pair.right()));
+            applyLayerUpdates(result.layerUpdates());
 
             var validationLoss = calculateValidationLoss();
             var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
-
 
             observer.onEpoch(outcome);
             continueTraining = !stoppingAdvisor.shouldStopAfter(outcome);
@@ -72,20 +74,25 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
         return new DefaultNeuralNetwork<>(layers);
     }
 
+    private void applyLayerUpdates(List<LayerUpdate<M>> layerUpdates) {
+        Streams.zip(layerTrainers.stream(), layerUpdates.stream())
+                .forEach(pair -> pair.left().applyUpdates(pair.right()));
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     private double calculateValidationLoss() {
-        if (validationDataset.inputs().isEmpty()) {
+        if (validationDataset.features().isEmpty()) {
             return Double.NaN;
         }
-        var inferred = layerTrainers.stream().reduce(validationDataset.inputs(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
-        return lossFunction.loss(inferred, validationDataset.outputs());
+        var inferred = layerTrainers.stream().reduce(validationDataset.features(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
+        return lossFunction.loss(inferred, validationDataset.labels());
     }
 
-    private TrainingStepResult<M> performTrainingStep(Dataset<M> trainingDataset) {
+    private TrainingResult<M> performTrainingStep(Dataset<M> trainingDataset) {
         var forwardPassResult = performForwardPass(trainingDataset);
-        var trainingLoss = lossFunction.loss(forwardPassResult.output(), trainingDataset.outputs());
-        var outputGradient = lossFunction.gradient(forwardPassResult.output(), trainingDataset.outputs());
+        var trainingLoss = lossFunction.loss(forwardPassResult.output(), trainingDataset.labels());
+        var outputGradient = lossFunction.gradient(forwardPassResult.output(), trainingDataset.labels());
         var layerUpdates = new ArrayList<LayerUpdate<M>>();
 
         for (LayerBackprop<M> backProp : forwardPassResult.backProps()) {
@@ -93,11 +100,11 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
             layerUpdates.addFirst(result.layerUpdate());
             outputGradient = result.outputGradient();
         }
-        return new TrainingStepResult<>(trainingLoss, layerUpdates);
+        return new TrainingResult<>(trainingLoss, layerUpdates);
     }
 
     private ForwardPassResult<M> performForwardPass(Dataset<M> trainingDataset) {
-        M activations = trainingDataset.inputs();
+        M activations = trainingDataset.features();
         var backProps = new ArrayList<LayerBackprop<M>>();
         for (LayerTrainer<M> trainer : layerTrainers) {
             var bp = trainer.forwardPass(activations);
@@ -108,10 +115,6 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
     }
 
 // -------------------------- INNER CLASSES --------------------------
-
-    record TrainingStepResult<M extends Matrix<M>>(double trainingLoss, List<LayerUpdate<M>> layerUpdates) {
-
-    }
 
     private record ForwardPassResult<M extends Matrix<M>>(M output, ArrayList<LayerBackprop<M>> backProps) {
 

@@ -2,6 +2,7 @@ package org.jwcarman.netwerx.matrix.ejml;
 
 import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.matrix.MatrixValueProvider;
 
 public class EjmlMatrix implements Matrix<EjmlMatrix> {
 
@@ -27,7 +28,7 @@ public class EjmlMatrix implements Matrix<EjmlMatrix> {
 
 
     @Override
-    public EjmlMatrix map(ElementOperation operation) {
+    public EjmlMatrix map(ElementMapper operation) {
         return new EjmlMatrix(delegate.elementOp(operation::apply));
     }
 
@@ -71,8 +72,14 @@ public class EjmlMatrix implements Matrix<EjmlMatrix> {
     }
 
     @Override
-    public EjmlMatrix likeKind(int rows, int columns) {
-        return new EjmlMatrix(new SimpleMatrix(rows, columns));
+    public EjmlMatrix likeKind(int rows, int columns, MatrixValueProvider valueProvider) {
+        var copy = new SimpleMatrix(rows, columns);
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < columns; c++) {
+                copy.set(r, c, valueProvider.getValue(r, c));
+            }
+        }
+        return new EjmlMatrix(copy);
     }
 
     @Override

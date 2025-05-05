@@ -45,7 +45,7 @@ public interface MatrixFactory<M extends Matrix<M>> {
      * @param values  a supplier for the values to fill the matrix with
      * @return a new matrix with the specified dimensions and filled with values from the supplier
      */
-    M filled(int rows, int columns, MatrixValueSupplier values);
+    M filled(int rows, int columns, MatrixValueProvider values);
 
     /**
      * Creates a new matrix filled with Gaussian-distributed random values.
@@ -59,6 +59,18 @@ public interface MatrixFactory<M extends Matrix<M>> {
      */
     default M gaussian(int rows, int columns, double mean, double stddev, Random random) {
         return filled(rows, columns, () -> random.nextGaussian() * stddev + mean);
+    }
+
+    /**
+     * Creates a new matrix with the specified data.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @param values  a supplier for the values to fill the matrix with
+     * @return a new matrix with the specified dimensions and filled with values from the supplier
+     */
+    default M filled(int rows, int columns, DoubleSupplier values) {
+        return filled(rows, columns, (_, _) -> values.getAsDouble());
     }
 
     /**
@@ -110,18 +122,6 @@ public interface MatrixFactory<M extends Matrix<M>> {
     }
 
     /**
-     * Creates a new matrix with the specified data.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @param values  a supplier for the values to fill the matrix with
-     * @return a new matrix with the specified dimensions and filled with values from the supplier
-     */
-    default M filled(int rows, int columns, DoubleSupplier values) {
-        return filled(rows, columns, (_, _) -> values.getAsDouble());
-    }
-
-    /**
      * Creates a new matrix with the specified number of rows and columns.
      *
      * @param rows    the number of rows
@@ -129,17 +129,5 @@ public interface MatrixFactory<M extends Matrix<M>> {
      * @return a new matrix with the specified dimensions (filled with zeros)
      */
     M zeros(int rows, int columns);
-
-
-// -------------------------- INNER CLASSES --------------------------
-
-    @FunctionalInterface
-    interface MatrixValueSupplier {
-
-// -------------------------- OTHER METHODS --------------------------
-
-        double getValue(int row, int col);
-
-    }
 
 }

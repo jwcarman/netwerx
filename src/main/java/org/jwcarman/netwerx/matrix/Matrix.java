@@ -1,10 +1,15 @@
 package org.jwcarman.netwerx.matrix;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.OptionalDouble;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -29,7 +34,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @param operation the operation to apply
      * @return a new matrix with the operation applied to each element
      */
-    M map(ElementOperation operation);
+    M map(ElementMapper operation);
 
     /**
      * Returns the value at the specified row and column.
@@ -60,13 +65,37 @@ public interface Matrix<M extends Matrix<M>> {
         return map((_, col, value) -> value + rowVector.valueAt(0, col));
     }
 
+    /**
+     * Returns a new matrix appropriate for binary classification, where each column represents a binary label
+     * where true == 1.0 and false == 0.0.
+     *
+     * @param labels the binary labels for each column, where true represents a positive class and false represents a negative class
+     * @return a new matrix with binary outputs for binary classification
+     */
     default M binaryClassifierOutputs(boolean[] labels) {
         if (labels.length != columnCount()) {
             throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
         }
-        return likeKind(1, labels.length)
-                .map((_, col, _) -> labels[col] ? 1.0 : 0.0);
+        return likeKind(1, labels.length, (_, col) -> labels[col] ? 1.0 : 0.0);
     }
+
+    /**
+     * Returns the number of columns in the matrix.
+     *
+     * @return the number of columns
+     */
+    int columnCount();
+
+    /**
+     * Returns a new matrix of the same kind as this one, filled with values provided by the value provider,
+     * with the specified shape
+     *
+     * @param rows          the number of rows
+     * @param columns       the number of columns
+     * @param valueProvider a function that provides the value for each element
+     * @return a new matrix of the same kind as this one, filled with values provided by the value provider
+     */
+    M likeKind(int rows, int columns, MatrixValueProvider valueProvider);
 
     /**
      * Returns a new matrix with each element clamped to the specified range.
@@ -96,25 +125,8 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a row vector with the values provided by the reducer
      */
     default M reduceColumns(ToDoubleFunction<M> reducer) {
-        var agg = likeKind(1, columnCount());
-        return agg.map((_, col, _) -> reducer.applyAsDouble(columnVector(col)));
+        return likeKind(1, columnCount(), (_, col) -> reducer.applyAsDouble(columnVector(col)));
     }
-
-    /**
-     * Returns a new matrix of the same kind as this one, with the specified shape.
-     *
-     * @param rows    the number of rows
-     * @param columns the number of columns
-     * @return a new matrix of the same kind as this one, with the specified shape
-     */
-    M likeKind(int rows, int columns);
-
-    /**
-     * Returns the number of columns in the matrix.
-     *
-     * @return the number of columns
-     */
-    int columnCount();
 
     /**
      * Returns the specified column as a column vector.
@@ -148,6 +160,71 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double columnMean(int column) {
         return columnValues(column).average().orElseThrow(NoSuchElementException::new);
+    }
+
+    default M columnSelect(List<Integer> columnIndices) {
+        return likeKind(rowCount(), columnIndices.size(), (row, col) -> valueAt(row, columnIndices.get(col)));
+    }
+
+    default M columnShuffle(Random random) {
+        var indices = columnIndices();
+        Collections.shuffle(indices, random);
+        return columnReorder(indices);
+    }
+
+    default List<Integer> columnIndices() {
+        return IntStream.range(0, columnCount()).boxed().collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    default M columnReorder(List<Integer> indices) {
+        if (indices.size() != columnCount()) {
+            throw new IllegalArgumentException(String.format("Indices size %d must match column count %d", indices.size(), columnCount()));
+        }
+        return map((row, col, _) -> valueAt(row, indices.get(col)));
+    }
+
+    default M columnSlice(int start, int end) {
+        if (start < 0 || end > columnCount() || start >= end) {
+            throw new IllegalArgumentException(String.format("Invalid column slice: start=%d, end=%d, columns=%d", start, end, columnCount()));
+        }
+        return reshape(rowCount(), end - start).map((row, col, _) -> valueAt(row, col + start));
+    }
+
+    default M columnSoftmax() {
+        M maxPerColumn = this.columnMax(); // shape: (1, columns)
+        M stabilized = this.subtractRowVector(maxPerColumn);
+        M exp = stabilized.exp();
+        M sumPerColumn = exp.columnSum(); // shape: (1, columns)
+
+        return exp.map((_, col, value) -> value / sumPerColumn.valueAt(0, col));
+    }
+
+    /**
+     * Returns a new matrix with the specified row vector subtracted from each row of the matrix.
+     *
+     * @param rowVector the row vector to subtract
+     * @return a new matrix with the row vector subtracted from each row
+     */
+    default M subtractRowVector(M rowVector) {
+        return map((_, col, value) -> value - rowVector.valueAt(0, col));
+    }
+
+    /**
+     * Returns a new matrix with each element replaced by e^x.
+     *
+     * @return a new matrix with each element replaced by e^x
+     */
+    default M exp() {
+        return map((_, _, value) -> Math.exp(value));
+    }
+
+    /**
+     * Returns a new column vector containing the sum of each column.
+     *
+     * @return a new column vector with the sum of each column
+     */
+    default M columnSum() {
+        return reduceColumns(Matrix::sum);
     }
 
     /**
@@ -413,6 +490,17 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
+     * Returns a new matrix of the same kind as this one filled with zeros, with the specified shape.
+     *
+     * @param rows    the number of rows
+     * @param columns the number of columns
+     * @return a new matrix of the same kind as this one, with the specified shape
+     */
+    default M likeKind(int rows, int columns) {
+        return likeKind(rows, columns, (_, _) -> 0.0);
+    }
+
+    /**
      * Returns a new matrix with each element replaced by its natural logarithm.
      *
      * @return a new matrix with each element replaced by its natural logarithm
@@ -461,12 +549,18 @@ public interface Matrix<M extends Matrix<M>> {
         return deref(values().min());
     }
 
+    /**
+     * Returns a new matrix appropriate for multi-class classification, one-hot encoding the specified labels.
+     *
+     * @param classCount the number of classes
+     * @param labels     the labels for each column, where each label corresponds to a class index
+     * @return a new matrix with one-hot encoded outputs for multi-class classification
+     */
     default M multiClassifierOutputs(int classCount, int[] labels) {
         if (labels.length != columnCount()) {
             throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
         }
-        return likeKind(classCount, labels.length)
-                .map((row, col, _) -> labels[col] == row ? 1.0 : 0.0);
+        return likeKind(classCount, labels.length, (row, col) -> labels[col] == row ? 1.0 : 0.0);
     }
 
     /**
@@ -615,20 +709,6 @@ public interface Matrix<M extends Matrix<M>> {
         return deref(rowValues(row).max());
     }
 
-    default M columnSlice(int start, int end) {
-        if (start < 0 || end > columnCount() || start >= end) {
-            throw new IllegalArgumentException(String.format("Invalid column slice: start=%d, end=%d, columns=%d", start, end, columnCount()));
-        }
-        return reshape(rowCount(), end - start).map((row, col, _) -> valueAt(row, col + start));
-    }
-
-    default M rowSlice(int start, int end) {
-        if (start < 0 || end > rowCount() || start >= end) {
-            throw new IllegalArgumentException(String.format("Invalid row slice: start=%d, end=%d, rows=%d", start, end, rowCount()));
-        }
-        return reshape(end - start, columnCount()).map((row, col, _) -> valueAt(row + start, col));
-    }
-
     default M normalizeRows() {
         var rowMax = rowMax();
         var rowMin = rowMin();
@@ -651,8 +731,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a column vector with the values provided by the reducer
      */
     default M reduceRows(ToDoubleFunction<M> reducer) {
-        var agg = likeKind(rowCount(), 1);
-        return agg.map((row, _, _) -> reducer.applyAsDouble(rowVector(row)));
+        return likeKind(rowCount(), 1, (row, _) -> reducer.applyAsDouble(rowVector(row)));
     }
 
     /**
@@ -702,6 +781,62 @@ public interface Matrix<M extends Matrix<M>> {
         return deref(rowValues(row).average());
     }
 
+    default M rowSelect(List<Integer> rowIndices) {
+        return likeKind(rowIndices.size(), columnCount(), (row, col) -> valueAt(rowIndices.get(row), col));
+    }
+
+    default M rowShuffle(Random random) {
+        var indices = rowIndices();
+        Collections.shuffle(indices, random);
+        return rowReorder(indices);
+    }
+
+    default List<Integer> rowIndices() {
+        return IntStream.range(0, rowCount()).boxed().collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    default M rowReorder(List<Integer> indices) {
+        if (indices.size() != rowCount()) {
+            throw new IllegalArgumentException(String.format("Indices size %d must match row count %d", indices.size(), rowCount()));
+        }
+        return map((row, col, _) -> valueAt(indices.get(row), col));
+    }
+
+    default M rowSlice(int start, int end) {
+        if (start < 0 || end > rowCount() || start >= end) {
+            throw new IllegalArgumentException(String.format("Invalid row slice: start=%d, end=%d, rows=%d", start, end, rowCount()));
+        }
+        return reshape(end - start, columnCount()).map((row, col, _) -> valueAt(row + start, col));
+    }
+
+    default M rowSoftmax() {
+        M maxPerRow = this.rowMax(); // shape: (rows, 1)
+        M stabilized = this.subtractColumnVector(maxPerRow);
+        M exp = stabilized.exp();
+        M sumPerRow = exp.rowSum(); // shape: (rows, 1)
+
+        return exp.map((row, _, value) -> value / sumPerRow.valueAt(row, 0));
+    }
+
+    /**
+     * Returns a new matrix that is the result of subtracting a column vector from each column of the matrix.
+     *
+     * @param columnVector the column vector to subtract
+     * @return a new matrix with the column vector subtracted from each column
+     */
+    default M subtractColumnVector(M columnVector) {
+        return map((row, _, value) -> value - columnVector.valueAt(row, 0));
+    }
+
+    /**
+     * Sums the rows of the matrix.
+     *
+     * @return a new column vector with the sum of each row
+     */
+    default M rowSum() {
+        return reduceRows(Matrix::sum);
+    }
+
     /**
      * Returns a column vector containing the standard deviation of each row.
      *
@@ -739,15 +874,6 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default DoubleStream rowValues(int row) {
         return rowVector(row).values();
-    }
-
-    /**
-     * Sums the rows of the matrix.
-     *
-     * @return a new column vector with the sum of each row
-     */
-    default M rowSum() {
-        return reduceRows(Matrix::sum);
     }
 
     /**
@@ -793,48 +919,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns a new matrix with each element replaced by the softmax of the corresponding element.
-     *
-     * @return a new matrix with softmax applied
-     */
-    default M softmax() {
-        M maxPerColumn = this.columnMax(); // shape: (1, columns)
-        M stabilized = this.subtractRowVector(maxPerColumn);
-        M exp = stabilized.exp();
-        M sumPerColumn = exp.columnSum(); // shape: (1, columns)
-
-        return exp.map((_, col, value) -> value / sumPerColumn.valueAt(0, col));
-    }
-
-    /**
-     * Returns a new matrix with the specified row vector subtracted from each row of the matrix.
-     *
-     * @param rowVector the row vector to subtract
-     * @return a new matrix with the row vector subtracted from each row
-     */
-    default M subtractRowVector(M rowVector) {
-        return map((_, col, value) -> value - rowVector.valueAt(0, col));
-    }
-
-    /**
-     * Returns a new matrix with each element replaced by e^x.
-     *
-     * @return a new matrix with each element replaced by e^x
-     */
-    default M exp() {
-        return map((_, _, value) -> Math.exp(value));
-    }
-
-    /**
-     * Returns a new column vector containing the sum of each column.
-     *
-     * @return a new column vector with the sum of each column
-     */
-    default M columnSum() {
-        return reduceColumns(Matrix::sum);
-    }
-
-    /**
      * Returns the standard deviation of all elements in the matrix.
      *
      * @return the standard deviation of all elements
@@ -854,16 +938,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns a new matrix that is the result of subtracting a column vector from each column of the matrix.
-     *
-     * @param columnVector the column vector to subtract
-     * @return a new matrix with the column vector subtracted from each column
-     */
-    default M subtractColumnVector(M columnVector) {
-        return map((row, _, value) -> value - columnVector.valueAt(row, 0));
-    }
-
-    /**
      * Returns the transpose of the matrix.
      *
      * @return the transposed matrix as a new instance
@@ -873,7 +947,7 @@ public interface Matrix<M extends Matrix<M>> {
 // -------------------------- INNER CLASSES --------------------------
 
     @FunctionalInterface
-    interface ElementOperation {
+    interface ElementMapper {
 
 // -------------------------- OTHER METHODS --------------------------
 

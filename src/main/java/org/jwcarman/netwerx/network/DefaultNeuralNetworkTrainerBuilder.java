@@ -6,6 +6,8 @@ import org.jwcarman.netwerx.NeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
 import org.jwcarman.netwerx.autoencoder.AutoencoderTrainer;
 import org.jwcarman.netwerx.autoencoder.DefaultAutoencoderTrainer;
+import org.jwcarman.netwerx.batch.FullBatchExecutor;
+import org.jwcarman.netwerx.batch.TrainingExecutor;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifierTrainer;
@@ -44,6 +46,7 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
     private StoppingAdvisor stoppingAdvisor = new EpochCountStoppingAdvisor();
     private LossFunction lossFunction = Losses.mse();
     private Dataset<M> validationDataset;
+    private TrainingExecutor<M> trainingExecutor = new FullBatchExecutor<>();
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -84,6 +87,11 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         return this;
     }
 
+    public NeuralNetworkTrainerBuilder<M> trainingExecutor(TrainingExecutor<M> trainingExecutor) {
+        this.trainingExecutor = trainingExecutor;
+        return this;
+    }
+
     public NeuralNetworkTrainerBuilder<M> defaultOptimizer(Supplier<Optimizer<M>> optimizerSupplier) {
         this.defaultOptimizerSupplier = optimizerSupplier;
         return this;
@@ -109,7 +117,7 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
 
     @Override
     public NeuralNetworkTrainer<M> build() {
-        return new DefaultNeuralNetworkTrainer<>(layerTrainers, stoppingAdvisor, lossFunction, validationDataset);
+        return new DefaultNeuralNetworkTrainer<>(layerTrainers, stoppingAdvisor, lossFunction, validationDataset, trainingExecutor);
     }
 
     @Override
@@ -139,10 +147,10 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
 
     @Override
     public AutoencoderTrainer<M> buildAutoencoderTrainer() {
-        if(layerTrainers.size() < 3) {
+        if (layerTrainers.size() < 3) {
             throw new IllegalStateException("An autoencoder must have at least three layers: input, hidden, and output.");
         }
-        if(layerTrainers.getFirst().inputSize() != layerTrainers.getLast().outputSize()) {
+        if (layerTrainers.getFirst().inputSize() != layerTrainers.getLast().outputSize()) {
             throw new IllegalStateException("The first layer's input size must match the last layer's output size for an autoencoder.");
         }
         return new DefaultAutoencoderTrainer<>(build(), layerTrainers.stream().map(LayerTrainer::outputSize).toList());

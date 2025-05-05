@@ -13,7 +13,7 @@ public interface RegressionModelTrainer<M extends Matrix<M>> {
     }
 
     /**
-     * Train a regression model using the provided inputs and labels.
+     * Train a regression model using the provided features and labels.
      *
      * @param inputs   the feature matrix (shape: features x samples)
      * @param labels   the target values (shape: samples)

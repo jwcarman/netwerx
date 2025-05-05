@@ -2,6 +2,7 @@ package org.jwcarman.netwerx.matrix.ejml;
 
 import org.ejml.simple.SimpleMatrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
+import org.jwcarman.netwerx.matrix.MatrixValueProvider;
 
 public class EjmlMatrixFactory implements MatrixFactory<EjmlMatrix> {
 
@@ -26,7 +27,7 @@ public class EjmlMatrixFactory implements MatrixFactory<EjmlMatrix> {
     }
 
     @Override
-    public EjmlMatrix filled(int rows, int columns, MatrixValueSupplier values) {
+    public EjmlMatrix filled(int rows, int columns, MatrixValueProvider values) {
         var matrix = new SimpleMatrix(rows, columns);
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
