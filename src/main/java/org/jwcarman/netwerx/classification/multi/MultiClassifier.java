@@ -9,6 +9,6 @@ public interface MultiClassifier<M extends Matrix<M>> {
     /**
      * Predicts the class index for each input column.
      */
-    int[] predict(M input);
+    int[] predictClasses(M input);
 
 }

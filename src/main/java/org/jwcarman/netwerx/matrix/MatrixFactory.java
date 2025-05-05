@@ -1,7 +1,9 @@
 package org.jwcarman.netwerx.matrix;
 
+import java.util.List;
 import java.util.Random;
 import java.util.function.DoubleSupplier;
+import java.util.function.ToDoubleFunction;
 
 public interface MatrixFactory<M extends Matrix<M>> {
 
@@ -119,6 +121,31 @@ public interface MatrixFactory<M extends Matrix<M>> {
     default M random(int rows, int columns, double min, double max, Random random) {
         final var range = max - min;
         return filled(rows, columns, () -> min + (range * random.nextDouble()));
+    }
+
+
+    /**
+     * Creates a new matrix with the specified column values and row mappers.
+     *
+     * @param columnValues the values for each column
+     * @param rowMappers   a list of functions that map each column value to a double for each row
+     * @param <T>          the type of the column values
+     * @return a new matrix with the specified column values and row mappers
+     */
+    default <T> M columnOriented(List<T> columnValues, List<ToDoubleFunction<T>> rowMappers) {
+        return filled(rowMappers.size(), columnValues.size(), (row, col) -> rowMappers.get(row).applyAsDouble(columnValues.get(col)));
+    }
+
+    /**
+     * Creates a new matrix with the specified row values and column mappers.
+     *
+     * @param rowValues     the values for each row
+     * @param columnMappers a list of functions that map each row value to a double for each column
+     * @param <T>           the type of the row values
+     * @return a new matrix with the specified row values and column mappers
+     */
+    default <T> M rowOriented(List<T> rowValues, List<ToDoubleFunction<T>> columnMappers) {
+        return filled(rowValues.size(), columnMappers.size(), (row, col) -> columnMappers.get(col).applyAsDouble(rowValues.get(row)));
     }
 
     /**

@@ -2,7 +2,6 @@ package org.jwcarman.netwerx.matrix;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.OptionalDouble;
@@ -72,11 +71,40 @@ public interface Matrix<M extends Matrix<M>> {
      * @param labels the binary labels for each column, where true represents a positive class and false represents a negative class
      * @return a new matrix with binary outputs for binary classification
      */
-    default M binaryClassifierOutputs(boolean[] labels) {
+    default M binaryClassifierLabels(boolean[] labels) {
         if (labels.length != columnCount()) {
             throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
         }
         return likeKind(1, labels.length, (_, col) -> labels[col] ? 1.0 : 0.0);
+    }
+
+    /**
+     * Returns the index of the maximum value in the specified column.
+     *
+     * @param col the index of the column
+     * @return the index of the maximum value in the column
+     */
+    default int columnArgMax(int col) {
+        int bestIndex = -1;
+        double bestValue = Double.NEGATIVE_INFINITY;
+        for (int row = 0; row < rowCount(); row++) {
+            double val = valueAt(row, col);
+            if (val > bestValue) {
+                bestValue = val;
+                bestIndex = row;
+            }
+        }
+        return bestIndex;
+    }
+
+
+    /**
+     * Returns a row vector containing the index of the maximum value in each column.
+     *
+     * @return a new row vector with the index of the maximum value in each column
+     */
+    default M columnArgMax() {
+        return likeKind(1, columnCount(), (_, col) -> columnArgMax(col));
     }
 
     /**
@@ -556,11 +584,25 @@ public interface Matrix<M extends Matrix<M>> {
      * @param labels     the labels for each column, where each label corresponds to a class index
      * @return a new matrix with one-hot encoded outputs for multi-class classification
      */
-    default M multiClassifierOutputs(int classCount, int[] labels) {
+    default M multiClassifierClasses(int classCount, int[] labels) {
         if (labels.length != columnCount()) {
             throw new IllegalArgumentException(String.format("Label count %d must match column count %d", labels.length, columnCount()));
         }
         return likeKind(classCount, labels.length, (row, col) -> labels[col] == row ? 1.0 : 0.0);
+    }
+
+
+    /**
+     * Returns a new matrix appropriate for regression models, with the specified targets.
+     *
+     * @param targets the target values for each column, where each value corresponds to a target for the regression model
+     * @return a new matrix with the specified targets for regression models
+     */
+    default M regressionModelTargets(double[] targets) {
+        if (targets.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Target count %d must match column count %d", targets.length, columnCount()));
+        }
+        return likeKind(1, targets.length, (_, col) -> targets[col]);
     }
 
     /**
@@ -758,8 +800,25 @@ public interface Matrix<M extends Matrix<M>> {
      * @return the index of the maximum value in the row
      */
     default int rowArgMax(int row) {
-        var columnCount = columnCount();
-        return IntStream.range(0, columnCount).boxed().max(Comparator.comparingDouble(col -> valueAt(row, col))).orElseThrow(NoSuchElementException::new);
+        int bestIndex = -1;
+        double bestValue = Double.NEGATIVE_INFINITY;
+        for (int col = 0; col < columnCount(); col++) {
+            double val = valueAt(row, col);
+            if (val > bestValue) {
+                bestValue = val;
+                bestIndex = col;
+            }
+        }
+        return bestIndex;
+    }
+
+    /**
+     * Returns a column vector containing the index of the maximum value in each row.
+     *
+     * @return a new column vector with the index of the maximum value in each row
+     */
+    default M rowArgMax() {
+        return likeKind(rowCount(), 1, (row, _) -> rowArgMax(row));
     }
 
     /**

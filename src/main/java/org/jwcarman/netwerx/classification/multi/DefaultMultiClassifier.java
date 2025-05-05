@@ -20,24 +20,12 @@ public class DefaultMultiClassifier<M extends Matrix<M>> implements MultiClassif
 // --------------------- Interface MultiClassifier ---------------------
 
     @Override
-    public int[] predict(M input) {
-        var probabilities = network.predict(input);
-        int[] predictions = new int[probabilities.columnCount()];
-
-        for (int col = 0; col < probabilities.columnCount(); col++) {
-            int maxIndex = 0;
-            double maxValue = probabilities.valueAt(0, col);
-
-            for (int row = 1; row < probabilities.rowCount(); row++) {
-                if (probabilities.valueAt(row, col) > maxValue) {
-                    maxValue = probabilities.valueAt(row, col);
-                    maxIndex = row;
-                }
-            }
-
-            predictions[col] = maxIndex;
+    public int[] predictClasses(M input) {
+        var argMax = network.predict(input).columnArgMax();
+        int[] predictions = new int[argMax.columnCount()];
+        for (int i = 0; i < predictions.length; i++) {
+            predictions[i] = (int) argMax.valueAt(0, i);
         }
-
         return predictions;
     }
 

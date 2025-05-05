@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class DatasetTest {
 
     @Test
-    void testSplit() {
+    void testSplitIntoPair() {
         var factory = new EjmlMatrixFactory();
         var features = factory.filled(4, 4, 1.0);
         var labels = factory.filled(1, 4, 2.0);
@@ -45,6 +45,55 @@ class DatasetTest {
         assertThat(split.right().features().rowCount()).isEqualTo(4);
         assertThat(split.right().labels().columnCount()).isEqualTo(2);
         assertThat(split.right().labels().rowCount()).isEqualTo(1);
+    }
+    
+    @Test
+    void testSplitIntoTriple() {
+        var factory = new EjmlMatrixFactory();
+        var features = factory.filled(4, 4, 1.0);
+        var labels = factory.filled(1, 4, 2.0);
+        var dataset = new Dataset<>(features, labels);
+
+        var rng = Randoms.defaultRandom();
+        assertThatThrownBy(() -> dataset.split(rng,-1.0, 0.5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> dataset.split(rng,1.5, 0.5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> dataset.split(rng,0.5,-0.5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> dataset.split(rng,0.5,1.5))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> dataset.split(rng,0.5,0.7))
+                .isInstanceOf(IllegalArgumentException.class);
+        // Split the dataset
+        var split = dataset.split(rng, 0.5, 0.25);
+        assertNotNull(split);
+
+        // Check first part
+        assertThat(split.first()).isNotNull();
+        assertThat(split.first().features()).isNotNull();
+        assertThat(split.first().labels()).isNotNull();
+        assertThat(split.first().features().columnCount()).isEqualTo(2);
+        assertThat(split.first().features().rowCount()).isEqualTo(4);
+        assertThat(split.first().labels().columnCount()).isEqualTo(2);
+        assertThat(split.first().labels().rowCount()).isEqualTo(1);
+
+        // Check second part
+        assertThat(split.second()).isNotNull();
+        assertThat(split.second().features()).isNotNull();
+        assertThat(split.second().labels()).isNotNull();
+        assertThat(split.second().features().columnCount()).isEqualTo(1);
+        assertThat(split.second().features().rowCount()).isEqualTo(4);
+        assertThat(split.second().labels().columnCount()).isEqualTo(1);
+        assertThat(split.second().labels().rowCount()).isEqualTo(1);
+
+        // Check third part
+        assertThat(split.third()).isNotNull();
+        assertThat(split.third().features()).isNotNull();
+        assertThat(split.third().labels()).isNotNull();
+        assertThat(split.third().features().columnCount()).isEqualTo(1);
+        assertThat(split.third().features().rowCount()).isEqualTo(4);
+        assertThat(split.third().labels().columnCount()).isEqualTo(1);
     }
 
     @Test

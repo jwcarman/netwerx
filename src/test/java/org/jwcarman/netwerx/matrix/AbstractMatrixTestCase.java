@@ -50,18 +50,18 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
-    void testBinaryClassifierOutputs() {
+    void testBinaryClassifierLabels() {
         var m = factory().zeros(3, 3)
-                .binaryClassifierOutputs(new boolean[]{true, false, true});
+                .binaryClassifierLabels(new boolean[]{true, false, true});
         assertThat(m.values().boxed()).containsExactly(1.0, 0.0, 1.0);
     }
 
     @Test
-    void testBinaryClassifierOutputsWithInvalidDims() {
+    void testBinaryClassifierLabelsWithInvalidDims() {
         var matrix = factory().zeros(3, 1);
         var labels = new boolean[]{true, false, true};
 
-        assertThatThrownBy(() -> matrix.binaryClassifierOutputs(labels))
+        assertThatThrownBy(() -> matrix.binaryClassifierLabels(labels))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -511,6 +511,38 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
+    void testRowArgMax() {
+        M a = factory().filled(2, 2, (row, col) -> col);
+        M expected = factory().filled(2, 1, 1.0);
+
+        M result = a.rowArgMax();
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testColumnArgMax() {
+        M a = factory().filled(2, 2, (row, col) -> row);
+        M expected = factory().filled(1, 2, 1.0);
+
+        M result = a.columnArgMax();
+
+        assertThat(expected.isIdentical(result, Tolerances.DEFAULT_TOLERANCE)).isTrue();
+    }
+
+    @Test
+    void testRegressionModelTargets() {
+        M inputs = factory().zeros(3, 3);
+        M a = inputs.regressionModelTargets(new double[]{1.0, 2.0, 3.0});
+        assertThat(a.values().boxed()).containsExactly(1.0, 2.0, 3.0);
+
+        double[] badTargets = {1.0, 2.0, 3.0, 4.0};
+        assertThatThrownBy(() -> inputs.regressionModelTargets(badTargets))
+                .isInstanceOf(IllegalArgumentException.class);
+
+    }
+
+    @Test
     void testLikeKindWithValues() {
         M a = factory().empty();
         M result = a.likeKind(2, 3, (r, _) -> r);
@@ -604,7 +636,7 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     @Test
     void testMultiClassifierOutput() {
         var m = factory().zeros(3, 3)
-                .multiClassifierOutputs(3, new int[]{0, 1, 2});
+                .multiClassifierClasses(3, new int[]{0, 1, 2});
         assertThat(m.values().boxed()).containsExactly(
                 1.0, 0.0, 0.0,
                 0.0, 1.0, 0.0,
@@ -616,7 +648,7 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         var matrix = factory().zeros(3, 1);
         var labels = new int[]{0, 1, 2};
 
-        assertThatThrownBy(() -> matrix.multiClassifierOutputs(3, labels))
+        assertThatThrownBy(() -> matrix.multiClassifierClasses(3, labels))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

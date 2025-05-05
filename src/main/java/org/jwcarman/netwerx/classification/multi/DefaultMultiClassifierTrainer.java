@@ -24,11 +24,9 @@ public class DefaultMultiClassifierTrainer<M extends Matrix<M>> implements Multi
 // --------------------- Interface MultiClassifierTrainer ---------------------
 
     @Override
-    public MultiClassifier<M> train(M inputs, int[] labels, TrainingObserver observer) {
-        if (labels.length != inputs.columnCount()) {
-            throw new IllegalArgumentException("Label count must match input column count.");
-        }
-        var network = networkTrainer.train(new Dataset<>(inputs, inputs.multiClassifierOutputs(outputClasses, labels)), observer);
+    public MultiClassifier<M> train(M features, int[] classes, TrainingObserver observer) {
+        var dataset = Dataset.forMultiClassifier(features, outputClasses, classes);
+        var network = networkTrainer.train(dataset, observer);
         return new DefaultMultiClassifier<>(network);
     }
 

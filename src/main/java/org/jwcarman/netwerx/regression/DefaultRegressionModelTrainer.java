@@ -22,19 +22,10 @@ public class DefaultRegressionModelTrainer<M extends Matrix<M>> implements Regre
 // --------------------- Interface RegressionModelTrainer ---------------------
 
     @Override
-    public RegressionModel<M> train(M inputs, double[] labels, TrainingObserver observer) {
-        if (labels.length != inputs.columnCount()) {
-            throw new IllegalArgumentException("Label count must match input row count.");
-        }
-        var dataset = new Dataset<>(inputs, convertLabels(inputs, labels));
+    public RegressionModel<M> train(M inputs, double[] targets, TrainingObserver observer) {
+        var dataset = Dataset.forRegressionModel(inputs, targets);
         var network = networkTrainer.train(dataset, observer);
         return new DefaultRegressionModel<>(network);
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-
-    private M convertLabels(M inputs, double[] labels) {
-        return inputs.likeKind(1, inputs.columnCount(), (_, col) -> labels[col]);
     }
 
 }

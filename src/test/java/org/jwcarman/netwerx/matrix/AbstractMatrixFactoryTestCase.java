@@ -2,7 +2,9 @@ package org.jwcarman.netwerx.matrix;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,6 +15,46 @@ public abstract class AbstractMatrixFactoryTestCase<M extends Matrix<M>> {
 
     protected abstract MatrixFactory<M> factory();
 
+
+    private record Features(double feature1, double feature2, double feature3) {
+
+    }
+
+    @Test
+    void testColumnOriented() {
+        var features = IntStream.range(0, 10).mapToObj(i -> new Features(i, i * 2, i * 3)).toList();
+        var matrix = factory().columnOriented(features, List.of(
+                Features::feature1,
+                Features::feature2,
+                Features::feature3
+        ));
+        assertThat(matrix).isNotNull();
+        assertThat(matrix.rowCount()).isEqualTo(3);
+        assertThat(matrix.columnCount()).isEqualTo(10);
+        for (int i = 0; i < 10; i++) {
+            assertThat(matrix.valueAt(0, i)).isEqualTo(i);
+            assertThat(matrix.valueAt(1, i)).isEqualTo(i * 2);
+            assertThat(matrix.valueAt(2, i)).isEqualTo(i * 3);
+        }
+    }
+
+    @Test
+    void testRowOriented() {
+        var features = IntStream.range(0, 10).mapToObj(i -> new Features(i, i * 2, i * 3)).toList();
+        var matrix = factory().rowOriented(features, List.of(
+                Features::feature1,
+                Features::feature2,
+                Features::feature3
+        ));
+        assertThat(matrix).isNotNull();
+        assertThat(matrix.rowCount()).isEqualTo(10);
+        assertThat(matrix.columnCount()).isEqualTo(3);
+        for (int i = 0; i < 10; i++) {
+            assertThat(matrix.valueAt(i, 0)).isEqualTo(i);
+            assertThat(matrix.valueAt(i, 1)).isEqualTo(i * 2);
+            assertThat(matrix.valueAt(i, 2)).isEqualTo(i * 3);
+        }
+    }
 
     @Test
     void testOnes() {

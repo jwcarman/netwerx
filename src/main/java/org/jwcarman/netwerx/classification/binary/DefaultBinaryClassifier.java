@@ -21,7 +21,7 @@ public class DefaultBinaryClassifier<M extends Matrix<M>> implements BinaryClass
 // --------------------- Interface BinaryClassifier ---------------------
 
     @Override
-    public boolean[] predict(M input) {
+    public boolean[] predictLabels(M input) {
         var probabilities = network.predict(input);
         var predictions = new boolean[probabilities.columnCount()];
 

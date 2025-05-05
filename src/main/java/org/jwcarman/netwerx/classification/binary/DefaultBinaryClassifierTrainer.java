@@ -22,12 +22,9 @@ public class DefaultBinaryClassifierTrainer<M extends Matrix<M>> implements Bina
 // --------------------- Interface BinaryClassifierTrainer ---------------------
 
     @Override
-    public BinaryClassifier<M> train(M inputs, boolean[] labels, TrainingObserver observer) {
-        if (labels.length != inputs.columnCount()) {
-            throw new IllegalArgumentException("Label count must match input row count.");
-        }
-
-        var network = networkTrainer.train(new Dataset<>(inputs, inputs.binaryClassifierOutputs(labels)), observer);
+    public BinaryClassifier<M> train(M features, boolean[] labels, TrainingObserver observer) {
+        var dataset = Dataset.forBinaryClassifier(features, labels);
+        var network = networkTrainer.train(dataset, observer);
         return new DefaultBinaryClassifier<>(network);
     }
 

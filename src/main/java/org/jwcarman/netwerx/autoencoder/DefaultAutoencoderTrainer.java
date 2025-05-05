@@ -40,7 +40,8 @@ public class DefaultAutoencoderTrainer<M extends Matrix<M>> implements Autoencod
 
     @Override
     public Autoencoder<M> train(M input, TrainingObserver observer) {
-        var network = networkTrainer.train(new Dataset<>(input, input), observer);
+        var dataset = Dataset.forAutoencoder(input);
+        var network = networkTrainer.train(dataset, observer);
         var encoder = network.subNetwork(0, bottleneckIndex + 1);
         var decoder = network.subNetwork(bottleneckIndex + 1, network.layerCount());
         return new DefaultAutoencoder<>(encoder, decoder);

@@ -64,7 +64,7 @@ class TitanicTestCase {
         var testInputs = features(factory, split.test());
         var testTargets = labels(split.test());
         var validationInputs = features(factory, split.validation());
-        var validationTargets = validationInputs.binaryClassifierOutputs(labels(split.validation()));
+        var validationTargets = validationInputs.binaryClassifierLabels(labels(split.validation()));
 
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
@@ -80,7 +80,7 @@ class TitanicTestCase {
         var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
 
 
-        var predictions = classifier.predict(testInputs);
+        var predictions = classifier.predictLabels(testInputs);
         var stats = BinaryClassifierStats.of(predictions, testTargets);
         logger.info("Stats: {}", stats);
         assertThat(stats.f1()).isGreaterThanOrEqualTo(0.7);
@@ -91,19 +91,14 @@ class TitanicTestCase {
     }
 
     private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<TitanicPassenger> list) {
-        M features = Datasets.features(factory, list,
+        return factory.columnOriented(list, List.of(
                 TitanicPassenger::ticketClass,
                 TitanicPassenger::age,
                 TitanicPassenger::sex,
                 TitanicPassenger::fare,
                 TitanicPassenger::parentsAndChildren,
-                TitanicPassenger::siblingsAndSpouses);
-        return features
-                .normalizeRow(0)
-                .normalizeRow(1)
-                .normalizeRow(3)
-                .normalizeRow(4)
-                .normalizeRow(5);
+                TitanicPassenger::siblingsAndSpouses
+        )).normalizeRows();
     }
 
     record TitanicPassenger(String name,

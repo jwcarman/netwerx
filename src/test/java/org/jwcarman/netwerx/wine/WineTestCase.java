@@ -59,7 +59,7 @@ class WineTestCase {
         var trainTargets = labels(split.train());
 
         var validationInputs = features(factory, split.validation());
-        var validationTargets = validationInputs.multiClassifierOutputs(3, labels(split.validation()));
+        var validationTargets = validationInputs.multiClassifierClasses(3, labels(split.validation()));
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
                 .defaultOptimizer(Optimizers::sgd)
@@ -73,7 +73,7 @@ class WineTestCase {
 
         var testInputs = features(factory, split.test());
         var testTargets = labels(split.test());
-        var predictions = classifier.predict(testInputs);
+        var predictions = classifier.predictClasses(testInputs);
         var stats = MultiClassifierStats.of(predictions, testTargets, 3);
         logger.info("Stats: {}", stats);
         assertThat(stats.f1()).isGreaterThanOrEqualTo(0.8);

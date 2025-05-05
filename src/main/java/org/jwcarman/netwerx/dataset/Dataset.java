@@ -2,6 +2,7 @@ package org.jwcarman.netwerx.dataset;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.util.tuple.Pair;
+import org.jwcarman.netwerx.util.tuple.Triple;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +22,49 @@ public record Dataset<M extends Matrix<M>>(M features, M labels) {
         if (features.columnCount() != labels.columnCount()) {
             throw new IllegalArgumentException("Feature and label column counts must match.");
         }
+
+    }
+
+
+    public static <M extends Matrix<M>> Dataset<M> forBinaryClassifier(M features, boolean[] labels) {
+        return new Dataset<>(features, features.binaryClassifierLabels(labels));
+    }
+
+    public static <M extends Matrix<M>> Dataset<M> forMultiClassifier(M features, int classCount, int[] labels) {
+        return new Dataset<>(features, features.multiClassifierClasses(classCount, labels));
+    }
+
+    public static <M extends Matrix<M>> Dataset<M> forRegressionModel(M features, double[] targets) {
+        return new Dataset<>(features, features.regressionModelTargets(targets));
+    }
+
+    public static <M extends Matrix<M>> Dataset<M> forAutoencoder(M features) {
+        return new Dataset<>(features, features);
     }
 
 // -------------------------- OTHER METHODS --------------------------
+
+    public Triple<Dataset<M>, Dataset<M>, Dataset<M>> split(Random random, double firstSplit, double secondSplit) {
+
+        if (firstSplit <= 0.0 || firstSplit >= 1.0 || secondSplit <= 0.0 || secondSplit >= 1.0 || firstSplit + secondSplit >= 1.0) {
+            throw new IllegalArgumentException("Split ratios must be between 0 and 1 and sum to less than 1.");
+        }
+        var indices = features.columnIndices();
+        Collections.shuffle(indices, random);
+
+        int firstSplitIndex = (int) (firstSplit * indices.size());
+        int secondSplitIndex = (int) ((firstSplit + secondSplit) * indices.size());
+
+        var firstIndices = indices.subList(0, firstSplitIndex);
+        var secondIndices = indices.subList(firstSplitIndex, secondSplitIndex);
+        var thirdIndices = indices.subList(secondSplitIndex, indices.size());
+
+        var first = new Dataset<>(features.columnSelect(firstIndices), labels.columnSelect(firstIndices));
+        var second = new Dataset<>(features.columnSelect(secondIndices), labels.columnSelect(secondIndices));
+        var third = new Dataset<>(features.columnSelect(thirdIndices), labels.columnSelect(thirdIndices));
+
+        return new Triple<>(first, second, third);
+    }
 
     public Pair<Dataset<M>, Dataset<M>> split(Random random, double splitRatio) {
         if (splitRatio <= 0.0 || splitRatio >= 1.0) {

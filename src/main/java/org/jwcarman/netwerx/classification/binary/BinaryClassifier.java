@@ -7,11 +7,11 @@ public interface BinaryClassifier<M extends Matrix<M>> {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
-     * Predicts the probability of each sample being in the positive class.
+     * Predicts the label for each input column of the sample matrix.
      *
-     * @param samples A matrix of samples where each column is a sample and each row is a feature.
-     * @return A row vector of probabilities for each sample.
+     * @param samples the input matrix containing samples as columns
+     * @return an array of boolean values where each value corresponds to the predicted label for each sample
      */
-    boolean[] predict(M samples);
+    boolean[] predictLabels(M samples);
 
 }
