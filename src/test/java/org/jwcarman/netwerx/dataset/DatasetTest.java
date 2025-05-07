@@ -29,18 +29,12 @@ class DatasetTest {
         assertNotNull(split);
 
         // Check left side
-        assertThat(split.left()).isNotNull();
-        assertThat(split.left().features()).isNotNull();
-        assertThat(split.left().labels()).isNotNull();
         assertThat(split.left().features().columnCount()).isEqualTo(2);
         assertThat(split.left().features().rowCount()).isEqualTo(4);
         assertThat(split.left().labels().columnCount()).isEqualTo(2);
         assertThat(split.left().labels().rowCount()).isEqualTo(1);
 
         // Check right side
-        assertThat(split.right()).isNotNull();
-        assertThat(split.right().features()).isNotNull();
-        assertThat(split.right().labels()).isNotNull();
         assertThat(split.right().features().columnCount()).isEqualTo(2);
         assertThat(split.right().features().rowCount()).isEqualTo(4);
         assertThat(split.right().labels().columnCount()).isEqualTo(2);
@@ -70,27 +64,18 @@ class DatasetTest {
         assertNotNull(split);
 
         // Check first part
-        assertThat(split.first()).isNotNull();
-        assertThat(split.first().features()).isNotNull();
-        assertThat(split.first().labels()).isNotNull();
         assertThat(split.first().features().columnCount()).isEqualTo(2);
         assertThat(split.first().features().rowCount()).isEqualTo(4);
         assertThat(split.first().labels().columnCount()).isEqualTo(2);
         assertThat(split.first().labels().rowCount()).isEqualTo(1);
 
         // Check second part
-        assertThat(split.second()).isNotNull();
-        assertThat(split.second().features()).isNotNull();
-        assertThat(split.second().labels()).isNotNull();
         assertThat(split.second().features().columnCount()).isEqualTo(1);
         assertThat(split.second().features().rowCount()).isEqualTo(4);
         assertThat(split.second().labels().columnCount()).isEqualTo(1);
         assertThat(split.second().labels().rowCount()).isEqualTo(1);
 
         // Check third part
-        assertThat(split.third()).isNotNull();
-        assertThat(split.third().features()).isNotNull();
-        assertThat(split.third().labels()).isNotNull();
         assertThat(split.third().features().columnCount()).isEqualTo(1);
         assertThat(split.third().features().rowCount()).isEqualTo(4);
         assertThat(split.third().labels().columnCount()).isEqualTo(1);
