@@ -2,6 +2,8 @@ package org.jwcarman.netwerx;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
+import java.util.List;
+
 /**
  * Interface representing a neural network model.
  */
@@ -19,5 +21,7 @@ public interface NeuralNetwork<M extends Matrix<M>> {
 
     NeuralNetwork<M> subNetwork(int startIndex, int endIndex);
 
-    int layerCount();
+    NeuralNetwork<M> subNetwork(int startIndex);
+
+    List<Integer> layerSizes();
 }

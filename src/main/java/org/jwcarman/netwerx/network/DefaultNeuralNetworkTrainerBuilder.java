@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.network;
 
 import org.jwcarman.netwerx.DenseLayerConfig;
+import org.jwcarman.netwerx.DropoutLayerConfig;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.NeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
@@ -16,6 +17,8 @@ import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.layer.LayerTrainer;
 import org.jwcarman.netwerx.layer.dense.DefaultDenseLayerConfig;
 import org.jwcarman.netwerx.layer.dense.DenseLayerTrainer;
+import org.jwcarman.netwerx.layer.dropout.DefaultDropoutLayerConfig;
+import org.jwcarman.netwerx.layer.dropout.DropoutLayerTrainer;
 import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.loss.Losses;
 import org.jwcarman.netwerx.matrix.Matrix;
@@ -87,8 +90,16 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         return this;
     }
 
-    public NeuralNetworkTrainerBuilder<M> trainingExecutor(TrainingExecutor<M> trainingExecutor) {
-        this.trainingExecutor = trainingExecutor;
+    @Override
+    public NeuralNetworkTrainerBuilder<M> dropoutLayer() {
+        return dropoutLayer(noopConsumer());
+    }
+
+    @Override
+    public NeuralNetworkTrainerBuilder<M> dropoutLayer(Consumer<DropoutLayerConfig<M>> configurer) {
+        var config = new DefaultDropoutLayerConfig<M>();
+        configurer.accept(config);
+        layerTrainers.add(new DropoutLayerTrainer<>(inputSize, config.getDropoutRate(), random));
         return this;
     }
 
@@ -153,6 +164,14 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         if (layerTrainers.getFirst().inputSize() != layerTrainers.getLast().outputSize()) {
             throw new IllegalStateException("The first layer's input size must match the last layer's output size for an autoencoder.");
         }
-        return new DefaultAutoencoderTrainer<>(build(), layerTrainers.stream().map(LayerTrainer::outputSize).toList());
+        return new DefaultAutoencoderTrainer<>(build());
     }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    public NeuralNetworkTrainerBuilder<M> trainingExecutor(TrainingExecutor<M> trainingExecutor) {
+        this.trainingExecutor = trainingExecutor;
+        return this;
+    }
+
 }

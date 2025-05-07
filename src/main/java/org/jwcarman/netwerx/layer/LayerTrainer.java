@@ -18,4 +18,7 @@ public interface LayerTrainer<M extends Matrix<M>> {
 
     double regularizationPenalty();
 
+    default boolean isInference() {
+        return true;
+    }
 }

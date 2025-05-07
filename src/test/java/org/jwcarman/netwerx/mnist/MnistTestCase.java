@@ -51,7 +51,9 @@ class MnistTestCase {
                 .validationDataset(validation)
                 .defaultOptimizer(() -> Optimizers.adam(0.001, 0.9, 0.999, 1e-8))
                 .denseLayer(layer -> layer.units(input.features().rowCount()).regularizationFunction(Regularizations.l2(1e-5)))
+                .dropoutLayer(layer -> layer.dropoutRate(0.45))
                 .denseLayer(layer -> layer.units(32).activationFunction(ActivationFunctions.linear()))
+                .dropoutLayer()
                 .denseLayer(layer -> layer
                         .units(input.features().rowCount())
                         .activationFunction(ActivationFunctions.sigmoid())

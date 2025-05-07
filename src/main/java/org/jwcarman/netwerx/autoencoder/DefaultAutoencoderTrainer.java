@@ -12,13 +12,11 @@ public class DefaultAutoencoderTrainer<M extends Matrix<M>> implements Autoencod
 // ------------------------------ FIELDS ------------------------------
 
     private final NeuralNetworkTrainer<M> networkTrainer;
-    private final int bottleneckIndex;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultAutoencoderTrainer(NeuralNetworkTrainer<M> networkTrainer, List<Integer> layerSizes) {
+    public DefaultAutoencoderTrainer(NeuralNetworkTrainer<M> networkTrainer) {
         this.networkTrainer = networkTrainer;
-        this.bottleneckIndex = findBottleneckIndex(layerSizes);
     }
 
     private static int findBottleneckIndex(List<Integer> layerSizes) {
@@ -42,8 +40,9 @@ public class DefaultAutoencoderTrainer<M extends Matrix<M>> implements Autoencod
     public Autoencoder<M> train(M input, TrainingObserver observer) {
         var dataset = Dataset.forAutoencoder(input);
         var network = networkTrainer.train(dataset, observer);
+        var bottleneckIndex = findBottleneckIndex(network.layerSizes());
         var encoder = network.subNetwork(0, bottleneckIndex + 1);
-        var decoder = network.subNetwork(bottleneckIndex + 1, network.layerCount());
+        var decoder = network.subNetwork(bottleneckIndex + 1);
         return new DefaultAutoencoder<>(encoder, decoder);
     }
 

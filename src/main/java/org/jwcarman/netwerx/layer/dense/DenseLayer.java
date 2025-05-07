@@ -34,4 +34,9 @@ public class DenseLayer<M extends Matrix<M>> implements Layer<M> {
     public int inputSize() {
         return weights.columnCount();
     }
+
+    @Override
+    public int outputSize() {
+        return weights.rowCount();
+    }
 }

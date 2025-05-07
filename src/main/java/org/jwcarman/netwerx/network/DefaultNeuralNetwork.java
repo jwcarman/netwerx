@@ -33,7 +33,7 @@ class DefaultNeuralNetwork<M extends Matrix<M>> implements NeuralNetwork<M> {
         if(layers.getFirst().inputSize() != x.rowCount()) {
             throw new IllegalArgumentException("Input matrix row count does not match the first layer's input size.");
         }
-        return layers.stream().reduce(x, (M acc, Layer<M> layer) -> layer.apply(acc), (a, b) -> a);
+        return layers.stream().reduce(x, (M acc, Layer<M> layer) -> layer.apply(acc), (a, _) -> a);
     }
 
     @Override
@@ -42,8 +42,15 @@ class DefaultNeuralNetwork<M extends Matrix<M>> implements NeuralNetwork<M> {
     }
 
     @Override
-    public int layerCount() {
-        return layers.size();
+    public NeuralNetwork<M> subNetwork(int startIndex) {
+        return new DefaultNeuralNetwork<>(layers.subList(startIndex, layers.size()));
+    }
+
+    @Override
+    public List<Integer> layerSizes() {
+        return layers.stream()
+                .map(Layer::outputSize)
+                .toList();
     }
 
 }

@@ -5,4 +5,5 @@ import org.jwcarman.netwerx.matrix.Matrix;
 public interface Layer<M extends Matrix<M>> {
     M apply(M input);
     int inputSize();
+    int outputSize();
 }

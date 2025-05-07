@@ -69,6 +69,7 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
             epoch++;
         } while (continueTraining);
         final var layers = layerTrainers.stream()
+                .filter(LayerTrainer::isInference)
                 .map(LayerTrainer::createLayer)
                 .toList();
         return new DefaultNeuralNetwork<>(layers);

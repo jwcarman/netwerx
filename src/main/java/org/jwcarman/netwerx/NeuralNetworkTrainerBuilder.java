@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
     NeuralNetworkTrainerBuilder<M> denseLayer();
     NeuralNetworkTrainerBuilder<M> denseLayer(Consumer<DenseLayerConfig<M>> configurer);
+    NeuralNetworkTrainerBuilder<M> dropoutLayer();
+    NeuralNetworkTrainerBuilder<M> dropoutLayer(Consumer<DropoutLayerConfig<M>> configurer);
     NeuralNetworkTrainerBuilder<M> defaultOptimizer(Supplier<Optimizer<M>> defaultOptimizerSupplier);
     NeuralNetworkTrainerBuilder<M> stoppingAdvisor(StoppingAdvisor stoppingAdvisor);
     NeuralNetworkTrainerBuilder<M> lossFunction(LossFunction lossFunction);
