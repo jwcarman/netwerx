@@ -3,7 +3,6 @@ package org.jwcarman.netwerx.regression;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
 
 public class DefaultRegressionModelTrainer<M extends Matrix<M>> implements RegressionModelTrainer<M> {
 
@@ -22,9 +21,9 @@ public class DefaultRegressionModelTrainer<M extends Matrix<M>> implements Regre
 // --------------------- Interface RegressionModelTrainer ---------------------
 
     @Override
-    public RegressionModel<M> train(M inputs, double[] targets, TrainingObserver observer) {
+    public RegressionModel<M> train(M inputs, double[] targets) {
         var dataset = Dataset.forRegressionModel(inputs, targets);
-        var network = networkTrainer.train(dataset, observer);
+        var network = networkTrainer.train(dataset);
         return new DefaultRegressionModel<>(network);
     }
 

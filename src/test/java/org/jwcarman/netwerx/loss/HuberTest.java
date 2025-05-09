@@ -10,7 +10,7 @@ class HuberTest {
 
     @Test
     void testHuberLossAndGradientWithDefaultDelta() {
-        var huber = Losses.huber(); // Default delta = 1.0
+        var huber = LossFunctions.huber(); // Default delta = 1.0
 
         var predictions = Matrices.of(new double[][] {
                 {2.5, 0.0, 1.0}
@@ -36,7 +36,7 @@ class HuberTest {
 
     @Test
     void testHuberLossAndGradientWithCustomDelta() {
-        var huber = Losses.huber(0.5); // Custom smaller delta
+        var huber = LossFunctions.huber(0.5); // Custom smaller delta
 
         var predictions = Matrices.of(new double[][] {
                 {0.0, 2.0, 4.0}

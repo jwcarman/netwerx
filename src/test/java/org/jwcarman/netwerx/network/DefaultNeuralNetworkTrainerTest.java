@@ -3,6 +3,7 @@ package org.jwcarman.netwerx.network;
 import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
+import org.jwcarman.netwerx.stopping.StoppingAdvisors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,6 +15,8 @@ class DefaultNeuralNetworkTrainerTest {
         var factory = new EjmlMatrixFactory();
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, 2)
+                .listener(outcome -> assertThat(outcome.validationLoss()).isNaN())
+                .stoppingAdvisor(StoppingAdvisors.maxEpoch(1))
                 .denseLayer()
                 .denseLayer(layer -> layer.units(1))
                 .build();
@@ -21,7 +24,7 @@ class DefaultNeuralNetworkTrainerTest {
         var inputs = factory.filled(2, 2, 1.0);
         var targets = factory.filled(1, 2, 10.0);
         var dataset = new Dataset<>(inputs, targets);
-        trainer.train(dataset, outcome -> assertThat(outcome.validationLoss()).isNaN());
+        trainer.train(dataset);
     }
 
     @Test

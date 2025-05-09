@@ -16,7 +16,7 @@ class WeightedBinaryCrossEntropyTest {
                 {1.0, 0.0, 1.0, 0.0}
         });
 
-        var loss = Losses.weightedBce(2.0, 1.0);  // Heavier weight for positive labels
+        var loss = LossFunctions.weightedBce(2.0, 1.0);  // Heavier weight for positive labels
         var result = loss.loss(predictions, targets);
 
         // This expected value is just a ballpark for this example
@@ -38,7 +38,7 @@ class WeightedBinaryCrossEntropyTest {
         });
 
         double epsilon = 1e-10;
-        var loss = Losses.weightedBce(1.0, 1.0, epsilon);
+        var loss = LossFunctions.weightedBce(1.0, 1.0, epsilon);
 
         double computedLoss = loss.loss(predictions, targets);
 

@@ -1,9 +1,9 @@
-package org.jwcarman.netwerx.observer;
+package org.jwcarman.netwerx.listener;
 
 import org.jwcarman.netwerx.EpochOutcome;
 
 @FunctionalInterface
-public interface TrainingObserver {
+public interface TrainingListener {
 
 // -------------------------- OTHER METHODS --------------------------
 

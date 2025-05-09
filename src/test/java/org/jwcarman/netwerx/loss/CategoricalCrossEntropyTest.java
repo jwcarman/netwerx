@@ -10,7 +10,7 @@ import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
 class CategoricalCrossEntropyTest {
     @Test
     void testUnweightedCCE_Loss() {
-        var loss = Losses.cce();
+        var loss = LossFunctions.cce();
         // 3 classes, 2 samples
         var predictions = Matrices.of(new double[][]{
                 {0.7, 0.1},
@@ -30,7 +30,7 @@ class CategoricalCrossEntropyTest {
 
     @Test
     void testClampingBehaviorPreventsLog0() {
-        var loss = Losses.cce();
+        var loss = LossFunctions.cce();
         var predictions = Matrices.of(new double[][]{
                 {1e-20}, {0.0}, {1.0}
         });
@@ -47,7 +47,7 @@ class CategoricalCrossEntropyTest {
 
     @Test
     void testGradient() {
-        var loss = Losses.cce();
+        var loss = LossFunctions.cce();
         var predictions = Matrices.of(new double[][]{
                 {0.7}, {0.2}, {0.1}
         });
@@ -67,7 +67,7 @@ class CategoricalCrossEntropyTest {
     @Test
     void testCustomEpsilonIsUsed() {
         double customEpsilon = 1e-5;
-        var loss = Losses.cce(customEpsilon);
+        var loss = LossFunctions.cce(customEpsilon);
 
         var predictions = Matrices.of(new double[][]{
                 {0.0}, {0.0}, {1.0}

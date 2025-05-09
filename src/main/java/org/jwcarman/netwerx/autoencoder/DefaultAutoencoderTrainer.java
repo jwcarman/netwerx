@@ -3,7 +3,6 @@ package org.jwcarman.netwerx.autoencoder;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
 
 import java.util.List;
 
@@ -37,9 +36,9 @@ public class DefaultAutoencoderTrainer<M extends Matrix<M>> implements Autoencod
 // --------------------- Interface AutoencoderTrainer ---------------------
 
     @Override
-    public Autoencoder<M> train(M input, TrainingObserver observer) {
+    public Autoencoder<M> train(M input) {
         var dataset = Dataset.forAutoencoder(input);
-        var network = networkTrainer.train(dataset, observer);
+        var network = networkTrainer.train(dataset);
         var bottleneckIndex = findBottleneckIndex(network.layerSizes());
         var encoder = network.subNetwork(0, bottleneckIndex + 1);
         var decoder = network.subNetwork(bottleneckIndex + 1);

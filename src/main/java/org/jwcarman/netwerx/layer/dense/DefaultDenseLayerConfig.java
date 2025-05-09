@@ -16,7 +16,7 @@ public class DefaultDenseLayerConfig<M extends Matrix<M>> implements DenseLayerC
 // ------------------------------ FIELDS ------------------------------
 
     private final int inputSize;
-    private int units = 10;
+    private int units = 8;
     private ActivationFunction activationFunction = ActivationFunctions.relu();
     private Supplier<Optimizer<M>> weightOptimizerSupplier = Optimizers::sgd;
     private Supplier<Optimizer<M>> biasOptimizerSupplier = Optimizers::sgd;

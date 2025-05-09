@@ -6,7 +6,7 @@ public class NoopRegularizationFunction<M extends Matrix<M>> implements Regulari
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface Regularizer ---------------------
+// --------------------- Interface RegularizationFunction ---------------------
 
     @Override
     public M gradient(M matrix) {

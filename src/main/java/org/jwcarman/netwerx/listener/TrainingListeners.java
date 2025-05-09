@@ -1,9 +1,9 @@
-package org.jwcarman.netwerx.observer;
+package org.jwcarman.netwerx.listener;
 
 import org.slf4j.Logger;
 
-public class TrainingObservers {
-    private TrainingObservers() {
+public class TrainingListeners {
+    private TrainingListeners() {
         // Prevent instantiation
     }
 
@@ -12,13 +12,13 @@ public class TrainingObservers {
      *
      * @return a noop TrainingObserver
      */
-    public static TrainingObserver noop() {
+    public static TrainingListener noop() {
         return _ -> {
             // No operation
         };
     }
 
-    public static TrainingObserver logging(Logger logger, int step) {
+    public static TrainingListener logging(Logger logger, int step) {
         return outcome -> {
             if (outcome.epoch() % step == 0) {
                 logger.info("Epoch {}: Training Loss = {}, Validation Loss = {}, Regularization Penalty = {}",

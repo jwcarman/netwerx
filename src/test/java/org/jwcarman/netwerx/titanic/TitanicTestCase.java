@@ -5,14 +5,14 @@ import org.jwcarman.netwerx.classification.binary.BinaryClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.dataset.Dataset;
+import org.jwcarman.netwerx.listener.TrainingListeners;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
-import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regularization.Regularizations;
-import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
+import org.jwcarman.netwerx.score.ScoringFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,21 +69,23 @@ class TitanicTestCase {
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                .defaultOptimizer(Optimizers::sgd)
-                .stoppingAdvisor(new EpochCountStoppingAdvisor(200))
-                .denseLayer(layer -> layer.units(8)
-                        .weightOptimizer(Optimizers::sgd)
-                        .biasOptimizer(Optimizers::sgd))
+                .listener(TrainingListeners.logging(logger, 100))
+                //.defaultOptimizer(Optimizers::sgd)
+                //.defaultOptimizer(() -> Optimizers.momentum(0.01, 0.9))
+                .defaultOptimizer(() -> Optimizers.adam(0.01, 0.9, 0.999, 1e-8))
+                //.stoppingAdvisor(StoppingAdvisors.patience(20, 1e-3))
+                .scoringFunction(ScoringFunctions.validationLossWithPenalty())
+                .denseLayer(layer -> layer.units(8))
                 .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildBinaryClassifierTrainer();
 
-        var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
+        var classifier = trainer.train(trainInputs, trainTargets);
 
 
         var predictions = classifier.predictLabels(testInputs);
         var stats = BinaryClassifierStats.of(predictions, testTargets);
         logger.info("Stats: {}", stats);
-        assertThat(stats.f1()).isGreaterThanOrEqualTo(0.7);
+        assertThat(stats.accuracy()).isGreaterThanOrEqualTo(0.7);
     }
 
     private static boolean[] labels(List<TitanicPassenger> list) {

@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.loss;
 
-public class Losses {
+public class LossFunctions {
 
 // -------------------------- STATIC METHODS --------------------------
 
@@ -54,7 +54,7 @@ public class Losses {
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    private Losses() {
+    private LossFunctions() {
         // Prevent instantiation
     }
 

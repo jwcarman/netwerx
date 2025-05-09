@@ -4,10 +4,12 @@ import org.jwcarman.netwerx.autoencoder.AutoencoderTrainer;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.multi.MultiClassifierTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
+import org.jwcarman.netwerx.listener.TrainingListener;
 import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.regression.RegressionModelTrainer;
+import org.jwcarman.netwerx.score.ScoringFunction;
 import org.jwcarman.netwerx.stopping.StoppingAdvisor;
 
 import java.util.function.Consumer;
@@ -20,6 +22,8 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
     NeuralNetworkTrainerBuilder<M> dropoutLayer(Consumer<DropoutLayerConfig<M>> configurer);
     NeuralNetworkTrainerBuilder<M> defaultOptimizer(Supplier<Optimizer<M>> defaultOptimizerSupplier);
     NeuralNetworkTrainerBuilder<M> stoppingAdvisor(StoppingAdvisor stoppingAdvisor);
+    NeuralNetworkTrainerBuilder<M> scoringFunction(ScoringFunction scoringFunction);
+    NeuralNetworkTrainerBuilder<M> listener(TrainingListener listener);
     NeuralNetworkTrainerBuilder<M> lossFunction(LossFunction lossFunction);
     NeuralNetworkTrainerBuilder<M> validationDataset(Dataset<M> validationDataset);
     NeuralNetworkTrainer<M> build();

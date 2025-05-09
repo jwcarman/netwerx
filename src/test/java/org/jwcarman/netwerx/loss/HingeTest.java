@@ -10,7 +10,7 @@ class HingeTest {
 
     @Test
     void testHingeLossAndGradient() {
-        var hinge = Losses.hinge();
+        var hinge = LossFunctions.hinge();
 
         var predictions = Matrices.of(new double[][] {
                 {0.9, -0.8, 0.3}

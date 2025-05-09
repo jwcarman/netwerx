@@ -3,7 +3,6 @@ package org.jwcarman.netwerx.classification.multi;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
 
 public class DefaultMultiClassifierTrainer<M extends Matrix<M>> implements MultiClassifierTrainer<M> {
 
@@ -24,9 +23,9 @@ public class DefaultMultiClassifierTrainer<M extends Matrix<M>> implements Multi
 // --------------------- Interface MultiClassifierTrainer ---------------------
 
     @Override
-    public MultiClassifier<M> train(M features, int[] classes, TrainingObserver observer) {
+    public MultiClassifier<M> train(M features, int[] classes) {
         var dataset = Dataset.forMultiClassifier(features, outputClasses, classes);
-        var network = networkTrainer.train(dataset, observer);
+        var network = networkTrainer.train(dataset);
         return new DefaultMultiClassifier<>(network);
     }
 

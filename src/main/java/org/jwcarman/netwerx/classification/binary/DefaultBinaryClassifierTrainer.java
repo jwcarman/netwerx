@@ -3,7 +3,6 @@ package org.jwcarman.netwerx.classification.binary;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
 
 public class DefaultBinaryClassifierTrainer<M extends Matrix<M>> implements BinaryClassifierTrainer<M> {
 
@@ -22,9 +21,9 @@ public class DefaultBinaryClassifierTrainer<M extends Matrix<M>> implements Bina
 // --------------------- Interface BinaryClassifierTrainer ---------------------
 
     @Override
-    public BinaryClassifier<M> train(M features, boolean[] labels, TrainingObserver observer) {
+    public BinaryClassifier<M> train(M features, boolean[] labels) {
         var dataset = Dataset.forBinaryClassifier(features, labels);
-        var network = networkTrainer.train(dataset, observer);
+        var network = networkTrainer.train(dataset);
         return new DefaultBinaryClassifier<>(network);
     }
 

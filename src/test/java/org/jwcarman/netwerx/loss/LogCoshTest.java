@@ -23,7 +23,7 @@ class LogCoshTest {
                 {1.1, 1.9, 3.2}
         });
 
-        var gradient = Losses.logCosh().gradient(predictions, targets);
+        var gradient = LossFunctions.logCosh().gradient(predictions, targets);
 
         assertThat(gradient.rowCount()).isEqualTo(predictions.rowCount());
         assertThat(gradient.columnCount()).isEqualTo(predictions.columnCount());
@@ -46,7 +46,7 @@ class LogCoshTest {
                 {1.1, 1.9, 3.2}
         });
 
-        var loss = Losses.logCosh().loss(predictions, targets);
+        var loss = LossFunctions.logCosh().loss(predictions, targets);
 
         // Manually compute expected loss
         double expectedLoss = (

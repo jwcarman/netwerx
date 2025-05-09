@@ -5,14 +5,13 @@ import org.jwcarman.netwerx.classification.multi.MultiClassifierStats;
 import org.jwcarman.netwerx.data.CommaSeparatedValues;
 import org.jwcarman.netwerx.data.Datasets;
 import org.jwcarman.netwerx.dataset.Dataset;
+import org.jwcarman.netwerx.listener.TrainingListeners;
 import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
-import org.jwcarman.netwerx.observer.TrainingObservers;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regularization.Regularizations;
-import org.jwcarman.netwerx.stopping.EpochCountStoppingAdvisor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,12 +63,13 @@ class WineTestCase {
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
                 .defaultOptimizer(Optimizers::sgd)
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                .stoppingAdvisor(new EpochCountStoppingAdvisor(700))
+                //.stoppingAdvisor(new MaxEpochStoppingAdvisor(700))
+                .listener(TrainingListeners.logging(logger, 100))
                 .denseLayer(layer -> layer.units(16))
                 .denseLayer(layer -> layer.units(8).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildMultiClassifierTrainer(3);
 
-        var classifier = trainer.train(trainInputs, trainTargets, TrainingObservers.logging(logger, 100));
+        var classifier = trainer.train(trainInputs, trainTargets);
 
         var testInputs = features(factory, split.test());
         var testTargets = labels(split.test());

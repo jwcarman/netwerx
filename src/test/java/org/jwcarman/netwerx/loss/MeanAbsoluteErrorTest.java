@@ -23,7 +23,7 @@ class MeanAbsoluteErrorTest {
                 {3.0, -0.5, 2.0}
         });
 
-        var gradient = Losses.mae().gradient(predictions, targets);
+        var gradient = LossFunctions.mae().gradient(predictions, targets);
 
         assertThat(gradient.rowCount()).isEqualTo(predictions.rowCount());
         assertThat(gradient.columnCount()).isEqualTo(predictions.columnCount());
@@ -46,7 +46,7 @@ class MeanAbsoluteErrorTest {
                 {3.0, -0.5, 2.0}
         });
 
-        var loss = Losses.mae().loss(predictions, targets);
+        var loss = LossFunctions.mae().loss(predictions, targets);
 
         // Expected mean absolute error
         double expectedLoss = (Math.abs(2.5 - 3.0) + Math.abs(0.0 - (-0.5)) + Math.abs(2.1 - 2.0)) / 3.0;
@@ -63,7 +63,7 @@ class MeanAbsoluteErrorTest {
                 {1.0, 2.0, 3.0}
         });
 
-        var loss = Losses.mae().loss(predictions, targets);
+        var loss = LossFunctions.mae().loss(predictions, targets);
 
         assertThat(loss).isCloseTo(0.0, within(EPSILON));
     }

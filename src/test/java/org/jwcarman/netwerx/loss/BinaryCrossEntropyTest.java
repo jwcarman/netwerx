@@ -17,7 +17,7 @@ class BinaryCrossEntropyTest {
                 {1.0, 0.0, 1.0, 0.0}
         });
 
-        var loss = Losses.bce();
+        var loss = LossFunctions.bce();
         var result = loss.loss(predictions, targets);
 
         assertThat(result).isGreaterThan(0.0).isLessThan(1.0);
@@ -37,7 +37,7 @@ class BinaryCrossEntropyTest {
         });
 
         var epsilon = 1e-10;
-        var loss = Losses.bce(epsilon);
+        var loss = LossFunctions.bce(epsilon);
 
         var computedLoss = loss.loss(predictions, targets);
 
@@ -55,7 +55,7 @@ class BinaryCrossEntropyTest {
                 {1.0, 0.0}
         });
 
-        var loss = Losses.bce();
+        var loss = LossFunctions.bce();
         var grad = loss.gradient(predictions, targets);
 
         assertThat(grad.valueAt(0, 0)).isCloseTo(-0.3, withinTolerance());

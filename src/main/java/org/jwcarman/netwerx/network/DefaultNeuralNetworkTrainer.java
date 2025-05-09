@@ -3,17 +3,15 @@ package org.jwcarman.netwerx.network;
 import org.jwcarman.netwerx.EpochOutcome;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
-import org.jwcarman.netwerx.batch.TrainingExecutor;
 import org.jwcarman.netwerx.batch.TrainingResult;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.layer.LayerBackprop;
 import org.jwcarman.netwerx.layer.LayerTrainer;
 import org.jwcarman.netwerx.layer.LayerUpdate;
-import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
-import org.jwcarman.netwerx.observer.TrainingObserver;
-import org.jwcarman.netwerx.stopping.StoppingAdvisor;
 import org.jwcarman.netwerx.util.Streams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,39 +20,35 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
 // ------------------------------ FIELDS ------------------------------
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNeuralNetworkTrainer.class);
+
     private final List<LayerTrainer<M>> layerTrainers;
-    private final StoppingAdvisor stoppingAdvisor;
-    private final LossFunction lossFunction;
-    private final Dataset<M> validationDataset;
-    private final TrainingExecutor<M> trainingExecutor;
+    private final NeuralNetworkTrainerConfig<M> config;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public DefaultNeuralNetworkTrainer(
-            List<LayerTrainer<M>> layerTrainers,
-            StoppingAdvisor stoppingAdvisor,
-            LossFunction lossFunction,
-            Dataset<M> validationDataset, TrainingExecutor<M> trainingExecutor) {
+    public DefaultNeuralNetworkTrainer(NeuralNetworkTrainerConfig<M> config, List<LayerTrainer<M>> layerTrainers) {
         this.layerTrainers = layerTrainers;
-        this.stoppingAdvisor = stoppingAdvisor;
-        this.lossFunction = lossFunction;
-        this.validationDataset = validationDataset;
-        this.trainingExecutor = trainingExecutor;
+        this.config = config;
     }
+
 
 // ------------------------ INTERFACE METHODS ------------------------
 
 // --------------------- Interface NeuralNetworkTrainer ---------------------
 
     @Override
-    public NeuralNetwork<M> train(Dataset<M> trainingDataset, TrainingObserver observer) {
-        if(layerTrainers.getFirst().inputSize() != trainingDataset.features().rowCount()) {
+    public NeuralNetwork<M> train(Dataset<M> trainingDataset) {
+        if (layerTrainers.getFirst().inputSize() != trainingDataset.features().rowCount()) {
             throw new IllegalArgumentException(String.format("Dataset input must have input size %d.", layerTrainers.getFirst().inputSize()));
         }
         int epoch = 1;
         boolean continueTraining;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        int bestEpoch = -1;
+        NeuralNetwork<M> bestNetwork = createNeuralNetwork();
         do {
-            var result = trainingExecutor.execute(trainingDataset, this::performTrainingStep);
+            var result = config.trainingExecutor().execute(trainingDataset, this::performTrainingStep);
             var regularizationPenalty = layerTrainers.stream()
                     .mapToDouble(LayerTrainer::regularizationPenalty)
                     .sum();
@@ -63,16 +57,25 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
             var validationLoss = calculateValidationLoss();
             var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
-
-            observer.onEpoch(outcome);
-            continueTraining = !stoppingAdvisor.shouldStopAfter(outcome);
+            var score = config.scoringFunction().score(outcome);
+            if (score > bestScore) {
+                bestNetwork = createNeuralNetwork();
+                bestScore = score;
+                bestEpoch = epoch;
+            }
+            config.listener().onEpoch(outcome);
+            continueTraining = !config.stoppingAdvisor().shouldStop(epoch, score);
             epoch++;
         } while (continueTraining);
-        final var layers = layerTrainers.stream()
+        LOGGER.info("Training complete after {} epochs with an overall best score of {} at epoch {}.", epoch - 1, bestScore, bestEpoch);
+        return bestNetwork;
+    }
+
+    private DefaultNeuralNetwork<M> createNeuralNetwork() {
+        return new DefaultNeuralNetwork<>(layerTrainers.stream()
                 .filter(LayerTrainer::isInference)
                 .map(LayerTrainer::createLayer)
-                .toList();
-        return new DefaultNeuralNetwork<>(layers);
+                .toList());
     }
 
     private void applyLayerUpdates(List<LayerUpdate<M>> layerUpdates) {
@@ -83,17 +86,17 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 // -------------------------- OTHER METHODS --------------------------
 
     private double calculateValidationLoss() {
-        if (validationDataset.features().isEmpty()) {
+        if (config.validationDataset().features().isEmpty()) {
             return Double.NaN;
         }
-        var inferred = layerTrainers.stream().reduce(validationDataset.features(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
-        return lossFunction.loss(inferred, validationDataset.labels());
+        var inferred = layerTrainers.stream().reduce(config.validationDataset().features(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
+        return config.lossFunction().loss(inferred, config.validationDataset().labels());
     }
 
     private TrainingResult<M> performTrainingStep(Dataset<M> trainingDataset) {
         var forwardPassResult = performForwardPass(trainingDataset);
-        var trainingLoss = lossFunction.loss(forwardPassResult.output(), trainingDataset.labels());
-        var outputGradient = lossFunction.gradient(forwardPassResult.output(), trainingDataset.labels());
+        var trainingLoss = config.lossFunction().loss(forwardPassResult.output(), trainingDataset.labels());
+        var outputGradient = config.lossFunction().gradient(forwardPassResult.output(), trainingDataset.labels());
         var layerUpdates = new ArrayList<LayerUpdate<M>>();
 
         for (LayerBackprop<M> backProp : forwardPassResult.backProps()) {
