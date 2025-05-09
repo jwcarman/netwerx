@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.listener;
 
-import org.jwcarman.netwerx.EpochOutcome;
+import org.jwcarman.netwerx.network.EpochOutcome;
 
 @FunctionalInterface
 public interface TrainingListener {

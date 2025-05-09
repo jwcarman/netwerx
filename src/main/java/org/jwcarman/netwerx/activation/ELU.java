@@ -1,20 +1,18 @@
 package org.jwcarman.netwerx.activation;
 
-public class ELU extends HeInitializedActivationFunction {
+public class ELU extends ScalarActivationFunction {
 
 // ------------------------------ FIELDS ------------------------------
 
     public static final double DEFAULT_ALPHA = 1.0;
+
+    public static final ActivationFunction DEFAULT = new ELU(DEFAULT_ALPHA);
+
     private final double alpha;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ELU() {
-        this.alpha = DEFAULT_ALPHA;
-    }
-
-    public ELU(double initialBias, double alpha) {
-        super(initialBias);
+    public ELU(double alpha) {
         this.alpha = alpha;
     }
 

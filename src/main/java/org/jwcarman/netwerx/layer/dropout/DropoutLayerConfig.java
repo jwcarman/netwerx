@@ -1,4 +1,4 @@
-package org.jwcarman.netwerx;
+package org.jwcarman.netwerx.layer.dropout;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 

@@ -30,8 +30,8 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
 
     public DenseLayerTrainer(MatrixFactory<M> factory, Random random, DefaultDenseLayerConfig<M> config) {
         this.activationFunction = config.getActivationFunction();
-        this.weights = factory.filled(config.getUnits(), config.getInputSize(), () -> activationFunction.initialWeight(random, config.getInputSize(), config.getUnits()));
-        this.biases = factory.filled(config.getUnits(), 1, () -> activationFunction.initialBias(random, config.getInputSize(), config.getUnits()));
+        this.weights = factory.filled(config.getUnits(), config.getInputSize(), () -> config.getWeightInitializer().initialize(random, config.getInputSize(), config.getUnits()));
+        this.biases = factory.filled(config.getUnits(), 1, () -> config.getBiasInitializer().initialize(random, config.getInputSize(), config.getUnits()));
         this.weightsOptimizer = config.getWeightOptimizerSupplier().get();
         this.biasesOptimizer = config.getBiasOptimizerSupplier().get();
         this.regularizationFunction = config.getRegularizationFunction();

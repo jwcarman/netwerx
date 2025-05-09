@@ -2,6 +2,16 @@ package org.jwcarman.netwerx.activation;
 
 public class Tanh extends ScalarActivationFunction {
 
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new Tanh();
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Tanh() {
+        // singleton
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     @Override

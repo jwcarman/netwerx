@@ -1,6 +1,5 @@
 package org.jwcarman.netwerx.network;
 
-import org.jwcarman.netwerx.EpochOutcome;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.batch.TrainingResult;

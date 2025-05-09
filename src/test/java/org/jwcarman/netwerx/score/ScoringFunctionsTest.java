@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.score;
 
 import org.junit.jupiter.api.Test;
-import org.jwcarman.netwerx.EpochOutcome;
+import org.jwcarman.netwerx.network.EpochOutcome;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

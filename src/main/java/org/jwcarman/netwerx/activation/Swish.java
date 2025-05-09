@@ -1,14 +1,15 @@
 package org.jwcarman.netwerx.activation;
 
-public class Swish extends HeInitializedActivationFunction {
+public class Swish extends ScalarActivationFunction {
+
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new Swish();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Swish() {
-    }
-
-    public Swish(double initialBias) {
-        super(initialBias);
+    private Swish() {
+        // singleton
     }
 
 // -------------------------- OTHER METHODS --------------------------

@@ -1,14 +1,15 @@
 package org.jwcarman.netwerx.activation;
 
-public class ReLU extends HeInitializedActivationFunction {
+public class ReLU extends ScalarActivationFunction {
+
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new ReLU();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public ReLU() {
-    }
-
-    public ReLU(double initialBias) {
-        super(initialBias);
+    private ReLU() {
+        // singleton
     }
 
 // -------------------------- OTHER METHODS --------------------------

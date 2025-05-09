@@ -1,6 +1,6 @@
 package org.jwcarman.netwerx.score;
 
-import org.jwcarman.netwerx.EpochOutcome;
+import org.jwcarman.netwerx.network.EpochOutcome;
 
 @FunctionalInterface
 public interface ScoringFunction {

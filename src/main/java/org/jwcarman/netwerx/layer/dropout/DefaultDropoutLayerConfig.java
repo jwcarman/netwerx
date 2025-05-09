@@ -1,6 +1,5 @@
 package org.jwcarman.netwerx.layer.dropout;
 
-import org.jwcarman.netwerx.DropoutLayerConfig;
 import org.jwcarman.netwerx.matrix.Matrix;
 
 public class DefaultDropoutLayerConfig<M extends Matrix<M>> implements DropoutLayerConfig<M> {

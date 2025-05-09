@@ -2,6 +2,16 @@ package org.jwcarman.netwerx.activation;
 
 public class Linear extends ScalarActivationFunction {
 
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new Linear();
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Linear() {
+        // singleton
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     @Override

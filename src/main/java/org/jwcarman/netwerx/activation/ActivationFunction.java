@@ -2,10 +2,6 @@ package org.jwcarman.netwerx.activation;
 
 import org.jwcarman.netwerx.matrix.Matrix;
 
-import java.util.Random;
-
-import static org.jwcarman.netwerx.distribution.Distributions.xavierUniform;
-
 /**
  * Represents an activation function used in neural networks to introduce non-linearity.
  * <p>
@@ -34,37 +30,4 @@ public interface ActivationFunction {
      * @return the matrix ∂<i>a</i>/∂<i>z</i>, representing the element-wise derivatives
      */
     <M extends Matrix<M>> M derivative(M input);
-
-    /**
-     * Returns the initial bias value for a neuron using this activation function.
-     * <p>
-     * Most activation functions use 0.0 as the default bias. Some (e.g., ReLU) may benefit
-     * from small non-zero initial bias values to reduce the likelihood of "dead" neurons.
-     *
-     * @param rand   the random number generator to use
-     * @param fanIn  the number of input connections to the neuron
-     * @param fanOut the number of output connections from the neuron
-     * @return the initial bias value
-     */
-    default double initialBias(Random rand, int fanIn, int fanOut) {
-        return 0.0;
-    }
-
-    /**
-     * Returns the initial weight value for a connection governed by this activation function.
-     * <p>
-     * The default implementation uses Xavier (Glorot) uniform initialization:
-     * <pre>
-     *   W ∼ 𝒰 [−√(6 / (fanIn + fanOut)), √(6 / (fanIn + fanOut))]
-     * </pre>
-     *
-     * @param rand   the random number generator to use
-     * @param fanIn  the number of input connections to the neuron
-     * @param fanOut the number of output connections from the neuron
-     * @return an initial weight value sampled from an appropriate distribution
-     */
-    default double initialWeight(Random rand, int fanIn, int fanOut) {
-        return xavierUniform(rand, fanIn, fanOut);
-    }
-
 }

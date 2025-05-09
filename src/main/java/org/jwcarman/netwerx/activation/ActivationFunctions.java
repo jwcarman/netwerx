@@ -5,51 +5,43 @@ public class ActivationFunctions {
 // -------------------------- STATIC METHODS --------------------------
 
     public static ActivationFunction sigmoid() {
-        return new Sigmoid();
+        return Sigmoid.INSTANCE;
     }
 
     public static ActivationFunction relu() {
-        return new ReLU();
-    }
-
-    public static ActivationFunction relu(double initialBias) {
-        return new ReLU(initialBias);
+        return ReLU.INSTANCE;
     }
 
     public static ActivationFunction tanh() {
-        return new Tanh();
+        return Tanh.INSTANCE;
     }
 
     public static ActivationFunction leakyRelu() {
-        return new LeakyReLU();
+        return LeakyReLU.DEFAULT;
     }
 
-    public static ActivationFunction leakyRelu(double initialBias, double alpha) {
-        return new LeakyReLU(initialBias, alpha);
+    public static ActivationFunction leakyRelu(double alpha) {
+        return new LeakyReLU(alpha);
     }
 
     public static ActivationFunction softmax() {
-        return new Softmax();
+        return Softmax.INSTANCE;
     }
 
     public static ActivationFunction linear() {
-        return new Linear();
+        return Linear.INSTANCE;
     }
 
     public static ActivationFunction swish() {
-        return new Swish();
-    }
-
-    public static ActivationFunction swish(double initialBias) {
-        return new Swish(initialBias);
+        return Swish.INSTANCE;
     }
 
     public static ActivationFunction elu() {
-        return new ELU();
+        return ELU.DEFAULT;
     }
 
-    public static ActivationFunction elu(double initialBias, double alpha) {
-        return new ELU(initialBias, alpha);
+    public static ActivationFunction elu(double alpha) {
+        return new ELU(alpha);
     }
 
 // --------------------------- CONSTRUCTORS ---------------------------

@@ -4,9 +4,19 @@ import org.jwcarman.netwerx.matrix.Matrix;
 
 public class Softmax implements ActivationFunction {
 
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new Softmax();
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Softmax() {
+        // singleton
+    }
+
 // ------------------------ INTERFACE METHODS ------------------------
 
-// --------------------- Interface Activation ---------------------
+// --------------------- Interface ActivationFunction ---------------------
 
     @Override
     public <M extends Matrix<M>> M apply(M logits) {

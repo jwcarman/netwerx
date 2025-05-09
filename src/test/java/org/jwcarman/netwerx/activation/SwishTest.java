@@ -44,18 +44,4 @@ class SwishTest {
             assertThat(derivative.valueAt(0, i)).isCloseTo(expected, withinTolerance());
         }
     }
-
-    @Test
-    void customBiasConstructor_shouldNotAffectFunctionality() {
-        var swish = ActivationFunctions.swish(0.42);  // Custom initial bias
-        var input = Matrices.of(new double[][] {
-                {1.0}
-        });
-        var output = swish.apply(input);
-
-        double x = 1.0;
-        double sigmoid = 1.0 / (1.0 + exp(-x));
-        double expected = x * sigmoid;
-        assertThat(output.valueAt(0, 0)).isCloseTo(expected, withinTolerance());
-    }
 }

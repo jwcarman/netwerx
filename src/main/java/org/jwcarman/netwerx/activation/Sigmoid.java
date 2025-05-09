@@ -2,6 +2,16 @@ package org.jwcarman.netwerx.activation;
 
 public class Sigmoid extends ScalarActivationFunction {
 
+// ------------------------------ FIELDS ------------------------------
+
+    public static final ActivationFunction INSTANCE = new Sigmoid();
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    private Sigmoid() {
+        // singleton
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
     @Override

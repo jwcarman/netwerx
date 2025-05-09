@@ -2,7 +2,6 @@ package org.jwcarman.netwerx.activation;
 
 import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.util.Matrices;
-import org.jwcarman.netwerx.util.Randoms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jwcarman.netwerx.util.Tolerances.withinTolerance;
@@ -42,12 +41,4 @@ class ReLUTest {
         assertThat(derivative.valueAt(0, 1)).isCloseTo(0.0, withinTolerance()); // x == 0
         assertThat(derivative.valueAt(0, 2)).isCloseTo(1.0, withinTolerance()); // x > 0
     }
-
-    @Test
-    void constructor_withInitialBias_setsExpectedBias() {
-        var relu = ActivationFunctions.relu(0.01);
-        var weight = relu.initialBias(Randoms.defaultRandom(), 1, 1);
-        assertThat(weight).isCloseTo(0.01, withinTolerance());
-    }
-
 }

@@ -24,7 +24,7 @@ class ELUTest {
     @Test
     void apply_shouldApplyELUFunctionToEachElement_customAlpha() {
         var alpha = 2.0;
-        var elu = ActivationFunctions.elu(0.0, alpha);
+        var elu = ActivationFunctions.elu(alpha);
         var input = Matrices.of(new double[][]{
                 {2.0, -0.5}
         });
@@ -52,7 +52,7 @@ class ELUTest {
     @Test
     void derivative_shouldApplyDerivativeOfELUFunction_customAlpha() {
         var alpha = 1.5;
-        var elu = ActivationFunctions.elu(0.0, alpha);
+        var elu = ActivationFunctions.elu(alpha);
         var input = Matrices.of(new double[][]{
                 {-2.0, 1.0}
         });

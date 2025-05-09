@@ -1,7 +1,7 @@
 package org.jwcarman.netwerx.network;
 
-import org.jwcarman.netwerx.DenseLayerConfig;
-import org.jwcarman.netwerx.DropoutLayerConfig;
+import org.jwcarman.netwerx.layer.dense.DenseLayerConfig;
+import org.jwcarman.netwerx.layer.dropout.DropoutLayerConfig;
 import org.jwcarman.netwerx.NeuralNetworkTrainer;
 import org.jwcarman.netwerx.NeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
@@ -27,6 +27,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.optimization.Optimizers;
+import org.jwcarman.netwerx.parameter.ParameterInitializers;
 import org.jwcarman.netwerx.regression.DefaultRegressionModelTrainer;
 import org.jwcarman.netwerx.regression.RegressionModelTrainer;
 import org.jwcarman.netwerx.score.ScoringFunction;
@@ -156,6 +157,8 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         lossFunction(LossFunctions.mse());
         denseLayer(layer -> layer
                 .activationFunction(ActivationFunctions.linear())
+                .weightInitializer(ParameterInitializers.xavierUniform())
+                .biasInitializer(ParameterInitializers.zeros())
                 .units(1));
         return new DefaultRegressionModelTrainer<>(build());
     }
@@ -163,7 +166,11 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
     @Override
     public BinaryClassifierTrainer<M> buildBinaryClassifierTrainer() {
         lossFunction(LossFunctions.bce());
-        denseLayer(layer -> layer.units(1).activationFunction(ActivationFunctions.sigmoid()));
+        denseLayer(layer -> layer
+                .units(1)
+                .activationFunction(ActivationFunctions.sigmoid())
+                .weightInitializer(ParameterInitializers.xavierUniform())
+                .biasInitializer(ParameterInitializers.zeros()));
         return new DefaultBinaryClassifierTrainer<>(build());
     }
 
@@ -172,7 +179,9 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         lossFunction(LossFunctions.cce());
         denseLayer(layer -> layer
                 .units(outputClasses)
-                .activationFunction(ActivationFunctions.softmax()));
+                .activationFunction(ActivationFunctions.softmax())
+                .weightInitializer(ParameterInitializers.xavierUniform())
+                .biasInitializer(ParameterInitializers.zeros()));
         return new DefaultMultiClassifierTrainer<>(build(), outputClasses);
     }
 
