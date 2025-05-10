@@ -1,4 +1,5 @@
 # Netwerx
+
 [![CI with Maven](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml/badge.svg)](https://github.com/jwcarman/netwerx/actions/workflows/maven.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jwcarman_netwerx&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jwcarman_netwerx)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue)
@@ -14,233 +15,289 @@
 
 **Netwerx** is a lightweight, extensible deep learning library for Java 23+.
 
-It is designed to give you full control over neural network internals while maintaining simplicity, modularity, and clean API design — ideal for learning, prototyping, and research.
+It’s designed for learning, prototyping, and research — with full transparency into what your neural network is doing under the hood. No magic, no black boxes.
 
-Built for Java developers who want to **understand** and **customize** neural networks without the complexity of heavyweight frameworks.
+---
+
+## 📑 Table of Contents
+
+* [✨ Features](#-features)
+* [🚀 Quickstart](#-quickstart)
+* [📚 Core Concepts](#-core-concepts)
+* [🔌 Activation Functions](#-activation-functions)
+* [⚙️ Optimizers](#️-optimizers)
+* [🎯 Loss Functions](#-loss-functions)
+* [🧪 Training Executors](#-training-executors)
+* [📊 Scoring Functions](#-scoring-functions)
+* [⏹ Early Stopping (Stopping Advisors)](#-early-stopping-stopping-advisors)
+* [🛡 Regularization](#-regularization)
+* [🎛 Parameter Initialization](#-parameter-initialization)
+* [📣 Training Listeners](#-training-listeners)
+* [🧠 Model Types](#-model-types)
+* [🧮 Matrix Abstraction](#-matrix-abstraction)
+* [🧪 Titanic Example](#-titanic-example)
+* [🔧 Extending Netwerx](#-extending-netwerx)
+* [🛤 Roadmap](#-roadmap)
+* [🤝 Contributing](#-contributing)
+* [📄 License](#-license)
+* [🙏 Acknowledgements](#-acknowledgements)
 
 ---
 
 ## ✨ Features
 
-- Fully connected feed-forward neural networks
-- Activation-specific weight initialization (Xavier, He, etc.)
-- Activation-specific bias initialization
-- Modular activationFunction functions
-- Pluggable optimizers
-- Rich set of lossFunction functions
-- Fluent, clean API for building networks
-- Training observer pattern (lossFunction tracking, early stopping)
-- Reproducible random initialization with customizable `Random` sources
-- Lightweight — no external heavy dependencies (only EJML for efficient matrix math)
-- Extensible matrix abstraction for custom backends
+* Fully connected feed-forward networks
+* Binary/multi-class classifiers, regressors, autoencoders
+* Mini-batch or full-batch training
+* Dropout support for regularization
+* Modular components (optimizers, activations, loss functions, etc.)
+* Pluggable matrix backend
+* Lightweight — depends only on EJML
+* Training listeners and early stopping
+* Reproducibility with pluggable random sources
+
 ---
 
 ## 🚀 Quickstart
 
 ```java
-var rand = new Random(42); // For reproducibility
+var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, 5)
+        .defaultOptimizer(() -> Optimizers.adam(0.01))
+        .denseLayer(layer -> layer.units(8).activationFunction(ActivationFunctions.relu()))
+        .denseLayer(layer -> layer.units(1).activationFunction(ActivationFunctions.sigmoid()))
+        .buildBinaryClassifierTrainer();
 
-var classifier = new DefaultNeuralNetworkBuilder(inputFeatureCount)
-    .random(rand)
-    .optimizer(() -> Optimizers.momentum(0.001, 0.9))
-    .layer(layer -> layer
-        .units(8)
-        .activationFunction(Activations.relu())
-    )
-    .layer(layer -> layer
-        .units(4)
-        .activationFunction(Activations.relu())
-    )
-    .binaryClassifier(bc -> bc
-        .lossFunction(Losses.weightedBce(positiveWeight, negativeWeight))
-    );
-
-// Train for up to 300 epochs
-classifier.train(inputs, labels, (epoch, lossFunction, predictions, groundTruth) -> {
-    System.out.println("Epoch " + epoch + " - Loss: " + lossFunction);
-    return epoch < 300;
-});
-
-// Make predictions
-boolean[] testPredictions = classifier.predict(testInputs);
+var trainFeatures = factory.filled(5, 10, 0.5);
+var trainLabels = factory.filled(1, 10, 1.0);
+var dataset = new Dataset<>(trainFeatures, trainLabels);
+var network = trainer.train(dataset);
 ```
-
-✅ Simple, readable, powerful!
 
 ---
 
 ## 📚 Core Concepts
 
-| Concept | Description |
-|:--------|:------------|
-| **Layer** | Fully connected layer with customizable activationFunction, weight optimizer, bias optimizer. |
-| **Activation Functions** | Modular: ReLU, Sigmoid, Tanh, LeakyReLU, Softmax, Linear. |
-| **Weight Initialization** | Automatically based on activationFunction (e.g., Xavier, He initialization). |
-| **Optimizers** | SGD, Momentum, Adam, RMSProp — pluggable, configurable, and layer-specific if needed. |
-| **Loss Functions** | Wide variety for classification and regression tasks. |
-| **Training Observer** | Hook to monitor and control training behavior dynamically. |
-| **Fluent API** | `NeuralNetworkBuilder` allows clean, expressive, type-safe building. |
+* **Activation Functions** — introduce non-linearity into your network
+* **Regularization** — penalize model complexity
+* **Loss Functions** — define how wrong your model is
+* **Optimizers** — control how weights are updated
+* **Training Executors** — manage batching and parallel execution
+* **Scoring Functions** — evaluate training progress
+* **Stopping Advisors** — control when training halts
+* **Parameter Initialization** — choose sensible starting points for weights and biases
+* **Training Listeners** — observe and respond to training events
+* **Matrix Abstraction** — plug in your own backend
 
 ---
 
-## ⚡ Supported Activation Functions
+## 🔌 Activation Functions
 
-| Activation | Description |
-|:-----------|:-------------|
-| **Sigmoid** | Squashes input into (0, 1). Used in binary classifiers. |
-| **Tanh** | Squashes input into (-1, 1). Zero-centered; often preferred over Sigmoid in hidden layers. |
-| **ReLU** (Rectified Linear Unit) | Outputs 0 for negative inputs, identity for positive. Most common hidden layer activationFunction. |
-| **Leaky ReLU** | Like ReLU, but allows small negative values (small slope) to avoid "dying" neurons. |
-| **Softmax** | Converts logits into probabilities across multiple classes. Used for multi-class classification outputs. |
-| **Linear** | Identity function. Typically used for regression outputs. |
+Netwerx supports ReLU, Sigmoid, Tanh, LeakyReLU, Softmax, and Linear. You can plug in your own:
+
+```java
+var relu = ActivationFunctions.relu();
+var custom = (ActivationFunction) (input) -> ...
+```
 
 ---
 
-## ⚙️ Supported Optimizers
+## ⚙️ Optimizers
 
-| Optimizer | Description |
-|:----------|:------------|
-| **SGD (Stochastic Gradient Descent)** | Standard gradient descent. |
-| **Momentum** | Adds momentum to SGD to accelerate convergence and smooth out updates. |
-| **Adam** | Adaptive Moment Estimation — popular, combines momentum and adaptive learning rates. |
-| **RMSProp** | Adaptive learning rate based on recent gradients, good for non-stationary objectives. |
+Optimizers update your weights each step:
 
----
+* **SGD** — basic gradient descent
+* **Momentum** — adds inertia
+* **Adam** — adaptive learning rate + momentum
+* **RMSProp** — adaptive learning rate only
 
-## 🎯 Supported Loss Functions
-
-| Loss Function | Best For | Notes |
-|:--------------|:---------|:------|
-| **Binary Cross Entropy (BCE)** | Binary classification | |
-| **Weighted BCE** | Imbalanced binary classification | |
-| **Categorical Cross Entropy (CCE)** | Multi-class classification | |
-| **Mean Squared Error (MSE)** | Regression | Sensitive to outliers |
-| **Mean Absolute Error (MAE)** | Regression | More robust to outliers |
-| **Huber Loss** | Regression | Smooth combination of MSE and MAE |
-| **Log-Cosh Loss** | Regression | Smooth approximation to MAE |
-| **Hinge Loss** | Binary classification (SVM-style margin) | |
+```java
+Optimizers.adam(0.01, 0.9, 0.999, 1e-8);
+```
 
 ---
 
-## 📊 Metrics Supported
+## 🎯 Loss Functions
 
-| Model Type | Metrics |
-|:-----------|:--------|
-| **Binary Classifier** | Accuracy, Precision, Recall, F1 Score |
-| **Multi-Class Classifier** | Accuracy, Precision, Recall, F1 Score |
-| **Regression Model** | Mean Squared Error (MSE), Mean Absolute Error (MAE), R² |
+Use a loss function suited to your task:
+
+* **MSE** — regression
+* **MAE** — regression
+* **Binary Cross Entropy** — binary classification
+* **Categorical Cross Entropy** — multi-class
+* **Hinge** — SVM-style classifiers
+
+```java
+LossFunctions.bce();
+```
+
+---
+
+## 🧪 Training Executors
+
+Training executors handle how training samples are fed to the network:
+
+* **Full Batch**: use entire dataset each epoch
+* **Mini Batch**: configurable size, shuffling, and parallelism
+
+```java
+TrainingExecutors.miniBatch(32, new Random(), Executors.newFixedThreadPool(4));
+```
+
+---
+
+## 📊 Scoring Functions
+
+Scoring functions monitor progress, typically by evaluating validation loss or accuracy. Use one of ours or create your own:
+
+```java
+ScoringFunctions.validationLoss();
+```
+
+---
+
+## ⏹ Early Stopping (Stopping Advisors)
+
+Stop training when it's no longer improving:
+
+* **Max Epochs**
+* **Score Threshold**
+* **Patience**
+
+```java
+StoppingAdvisors.patience(10, 1e-4);
+```
+
+---
+
+## 🛡 Regularization
+
+Avoid overfitting by penalizing weights:
+
+* **L1** (sparsity)
+* **L2** (shrinkage)
+* **Elastic Net** (combines both)
+
+```java
+Regularizations.l2(1e-4);
+```
+
+---
+
+## 🎛 Parameter Initialization
+
+Choose how weights and biases are initialized:
+
+```java
+ParameterInitializers.heUniform();
+ParameterInitializers.zeros();
+```
+
+---
+
+## 📣 Training Listeners
+
+Attach listeners to monitor progress:
+
+```java
+TrainingListeners.logging(logger, 100);
+```
+
+Custom listeners can log metrics, write to disk, update UIs, etc.
+
+---
+
+## 🧠 Model Types
+
+Netwerx supports:
+
+* **BinaryClassifierTrainer** — one output, sigmoid, BCE loss
+* **MultiClassifierTrainer** — softmax, categorical loss
+* **RegressionTrainer** — identity output, MSE/MAE
+* **AutoencoderTrainer** — encoder/decoder pattern with MSE loss
 
 ---
 
 ## 🧮 Matrix Abstraction
 
-At the heart of this neural network library is the `Matrix<M extends Matrix<M>>` interface — a flexible and extensible abstraction for matrix operations. It provides a consistent API for building high-level machine learning features without locking into a specific numerical backend.
-
-### ✨ Key Benefits
-
-- **Decouples algorithm logic from math implementation**  
-  Enables writing reusable, backend-agnostic logic for training, lossFunction computation, optimizers, etc.
-
-- **Default implementations for common operations**  
-  Many operations like `mean()`, `variance()`, `elementPower()`, `rowMax()`, etc. are provided with sensible default logic, which simplifies implementation and promotes consistency.
-
-- **Optimizable for performance**  
-  Backends like EJML can override default methods with highly efficient native implementations for performance-critical workloads.
-
-- **Supports broadcasting-style operations**  
-  Operations like `addRowVector`, `subtractColumnVector`, and `softmax` are built with broadcasting behavior in mind.
-
-- **Streaming & functional utilities**  
-  Matrix values can be accessed via Java streams for flexible computation patterns, and mapped with lambda-based operations.
-
-### 🧰 Implementing a Matrix
-
-To plug in a new backend (e.g., EJML, ND4J, or even a custom float-based engine), simply implement the `Matrix<M>` interface and override the core methods. Defaults handle the rest.
+All computations are built on a pluggable matrix abstraction:
 
 ```java
-public class EjmlMatrix implements Matrix<EjmlMatrix> {
-    // Implementation backed by EJML's SimpleMatrix
-}
+Matrix<M> matrix = factory.random(rows, cols);
 ```
 
-## 📈 Example: Titanic Dataset (Survival Prediction)
+Plug in your own backend (e.g., EJML, ND4J) by implementing `Matrix<M>`.
 
-Netwerx has been successfully used to model [Titanic](src/test/java/org/jwcarman/netwerx/titanic/TitanicTestCase.java) survival prediction:
+---
 
-- 6 input features (ticket class, age, sex, fare, parents/children, siblings/spouses)
-- Two hidden layers (8 neurons, then 4 neurons) with ReLU activationFunction functions
-- Binary cross-entropy lossFunction function
-- Sigmoid output activationFunction function
-- Stochastic Gradient Descent (SGD) optimizer
-- 100 epochs training
-- 78% accuracy on test set
+## 🧪 Titanic Example
 
-**Results:**
-- Predicts realistic survival rates (~120 survivors out of 418 test samples)
-- Matches known Titanic dataset survival statistics
-- Demonstrates correct learning and generalization dynamics
+A binary classifier predicts Titanic survival:
 
-✅ Netwerx handles real-world noisy datasets without needing heavyweight frameworks.
+* Input: class, age, sex, fare, family members
+* Layers: \[8 → 4 → 1]
+* Activation: ReLU + Sigmoid
+* Loss: Binary Cross Entropy
+* Optimizer: SGD
+
+```java
+Accuracy: ~83%, F1 Score: 0.75
+```
 
 ---
 
 ## 🔧 Extending Netwerx
 
-Adding new functionality is easy:
-
-| To Add | Implement |
-|:-------|:----------|
-| New activationFunction function | `Activation` interface |
-| New optimizer | `Optimizer` interface |
-| New lossFunction function | `Loss` interface |
-| Custom training observers | `TrainingObserver` |
-| Custom model types (e.g., ensembles) | Extend `NeuralNetwork` or build wrappers |
-
-✅ Designed for maximum extensibility with minimum ceremony.
+| You want to...         | Implement...                          |
+| ---------------------- | ------------------------------------- |
+| Add an activation      | `ActivationFunction`                  |
+| Add a loss function    | `LossFunction`                        |
+| Create an optimizer    | `Optimizer`                           |
+| Add scoring/early stop | `ScoringFunction` / `StoppingAdvisor` |
+| Monitor training       | `TrainingListener`                    |
 
 ---
 
 ## 🛤 Roadmap
 
-- [x] Adam and RMSProp optimizer support
-- [x] Expanded lossFunction functions
-- [ ] Mini-batch training
-- [ ] Learning rate schedulers (decay, warm-up)
-- [ ] Early stopping support
-- [ ] Model saving/loading (serialization)
-- [ ] Multi-threaded training (batch parallelism)
-- [ ] Visualization utilities (training curves, metrics)
+* [x] Binary/Multi/Regression/Autoencoder Trainers
+* [x] Dropout support
+* [x] Mini-batch + parallel execution
+* [x] Early stopping (patience, score threshold)
+* [x] Adam, RMSProp, Momentum
+* [x] Xavier, He initialization
+* [ ] Model serialization
+* [ ] Learning rate schedulers
+* [ ] CNN, RNN layer support
+* [ ] Visual training dashboards
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome!
+Have an idea? Found a bug? Contributions are welcome!
 
-Feel free to:
-- Open issues
-- Submit pull requests
-- Suggest new optimizers, activations, or lossFunction functions
-- Add examples and benchmarks
-
-Contribution guidelines (CONTRIBUTING.md) coming soon.
+* Fork, branch, submit PRs
+* Add your own trainers, layers, components
+* Suggest improvements via Issues
 
 ---
 
 ## 📄 License
 
-Netwerx is open-sourced under the [Apache License 2.0](LICENSE).
-
-You may freely use, modify, and distribute it under the terms of the license.
+Licensed under [Apache License 2.0](LICENSE)
 
 ---
 
 ## 🙏 Acknowledgements
 
-- Inspired by PyTorch, Keras, TensorFlow — but rebuilt for lightweight simplicity in Java.
-- Designed for curiosity, learning, and practical prototyping.
-- Created and maintained by [James Carman](https://github.com/jwcarman).
+Inspired by:
+
+* PyTorch
+* Keras
+* TensorFlow
+
+Built from scratch for Java developers who want to deeply understand what’s happening in a neural network.
 
 ---
 
-# 🚀 Build neural networks, understand them deeply — with **Netwerx**.
+# 🧠 Build neural networks. Understand them deeply. With **Netwerx**.
