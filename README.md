@@ -266,7 +266,7 @@ Accuracy: ~83%, F1 Score: 0.75
 * [x] Adam, RMSProp, Momentum
 * [x] Xavier, He initialization
 * [ ] Model serialization
-* [ ] Learning rate schedulers
+* [x] Learning rate schedulers
 * [ ] CNN, RNN layer support
 * [ ] Visual training dashboards
 
