@@ -26,8 +26,6 @@ class ConcreteTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(ConcreteTestCase.class);
 
-    private static final Random random = new Random(42);
-
     @Test
     void regressionModel() {
         List<Concrete> concretes = CommaSeparatedValues.load("/dataset/concrete/labeled.csv", csv -> {
@@ -43,6 +41,7 @@ class ConcreteTestCase {
             return new Concrete(cement, blastFurnaceSlag, flyAsh, water, superplasticizer, coarseAggregate, fineAggregate, age, strength);
         });
 
+        final var random = new Random(42);
         var factory = new EjmlMatrixFactory();
 
         var split = Datasets.split(concretes, 0.8f, 0.1f, 0.1f, random);

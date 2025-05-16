@@ -38,8 +38,6 @@ class TitanicTestCase {
     public static final String TRUE = "1";
     public static final String NAME = "Name";
 
-    private final Random random = new Random(42);
-
 // -------------------------- OTHER METHODS --------------------------
 
     @Test
@@ -56,6 +54,7 @@ class TitanicTestCase {
             return new TitanicPassenger(name, ticketClass, age, sex, fare, parentsAndChildren, siblingsAndSpouses, survived);
         });
 
+        final var random = new Random(42);
         var split = Datasets.split(passengers, 0.7f, 0.15f, 0.15f, random);
 
         var factory = new EjmlMatrixFactory();

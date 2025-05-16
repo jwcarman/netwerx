@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralNetworkTrainer<M> {
@@ -44,43 +45,66 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
 // --------------------- Interface NeuralNetworkTrainer ---------------------
 
+
+    private NormalizedDatasets<M> normalize(Dataset<M> training, UnaryOperator<M> normalizer) {
+        return new NormalizedDatasets<>(
+                new Dataset<>(normalizer.apply(training.features()), training.labels()),
+                new Dataset<>(normalizer.apply(config.validationDataset().features()), config.validationDataset().labels())
+        );
+    }
+
+    private NeuralNetwork<M> runTrainingLoop(
+            NormalizedDatasets<M> data,
+            Supplier<NeuralNetwork<M>> snapshotter) {
+        var bestScore = Double.NEGATIVE_INFINITY;
+        var bestNetwork = snapshotter.get();
+        var bestEpoch = -1;
+        var epoch = 1;
+
+        while (true) {
+            var score = processEpoch(epoch, data);
+            if (score > bestScore) {
+                bestScore = score;
+                bestEpoch = epoch;
+                bestNetwork = snapshotter.get();
+            }
+            if (config.stoppingAdvisor().shouldStop(epoch, score)) {
+                break;
+            }
+            epoch++;
+        }
+
+        LOGGER.info("Training complete after {} epochs with best score {} at epoch {}.", epoch, bestScore, bestEpoch);
+        return bestNetwork;
+    }
+
+    private double processEpoch(int epoch, NormalizedDatasets<M> datasets) {
+        var result = config.trainingExecutor().execute(datasets.training(), this::performTrainingStep);
+        var regularizationPenalty = calculateRegularizationPenalty();
+        applyLayerUpdates(epoch, result.layerUpdates());
+        var validationLoss = calculateValidationLoss(datasets.validation());
+        var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
+        config.listener().onEpoch(outcome);
+        return config.scoringFunction().score(outcome);
+    }
+
+    private double calculateRegularizationPenalty() {
+        return layerTrainers.stream()
+                .mapToDouble(LayerTrainer::regularizationPenalty)
+                .sum();
+    }
+
     @Override
     public NeuralNetwork<M> train(Dataset<M> trainingDataset) {
         if (layerTrainers.getFirst().inputSize() != trainingDataset.features().rowCount()) {
             throw new IllegalArgumentException(String.format("Dataset input must have input size %d.", layerTrainers.getFirst().inputSize()));
         }
+
         final var normalizer = InputNormalizer.forDataset(defaultNormalizationFactory, normalizationFactories, trainingDataset);
 
-        final var normalizedTrainingDataset = new Dataset<>(normalizer.apply(trainingDataset.features()), trainingDataset.labels());
-        final var normalizedValidationDataset = new Dataset<>(normalizer.apply(config.validationDataset().features()), config.validationDataset().labels());
+        final var normalizedDatasets = normalize(trainingDataset, normalizer);
 
-        int epoch = 1;
-        boolean continueTraining;
-        double bestScore = Double.NEGATIVE_INFINITY;
-        int bestEpoch = -1;
-        NeuralNetwork<M> bestNetwork = createNeuralNetwork(normalizer);
-        do {
-            var result = config.trainingExecutor().execute(normalizedTrainingDataset, this::performTrainingStep);
-            var regularizationPenalty = layerTrainers.stream()
-                    .mapToDouble(LayerTrainer::regularizationPenalty)
-                    .sum();
-
-            applyLayerUpdates(epoch, result.layerUpdates());
-
-            var validationLoss = calculateValidationLoss(normalizedValidationDataset);
-            var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
-            var score = config.scoringFunction().score(outcome);
-            if (score > bestScore) {
-                bestNetwork = createNeuralNetwork(normalizer);
-                bestScore = score;
-                bestEpoch = epoch;
-            }
-            config.listener().onEpoch(outcome);
-            continueTraining = !config.stoppingAdvisor().shouldStop(epoch, score);
-            epoch++;
-        } while (continueTraining);
-        LOGGER.info("Training complete after {} epochs with an overall best score of {} at epoch {}.", epoch - 1, bestScore, bestEpoch);
-        return bestNetwork;
+        return runTrainingLoop(normalizedDatasets, () -> createNeuralNetwork(normalizer));
     }
 
     private DefaultNeuralNetwork<M> createNeuralNetwork(UnaryOperator<M> normalizer) {
@@ -104,6 +128,7 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
         var inferred = layerTrainers.stream().reduce(validationSet.features(), (M acc, LayerTrainer<M> layer) -> layer.forwardPass(acc).activations(), (a, _) -> a);
         return config.lossFunction().loss(inferred, validationSet.labels());
     }
+
 
     private TrainingResult<M> performTrainingStep(Dataset<M> trainingDataset) {
         var forwardPassResult = performForwardPass(trainingDataset);
@@ -134,6 +159,9 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
 
     private record ForwardPassResult<M extends Matrix<M>>(M output, ArrayList<LayerBackprop<M>> backProps) {
 
+    }
+
+    private record NormalizedDatasets<M extends Matrix<M>>(Dataset<M> training, Dataset<M> validation) {
     }
 
 }

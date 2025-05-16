@@ -33,7 +33,7 @@ class MnistTestCase {
 
     @Test
     void testMnist() throws Exception {
-        var random = new Random();
+        var random = new Random(11223344);
         var factory = new EjmlMatrixFactory();
         var images = readImages(factory, 320).rowSlice(0, 28 * 7);
         var dataset = new Dataset<>(images, images);

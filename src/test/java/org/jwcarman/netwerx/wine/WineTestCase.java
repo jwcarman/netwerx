@@ -28,8 +28,6 @@ class WineTestCase {
 
     private static final Logger logger = LoggerFactory.getLogger(WineTestCase.class);
 
-    private static final Random random = new Random(4587985);
-
 // -------------------------- OTHER METHODS --------------------------
 
     @Test
@@ -53,6 +51,7 @@ class WineTestCase {
                     nonFlavanoidPhenols, proanthocyanins, colorIntensity, hue, od280Od315OfDilutedWines, proline);
         });
 
+        final var random = new Random(4587985);
         var factory = new EjmlMatrixFactory();
         var split = Datasets.split(wines, 0.7f, 0.15f, 0.15f, random);
 
