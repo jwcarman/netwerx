@@ -95,20 +95,6 @@ public class LearningRateProviders {
 
 
     /**
-     * Applies a warmup period to the given learning rate provider.
-     *
-     * @param base         the base learning rate provider
-     * @param warmupEpochs the number of epochs to warm up
-     * @param warmupTarget the target learning rate at the end of the warmup period
-     * @return a learning rate provider that applies a warmup period to the base provider
-     */
-    public static LearningRateProvider withWarmup(LearningRateProvider base, int warmupEpochs, double warmupTarget) {
-        return epoch -> epoch < warmupEpochs
-                ? warmupTarget * epoch / warmupEpochs
-                : base.getLearningRate(epoch);
-    }
-
-    /**
      * Warm restarts learning rate provider.
      *
      * @param initialLearningRate the initial learning rate

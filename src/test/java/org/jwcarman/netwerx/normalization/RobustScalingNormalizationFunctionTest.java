@@ -37,4 +37,13 @@ class RobustScalingNormalizationFunctionTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void testWithIQREqualZero() {
+        double[] values = {2.0, 2.0, 2.0, 2.0, 2.0};
+        var fn = NormalizationFunctions.robustScaling(Arrays.stream(values));
+
+        double normalizedValue = fn.normalize(3.0);
+        assertThat(normalizedValue).isCloseTo(0.0, withinTolerance());
+    }
+
 }
