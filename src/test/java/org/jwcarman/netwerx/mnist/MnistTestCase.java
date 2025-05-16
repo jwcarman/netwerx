@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
 import org.jwcarman.netwerx.batch.TrainingExecutors;
 import org.jwcarman.netwerx.dataset.Dataset;
+import org.jwcarman.netwerx.learning.LearningRateProviders;
 import org.jwcarman.netwerx.listener.TrainingListeners;
 import org.jwcarman.netwerx.loss.LossFunctions;
 import org.jwcarman.netwerx.matrix.Matrix;
@@ -46,13 +47,16 @@ class MnistTestCase {
 
         logger.info("Training on {} images.", input.features().columnCount());
         logger.info("Validation on {} images.", validation.features().columnCount());
+
+        var learningRateProvider= LearningRateProviders.constant(0.001);
+
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, images.rowCount(), random)
                 .trainingExecutor(TrainingExecutors.miniBatch(32, Randoms.defaultRandom(), Executors.newFixedThreadPool(10)))
                 .stoppingAdvisor(StoppingAdvisors.scoreThreshold(-0.02))
                 .scoringFunction(ScoringFunctions.validationLoss())
                 .validationDataset(validation)
                 .listener(TrainingListeners.logging(logger, 100))
-                .defaultOptimizer(() -> Optimizers.adam(0.001, 0.9, 0.999, 1e-8))
+                .defaultOptimizer(() -> Optimizers.adam(learningRateProvider, 0.9, 0.999, 1e-8))
                 .denseLayer(layer -> layer.units(input.features().rowCount()).regularizationFunction(Regularizations.l2(1e-5)))
                 .dropoutLayer(layer -> layer.dropoutRate(0.45))
                 .denseLayer(layer -> layer.units(32).activationFunction(ActivationFunctions.linear()))

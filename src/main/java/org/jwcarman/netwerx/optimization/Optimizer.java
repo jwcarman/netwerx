@@ -4,5 +4,5 @@ import org.jwcarman.netwerx.matrix.Matrix;
 
 @FunctionalInterface
 public interface Optimizer<M extends Matrix<M>> {
-    M optimize(M parameter, M gradient);
+    M optimize(int epoch, M parameter, M gradient);
 }

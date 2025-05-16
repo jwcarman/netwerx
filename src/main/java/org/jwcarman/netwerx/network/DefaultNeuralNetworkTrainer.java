@@ -52,7 +52,7 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
                     .mapToDouble(LayerTrainer::regularizationPenalty)
                     .sum();
 
-            applyLayerUpdates(result.layerUpdates());
+            applyLayerUpdates(epoch, result.layerUpdates());
 
             var validationLoss = calculateValidationLoss();
             var outcome = new EpochOutcome(epoch, result.trainingLoss(), validationLoss, regularizationPenalty, result.trainingLoss() + regularizationPenalty);
@@ -77,9 +77,9 @@ public class DefaultNeuralNetworkTrainer<M extends Matrix<M>> implements NeuralN
                 .toList());
     }
 
-    private void applyLayerUpdates(List<LayerUpdate<M>> layerUpdates) {
+    private void applyLayerUpdates(int epoch, List<LayerUpdate<M>> layerUpdates) {
         Streams.zip(layerTrainers.stream(), layerUpdates.stream())
-                .forEach(pair -> pair.left().applyUpdates(pair.right()));
+                .forEach(pair -> pair.left().applyUpdates(epoch, pair.right()));
     }
 
 // -------------------------- OTHER METHODS --------------------------

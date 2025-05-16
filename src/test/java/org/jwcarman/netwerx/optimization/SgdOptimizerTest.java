@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.optimization;
 
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.learning.LearningRateProviders;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.util.Matrices;
 
@@ -22,7 +23,7 @@ class SgdOptimizerTest {
                 {0.2, 0.2}
         });
 
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(10, param, grad);
         assertThat(updated.valueAt(0, 0)).isCloseTo(1.0 - 0.001, withinTolerance());
         assertThat(updated.valueAt(1, 0)).isCloseTo(2.998, withinTolerance());
     }
@@ -37,7 +38,7 @@ class SgdOptimizerTest {
         var paramCopy = param.copy();
         var gradCopy = grad.copy();
 
-        optimizer.optimize(param, grad);
+        optimizer.optimize(10, param, grad);
 
         assertThat(param.isIdentical(paramCopy, 1e-12)).isTrue();
         assertThat(grad.isIdentical(gradCopy, 1e-12)).isTrue();
@@ -50,7 +51,19 @@ class SgdOptimizerTest {
         var param = Matrices.of(new double[][]{{10.0}});
         var grad = Matrices.of(new double[][]{{2.0}});
 
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(10, param, grad);
+
+        assertThat(updated.valueAt(0, 0)).isCloseTo(9.0, withinTolerance());
+    }
+
+    @Test
+    void optimize_shouldRespectCustomLearningRateProvider() {
+        var optimizer = Optimizers.<EjmlMatrix>sgd(LearningRateProviders.constant(0.5));
+
+        var param = Matrices.of(new double[][]{{10.0}});
+        var grad = Matrices.of(new double[][]{{2.0}});
+
+        var updated = optimizer.optimize(10, param, grad);
 
         assertThat(updated.valueAt(0, 0)).isCloseTo(9.0, withinTolerance());
     }

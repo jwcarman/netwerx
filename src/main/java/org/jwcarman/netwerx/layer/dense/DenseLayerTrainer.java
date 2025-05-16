@@ -59,9 +59,9 @@ public class DenseLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M> {
     }
 
     @Override
-    public void applyUpdates(LayerUpdate<M> gradients) {
-        weights = weightsOptimizer.optimize(weights, gradients.gradient(WEIGHTS_GRADIENT));
-        biases = biasesOptimizer.optimize(biases, gradients.gradient(BIASES_GRADIENT));
+    public void applyUpdates(int epoch, LayerUpdate<M> gradients) {
+        weights = weightsOptimizer.optimize(epoch, weights, gradients.gradient(WEIGHTS_GRADIENT));
+        biases = biasesOptimizer.optimize(epoch, biases, gradients.gradient(BIASES_GRADIENT));
     }
 
     @Override

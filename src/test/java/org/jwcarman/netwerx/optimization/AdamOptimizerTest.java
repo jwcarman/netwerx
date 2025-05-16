@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.optimization;
 
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.learning.LearningRateProviders;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.util.Matrices;
 
@@ -18,7 +19,7 @@ class AdamOptimizerTest {
 
         var optimizer = Optimizers.<EjmlMatrix>adam(); // Default constructor
 
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(10, param, grad);
 
         assertThat(updated).isNotEqualTo(param);
     }
@@ -41,7 +42,32 @@ class AdamOptimizerTest {
         var paramCopy = param.copy();
         var gradCopy = grad.copy();
 
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(10, param, grad);
+
+        assertThat(updated).isNotNull();
+        assertThat(param.isIdentical(paramCopy, 1e-12)).isTrue();
+        assertThat(grad.isIdentical(gradCopy, 1e-12)).isTrue();
+    }
+
+    @Test
+    void constructor_withCustomHyperparametersAndLearningRateProvider_shouldRespectValues() {
+        double learningRate = 0.005;
+        double beta1 = 0.8;
+        double beta2 = 0.888;
+        double epsilon = 1e-6;
+
+        var optimizer = Optimizers.<EjmlMatrix>adam(LearningRateProviders.constant(learningRate), beta1, beta2, epsilon);
+
+        var param = Matrices.of(2, 2);
+        var grad = Matrices.of(new double[][]{
+                {0.01, 0.02},
+                {0.03, 0.04}
+        });
+
+        var paramCopy = param.copy();
+        var gradCopy = grad.copy();
+
+        var updated = optimizer.optimize(10, param, grad);
 
         assertThat(updated).isNotNull();
         assertThat(param.isIdentical(paramCopy, 1e-12)).isTrue();
@@ -55,7 +81,7 @@ class AdamOptimizerTest {
         var grad = Matrices.of(new double[][]{{1e-5}, {1e-5}});
 
         var original = param.copy();
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(9, param, grad);
 
         // Should nudge the parameter slightly
         assertThat(updated.valueAt(0, 0)).isNotEqualTo(original.valueAt(0, 0));
@@ -75,9 +101,9 @@ class AdamOptimizerTest {
         var optimizer = Optimizers.<EjmlMatrix>adam(); // default config
 
         // First step (t = 1)
-        var updated1 = optimizer.optimize(param, grad);
+        var updated1 = optimizer.optimize(17, param, grad);
         // Second step (t = 2)
-        var updated2 = optimizer.optimize(updated1, grad);
+        var updated2 = optimizer.optimize(18, updated1, grad);
 
         // Assert directional correctness
         assertThat(updated1.valueAt(0, 0)).isLessThan(1.0);

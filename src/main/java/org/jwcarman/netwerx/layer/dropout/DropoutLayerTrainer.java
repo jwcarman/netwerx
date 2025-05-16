@@ -32,7 +32,7 @@ public class DropoutLayerTrainer<M extends Matrix<M>> implements LayerTrainer<M>
 // --------------------- Interface LayerTrainer ---------------------
 
     @Override
-    public void applyUpdates(LayerUpdate<M> gradients) {
+    public void applyUpdates(int epoch, LayerUpdate<M> gradients) {
         // Do nothing as dropout does not have weights to update
     }
 

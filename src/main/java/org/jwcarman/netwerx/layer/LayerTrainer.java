@@ -6,7 +6,7 @@ public interface LayerTrainer<M extends Matrix<M>> {
 
 // -------------------------- OTHER METHODS --------------------------
 
-    void applyUpdates(LayerUpdate<M> gradients);
+    void applyUpdates(int epoch, LayerUpdate<M> gradients);
 
     int inputSize();
 

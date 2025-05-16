@@ -1,6 +1,7 @@
 package org.jwcarman.netwerx.optimization;
 
 import org.junit.jupiter.api.Test;
+import org.jwcarman.netwerx.learning.LearningRateProviders;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrix;
 import org.jwcarman.netwerx.util.Matrices;
 
@@ -21,7 +22,7 @@ class RmsPropOptimizerTest {
                 {0.3, 0.4}
         });
 
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(5, param, grad);
 
         assertThat(updated).isNotNull().isNotEqualTo(param);
     }
@@ -39,7 +40,27 @@ class RmsPropOptimizerTest {
         });
 
         var original = param.copy();
-        var updated = optimizer.optimize(param, grad);
+        var updated = optimizer.optimize(6, param, grad);
+
+        // Parameters should have decreased slightly
+        assertThat(updated.valueAt(0, 0)).isLessThan(original.valueAt(0, 0));
+        assertThat(updated.valueAt(0, 1)).isLessThan(original.valueAt(0, 1));
+    }
+
+    @Test
+    void optimize_shouldRespectLearningRateProviderAndEpsilon() {
+        var optimizer = Optimizers.<EjmlMatrix>rmsProp(LearningRateProviders.constant(0.01), 0.95, 1e-6);
+
+        var param = Matrices.of(new double[][]{
+                {0.2, 0.2}
+        });
+
+        var grad = Matrices.of(new double[][]{
+                {0.01, 0.01}
+        });
+
+        var original = param.copy();
+        var updated = optimizer.optimize(6, param, grad);
 
         // Parameters should have decreased slightly
         assertThat(updated.valueAt(0, 0)).isLessThan(original.valueAt(0, 0));
@@ -59,7 +80,7 @@ class RmsPropOptimizerTest {
         var paramCopy = param.copy();
         var gradCopy = grad.copy();
 
-        optimizer.optimize(param, grad);
+        optimizer.optimize(7, param, grad);
 
         assertThat(param.isIdentical(paramCopy, 1e-12)).isTrue();
         assertThat(grad.isIdentical(gradCopy, 1e-12)).isTrue();
@@ -78,8 +99,8 @@ class RmsPropOptimizerTest {
                 {0.2}
         });
 
-        var updated1 = optimizer.optimize(param, grad);
-        var updated2 = optimizer.optimize(updated1, grad);
+        var updated1 = optimizer.optimize(8, param, grad);
+        var updated2 = optimizer.optimize(9, updated1, grad);
 
         // Ensure that each update reduces the parameter value
         assertThat(updated1.valueAt(0, 0)).isLessThan(param.valueAt(0, 0));
