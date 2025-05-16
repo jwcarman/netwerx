@@ -40,8 +40,8 @@ public class DefaultAutoencoderTrainer<M extends Matrix<M>> implements Autoencod
         var dataset = Dataset.forAutoencoder(input);
         var network = networkTrainer.train(dataset);
         var bottleneckIndex = findBottleneckIndex(network.layerSizes());
-        var encoder = network.subNetwork(0, bottleneckIndex + 1);
-        var decoder = network.subNetwork(bottleneckIndex + 1);
+        var encoder = network.headNetwork(bottleneckIndex + 1);
+        var decoder = network.tailNetwork(bottleneckIndex + 1);
         return new DefaultAutoencoder<>(encoder, decoder);
     }
 

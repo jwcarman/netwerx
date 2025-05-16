@@ -512,7 +512,7 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 
     @Test
     void testRowArgMax() {
-        M a = factory().filled(2, 2, (row, col) -> col);
+        M a = factory().filled(2, 2, (_, col) -> col);
         M expected = factory().filled(2, 1, 1.0);
 
         M result = a.rowArgMax();
@@ -522,7 +522,7 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
 
     @Test
     void testColumnArgMax() {
-        M a = factory().filled(2, 2, (row, col) -> row);
+        M a = factory().filled(2, 2, (row, _) -> row);
         M expected = factory().filled(1, 2, 1.0);
 
         M result = a.columnArgMax();
@@ -670,48 +670,6 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         double result = a.normL2();
 
         assertEquals(expected, result, Tolerances.DEFAULT_TOLERANCE);
-    }
-
-    @Test
-    void testNormalizeColumn() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeColumn(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 2.0, 3.0, 1.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeColumnWithZeroRange() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 1, 5, 6);
-        M result = matrix.normalizeColumn(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.5, 2.0, 3.0, 0.5, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeColumns() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeColumns();
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
-    }
-
-    @Test
-    void testNormalizeRow() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeRow(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 4.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeRowWithZeroRange() {
-        M matrix = factory().from(2, 3, 1, 1, 1, 4, 5, 6);
-        M result = matrix.normalizeRow(0);
-        assertThat(result.values().boxed().toList()).containsExactly(0.5, 0.5, 0.5, 4.0, 5.0, 6.0);
-    }
-
-    @Test
-    void testNormalizeRows() {
-        M matrix = factory().from(2, 3, 1, 2, 3, 4, 5, 6);
-        M result = matrix.normalizeRows();
-        assertThat(result.values().boxed().toList()).containsExactly(0.0, 0.5, 1.0, 0.0, 0.5, 1.0);
     }
 
     @Test

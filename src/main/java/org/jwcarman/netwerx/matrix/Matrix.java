@@ -79,35 +79,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns the index of the maximum value in the specified column.
-     *
-     * @param col the index of the column
-     * @return the index of the maximum value in the column
-     */
-    default int columnArgMax(int col) {
-        int bestIndex = -1;
-        double bestValue = Double.NEGATIVE_INFINITY;
-        for (int row = 0; row < rowCount(); row++) {
-            double val = valueAt(row, col);
-            if (val > bestValue) {
-                bestValue = val;
-                bestIndex = row;
-            }
-        }
-        return bestIndex;
-    }
-
-
-    /**
-     * Returns a row vector containing the index of the maximum value in each column.
-     *
-     * @return a new row vector with the index of the maximum value in each column
-     */
-    default M columnArgMax() {
-        return likeKind(1, columnCount(), (_, col) -> columnArgMax(col));
-    }
-
-    /**
      * Returns the number of columns in the matrix.
      *
      * @return the number of columns
@@ -135,6 +106,51 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default M clamp(double min, double max) {
         return map((_, _, value) -> Math.clamp(value, min, max));
+    }
+
+    /**
+     * Returns a row vector containing the index of the maximum value in each column.
+     *
+     * @return a new row vector with the index of the maximum value in each column
+     */
+    default M columnArgMax() {
+        return likeKind(1, columnCount(), (_, col) -> columnArgMax(col));
+    }
+
+    /**
+     * Returns the index of the maximum value in the specified column.
+     *
+     * @param col the index of the column
+     * @return the index of the maximum value in the column
+     */
+    default int columnArgMax(int col) {
+        int bestIndex = -1;
+        double bestValue = Double.NEGATIVE_INFINITY;
+        for (int row = 0; row < rowCount(); row++) {
+            double val = valueAt(row, col);
+            if (val > bestValue) {
+                bestValue = val;
+                bestIndex = row;
+            }
+        }
+        return bestIndex;
+    }
+
+    /**
+     * Returns the number of rows in the matrix.
+     *
+     * @return the number of rows
+     */
+    int rowCount();
+
+    /**
+     * Returns the maximum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the maximum value in the column
+     */
+    default double columnMax(int column) {
+        return columnValues(column).max().orElseThrow(NoSuchElementException::new);
     }
 
     /**
@@ -174,13 +190,6 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns the number of rows in the matrix.
-     *
-     * @return the number of rows
-     */
-    int rowCount();
-
-    /**
      * Returns the mean value of the specified column.
      *
      * @param column the index of the column
@@ -188,6 +197,25 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double columnMean(int column) {
         return columnValues(column).average().orElseThrow(NoSuchElementException::new);
+    }
+
+    /**
+     * Returns a row vector containing the minimum value of each column.
+     *
+     * @return a new row vector with the minimum value of each column
+     */
+    default M columnMin() {
+        return reduceColumns(Matrix::min);
+    }
+
+    /**
+     * Returns the minimum value in the specified column.
+     *
+     * @param column the index of the column
+     * @return the minimum value in the column
+     */
+    default double columnMin(int column) {
+        return columnValues(column).min().orElseThrow(NoSuchElementException::new);
     }
 
     default M columnSelect(List<Integer> columnIndices) {
@@ -225,6 +253,15 @@ public interface Matrix<M extends Matrix<M>> {
         M sumPerColumn = exp.columnSum(); // shape: (1, columns)
 
         return exp.map((_, col, value) -> value / sumPerColumn.valueAt(0, col));
+    }
+
+    /**
+     * Returns a row vector containing the maximum value of each column.
+     *
+     * @return a new column vector with the maximum value of each column
+     */
+    default M columnMax() {
+        return reduceColumns(Matrix::max);
     }
 
     /**
@@ -591,20 +628,6 @@ public interface Matrix<M extends Matrix<M>> {
         return likeKind(classCount, labels.length, (row, col) -> labels[col] == row ? 1.0 : 0.0);
     }
 
-
-    /**
-     * Returns a new matrix appropriate for regression models, with the specified targets.
-     *
-     * @param targets the target values for each column, where each value corresponds to a target for the regression model
-     * @return a new matrix with the specified targets for regression models
-     */
-    default M regressionModelTargets(double[] targets) {
-        if (targets.length != columnCount()) {
-            throw new IllegalArgumentException(String.format("Target count %d must match column count %d", targets.length, columnCount()));
-        }
-        return likeKind(1, targets.length, (_, col) -> targets[col]);
-    }
-
     /**
      * Multiplies the matrix by another matrix.
      *
@@ -658,139 +681,26 @@ public interface Matrix<M extends Matrix<M>> {
         return values().map(v -> v * v).sum();
     }
 
-    default M normalizeColumn(int col) {
-        var max = columnMax(col);
-        var min = columnMin(col);
-
-        return map((_, c, value) -> {
-            if (c == col) {
-                return normalizeValue(value, min, max);
-            }
-            return value;
-        });
+    /**
+     * Returns a new matrix appropriate for regression models, with the specified targets.
+     *
+     * @param targets the target values for each column, where each value corresponds to a target for the regression model
+     * @return a new matrix with the specified targets for regression models
+     */
+    default M regressionModelTargets(double[] targets) {
+        if (targets.length != columnCount()) {
+            throw new IllegalArgumentException(String.format("Target count %d must match column count %d", targets.length, columnCount()));
+        }
+        return likeKind(1, targets.length, (_, col) -> targets[col]);
     }
 
     /**
-     * Returns the maximum value in the specified column.
+     * Returns a column vector containing the index of the maximum value in each row.
      *
-     * @param column the index of the column
-     * @return the maximum value in the column
+     * @return a new column vector with the index of the maximum value in each row
      */
-    default double columnMax(int column) {
-        return columnValues(column).max().orElseThrow(NoSuchElementException::new);
-    }
-
-    /**
-     * Returns the minimum value in the specified column.
-     *
-     * @param column the index of the column
-     * @return the minimum value in the column
-     */
-    default double columnMin(int column) {
-        return columnValues(column).min().orElseThrow(NoSuchElementException::new);
-    }
-
-    private static double normalizeValue(double value, double min, double max) {
-        var range = max - min;
-        return range <= 0 ? 0.5 : (value - min) / range;
-    }
-
-    default M normalizeColumns() {
-        var colMax = columnMax();
-        var colMin = columnMin();
-        return map((_, col, value) -> normalizeValue(value, colMin.valueAt(0, col), colMax.valueAt(0, col)));
-    }
-
-    /**
-     * Returns a row vector containing the maximum value of each column.
-     *
-     * @return a new column vector with the maximum value of each column
-     */
-    default M columnMax() {
-        return reduceColumns(Matrix::max);
-    }
-
-    /**
-     * Returns a row vector containing the minimum value of each column.
-     *
-     * @return a new row vector with the minimum value of each column
-     */
-    default M columnMin() {
-        return reduceColumns(Matrix::min);
-    }
-
-    default M normalizeRow(int row) {
-        double min = rowMin(row);
-        double max = rowMax(row);
-
-        return map((r, _, value) -> {
-            if (r == row) {
-                return normalizeValue(value, min, max);
-            }
-            return value;
-        });
-    }
-
-    /**
-     * Returns the minimum value in the specified row.
-     *
-     * @param row the index of the row
-     * @return the minimum value in the row
-     */
-    default double rowMin(int row) {
-        return deref(rowValues(row).min());
-    }
-
-    /**
-     * Returns the maximum value in the specified row.
-     *
-     * @param row the index of the row
-     * @return the maximum value in the row
-     */
-    default double rowMax(int row) {
-        return deref(rowValues(row).max());
-    }
-
-    default M normalizeRows() {
-        var rowMax = rowMax();
-        var rowMin = rowMin();
-        return map((row, _, value) -> normalizeValue(value, rowMin.valueAt(row, 0), rowMax.valueAt(row, 0)));
-    }
-
-    /**
-     * Returns a column vector containing the maximum value of each row.
-     *
-     * @return a new column vector with the maximum value of each row
-     */
-    default M rowMax() {
-        return reduceRows(Matrix::max);
-    }
-
-    /**
-     * Returns a column vector containing the values provided by the supplied reducer function.
-     *
-     * @param reducer the reducer function to apply to each row
-     * @return a column vector with the values provided by the reducer
-     */
-    default M reduceRows(ToDoubleFunction<M> reducer) {
-        return likeKind(rowCount(), 1, (row, _) -> reducer.applyAsDouble(rowVector(row)));
-    }
-
-    /**
-     * Returns the specified row as a row vector.
-     *
-     * @param row the index of the row to extract
-     * @return the row vector
-     */
-    M rowVector(int row);
-
-    /**
-     * Returns a column vector containing the minimum value of each row.
-     *
-     * @return a new column vector with the minimum value of each row
-     */
-    default M rowMin() {
-        return reduceRows(Matrix::min);
+    default M rowArgMax() {
+        return likeKind(rowCount(), 1, (row, _) -> rowArgMax(row));
     }
 
     /**
@@ -813,12 +723,13 @@ public interface Matrix<M extends Matrix<M>> {
     }
 
     /**
-     * Returns a column vector containing the index of the maximum value in each row.
+     * Returns the maximum value in the specified row.
      *
-     * @return a new column vector with the index of the maximum value in each row
+     * @param row the index of the row
+     * @return the maximum value in the row
      */
-    default M rowArgMax() {
-        return likeKind(rowCount(), 1, (row, _) -> rowArgMax(row));
+    default double rowMax(int row) {
+        return deref(rowValues(row).max());
     }
 
     /**
@@ -838,6 +749,25 @@ public interface Matrix<M extends Matrix<M>> {
      */
     default double rowMean(int row) {
         return deref(rowValues(row).average());
+    }
+
+    /**
+     * Returns a column vector containing the minimum value of each row.
+     *
+     * @return a new column vector with the minimum value of each row
+     */
+    default M rowMin() {
+        return reduceRows(Matrix::min);
+    }
+
+    /**
+     * Returns the minimum value in the specified row.
+     *
+     * @param row the index of the row
+     * @return the minimum value in the row
+     */
+    default double rowMin(int row) {
+        return deref(rowValues(row).min());
     }
 
     default M rowSelect(List<Integer> rowIndices) {
@@ -876,6 +806,33 @@ public interface Matrix<M extends Matrix<M>> {
 
         return exp.map((row, _, value) -> value / sumPerRow.valueAt(row, 0));
     }
+
+    /**
+     * Returns a column vector containing the maximum value of each row.
+     *
+     * @return a new column vector with the maximum value of each row
+     */
+    default M rowMax() {
+        return reduceRows(Matrix::max);
+    }
+
+    /**
+     * Returns a column vector containing the values provided by the supplied reducer function.
+     *
+     * @param reducer the reducer function to apply to each row
+     * @return a column vector with the values provided by the reducer
+     */
+    default M reduceRows(ToDoubleFunction<M> reducer) {
+        return likeKind(rowCount(), 1, (row, _) -> reducer.applyAsDouble(rowVector(row)));
+    }
+
+    /**
+     * Returns the specified row as a row vector.
+     *
+     * @param row the index of the row to extract
+     * @return the row vector
+     */
+    M rowVector(int row);
 
     /**
      * Returns a new matrix that is the result of subtracting a column vector from each column of the matrix.

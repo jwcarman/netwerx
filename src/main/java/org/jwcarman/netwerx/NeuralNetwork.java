@@ -32,15 +32,14 @@ public interface NeuralNetwork<M extends Matrix<M>> {
      * @param startIndex the index of the first layer to include in the subnetwork
      * @return a new NeuralNetwork instance representing the subnetwork
      */
-    NeuralNetwork<M> subNetwork(int startIndex);
+    NeuralNetwork<M> tailNetwork(int startIndex);
 
     /**
      * Creates a subnetwork from the specified start index to the end index (exclusive).
      *
-     * @param startIndex the index of the first layer to include in the subnetwork
      * @param endIndex   the index of the last layer to include in the subnetwork (exclusive)
      * @return a new NeuralNetwork instance representing the subnetwork
      */
-    NeuralNetwork<M> subNetwork(int startIndex, int endIndex);
+    NeuralNetwork<M> headNetwork(int endIndex);
 
 }

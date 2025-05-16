@@ -10,6 +10,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
+import org.jwcarman.netwerx.normalization.NormalizationFunctions;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regularization.Regularizations;
 import org.jwcarman.netwerx.score.ScoringFunctions;
@@ -68,12 +69,10 @@ class TitanicTestCase {
 
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
+                .defaultNormalizer(NormalizationFunctions::zScore)
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
                 .listener(TrainingListeners.logging(logger, 100))
-                //.defaultOptimizer(Optimizers::sgd)
-                //.defaultOptimizer(() -> Optimizers.momentum(0.01, 0.9))
                 .defaultOptimizer(() -> Optimizers.adam(0.01, 0.9, 0.999, 1e-8))
-                //.stoppingAdvisor(StoppingAdvisors.patience(20, 1e-3))
                 .scoringFunction(ScoringFunctions.validationLossWithPenalty())
                 .denseLayer(layer -> layer.units(8))
                 .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
@@ -100,7 +99,7 @@ class TitanicTestCase {
                 TitanicPassenger::fare,
                 TitanicPassenger::parentsAndChildren,
                 TitanicPassenger::siblingsAndSpouses
-        )).normalizeRows();
+        ));
     }
 
     record TitanicPassenger(String name,

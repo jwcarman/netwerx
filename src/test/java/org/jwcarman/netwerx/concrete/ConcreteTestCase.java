@@ -9,10 +9,11 @@ import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
+import org.jwcarman.netwerx.normalization.NormalizationFunctions;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regression.RegressionModelStats;
 import org.jwcarman.netwerx.regularization.Regularizations;
-import org.jwcarman.netwerx.stopping.MaxEpochStoppingAdvisor;
+import org.jwcarman.netwerx.stopping.StoppingAdvisors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +52,14 @@ class ConcreteTestCase {
         var validationTargets = factory.from(1, validationInputs.columnCount(), labels(split.validation()));
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
+                .defaultNormalizer(NormalizationFunctions::minMax)
+                .normalizer(5, NormalizationFunctions::maxAbs)
                 .defaultOptimizer(() -> Optimizers.momentum(0.25, 0.9))
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                .stoppingAdvisor(new MaxEpochStoppingAdvisor(400))
+                .stoppingAdvisor(StoppingAdvisors.patience())
                 .listener(TrainingListeners.logging(logger, 100))
+                .denseLayer(layer -> layer.units(32))
                 .denseLayer(layer -> layer.units(16))
-                .denseLayer(layer -> layer.units(4))
                 .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildRegressionModelTrainer();
 
@@ -77,7 +80,7 @@ class ConcreteTestCase {
     }
 
     private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<Concrete> list) {
-        M features = Datasets.features(factory, list,
+        return Datasets.features(factory, list,
                 Concrete::cement,
                 Concrete::blastFurnaceSlag,
                 Concrete::flyAsh,
@@ -86,8 +89,6 @@ class ConcreteTestCase {
                 Concrete::coarseAggregate,
                 Concrete::fineAggregate,
                 Concrete::age);
-
-        return features.normalizeRows();
     }
 
     // Cement	Blast Furnace Slag	Fly Ash	Water	Superplasticizer	Coarse Aggregate	Fine Aggregate	Age	Strength

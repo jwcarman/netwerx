@@ -10,8 +10,10 @@ import org.jwcarman.netwerx.matrix.Matrix;
 import org.jwcarman.netwerx.matrix.MatrixFactory;
 import org.jwcarman.netwerx.matrix.ejml.EjmlMatrixFactory;
 import org.jwcarman.netwerx.network.DefaultNeuralNetworkTrainerBuilder;
+import org.jwcarman.netwerx.normalization.NormalizationFunctions;
 import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regularization.Regularizations;
+import org.jwcarman.netwerx.stopping.StoppingAdvisors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +63,14 @@ class WineTestCase {
         var validationTargets = validationInputs.multiClassifierClasses(3, labels(split.validation()));
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
+                .defaultNormalizer(NormalizationFunctions::zScore)
                 .defaultOptimizer(Optimizers::sgd)
+                .stoppingAdvisor(StoppingAdvisors.patience())
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
-                //.stoppingAdvisor(new MaxEpochStoppingAdvisor(700))
-                .listener(TrainingListeners.logging(logger, 100))
-                .denseLayer(layer -> layer.units(16))
-                .denseLayer(layer -> layer.units(8).regularizationFunction(Regularizations.l2(1e-4)))
+                .listener(TrainingListeners.logging(logger, 10))
+                .denseLayer(layer -> layer.units(32))
+                .dropoutLayer(dropout -> dropout.dropoutRate(0.1))
+                .denseLayer(layer -> layer.units(16).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildMultiClassifierTrainer(3);
 
         var classifier = trainer.train(trainInputs, trainTargets);
@@ -80,7 +84,7 @@ class WineTestCase {
     }
 
     private static <M extends Matrix<M>> M features(MatrixFactory<M> factory, List<Wine> list) {
-        M features = Datasets.features(factory, list,
+        return Datasets.features(factory, list,
                 Wine::alcohol,
                 Wine::malicAcid,
                 Wine::ash,
@@ -94,7 +98,6 @@ class WineTestCase {
                 Wine::hue,
                 Wine::od280Od315OfDilutedWines,
                 Wine::proline);
-        return features.normalizeRows();
     }
 
     private static int[] labels(List<Wine> list) {

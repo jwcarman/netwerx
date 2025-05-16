@@ -9,6 +9,7 @@ import org.jwcarman.netwerx.layer.dropout.DropoutLayerConfig;
 import org.jwcarman.netwerx.listener.TrainingListener;
 import org.jwcarman.netwerx.loss.LossFunction;
 import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.normalization.NormalizationFunctionFactory;
 import org.jwcarman.netwerx.optimization.Optimizer;
 import org.jwcarman.netwerx.regression.RegressionModelTrainer;
 import org.jwcarman.netwerx.score.ScoringFunction;
@@ -84,6 +85,10 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
      * @return the current instance of the builder
      */
     NeuralNetworkTrainerBuilder<M> denseLayer(Consumer<DenseLayerConfig<M>> configurer);
+
+    NeuralNetworkTrainerBuilder<M> defaultNormalizer(NormalizationFunctionFactory factory);
+
+    NeuralNetworkTrainerBuilder<M> normalizer(int featureIndex, NormalizationFunctionFactory factory);
 
     /**
      * Adds a dropout layer to the neural network trainer using the default configuration.

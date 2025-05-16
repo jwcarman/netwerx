@@ -125,5 +125,4 @@ public record Dataset<M extends Matrix<M>>(M features, M labels) {
         Collections.shuffle(indices, random);
         return new Dataset<>(features.columnReorder(indices), labels.columnReorder(indices));
     }
-
 }

@@ -3,18 +3,22 @@ package org.jwcarman.netwerx.network;
 import org.jwcarman.netwerx.NeuralNetwork;
 import org.jwcarman.netwerx.layer.Layer;
 import org.jwcarman.netwerx.matrix.Matrix;
+import org.jwcarman.netwerx.normalization.InputNormalizer;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 class DefaultNeuralNetwork<M extends Matrix<M>> implements NeuralNetwork<M> {
 
 // ------------------------------ FIELDS ------------------------------
 
+    private final UnaryOperator<M> preprocessor;
     private final List<Layer<M>> layers;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    DefaultNeuralNetwork(List<Layer<M>> layers) {
+    DefaultNeuralNetwork(UnaryOperator<M> preprocessor, List<Layer<M>> layers) {
+        this.preprocessor = preprocessor;
         this.layers = layers;
     }
 
@@ -30,20 +34,21 @@ class DefaultNeuralNetwork<M extends Matrix<M>> implements NeuralNetwork<M> {
      */
     @Override
     public M predict(M x) {
-        if(layers.getFirst().inputSize() != x.rowCount()) {
+        if (layers.getFirst().inputSize() != x.rowCount()) {
             throw new IllegalArgumentException("Input matrix row count does not match the first layer's input size.");
         }
-        return layers.stream().reduce(x, (M acc, Layer<M> layer) -> layer.apply(acc), (a, _) -> a);
+        M input = preprocessor.apply(x);
+        return layers.stream().reduce(input, (M acc, Layer<M> layer) -> layer.apply(acc), (a, _) -> a);
     }
 
     @Override
-    public NeuralNetwork<M> subNetwork(int startIndex, int endIndex) {
-        return new DefaultNeuralNetwork<>(layers.subList(startIndex, endIndex));
+    public NeuralNetwork<M> headNetwork(int endIndex) {
+        return new DefaultNeuralNetwork<>(preprocessor, layers.subList(0, endIndex));
     }
 
     @Override
-    public NeuralNetwork<M> subNetwork(int startIndex) {
-        return new DefaultNeuralNetwork<>(layers.subList(startIndex, layers.size()));
+    public NeuralNetwork<M> tailNetwork(int startIndex) {
+        return new DefaultNeuralNetwork<>(InputNormalizer.empty(), layers.subList(startIndex, layers.size()));
     }
 
     @Override
