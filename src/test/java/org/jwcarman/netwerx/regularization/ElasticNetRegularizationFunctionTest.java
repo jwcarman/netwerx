@@ -17,7 +17,7 @@ class ElasticNetRegularizationFunctionTest {
         var matrix = factory.filled(2, 2, 1.0);
 
         double penalty = reg.penalty(matrix);
-        assertThat(penalty).isEqualTo(matrix.sumOfSquares() * L1 + matrix.sumOfAbs() * L2);
+        assertThat(penalty).isEqualTo(matrix.sumOfAbs() * L1 + matrix.sumOfSquares() * L2 / 2.0);
     }
 
     @Test
@@ -31,7 +31,7 @@ class ElasticNetRegularizationFunctionTest {
         assertThat(gradient).isNotNull();
         assertThat(gradient.rowCount()).isEqualTo(2);
         assertThat(gradient.columnCount()).isEqualTo(2);
-        assertThat(gradient.elements().toList()).allMatch(e -> e.value() == (L1 * Math.signum(matrix.valueAt(e.row(), e.column()))) + (L2 * 2 * matrix.valueAt(e.row(), e.column())));
+        assertThat(gradient.elements().toList()).allMatch(e -> e.value() == (L1 * Math.signum(matrix.valueAt(e.row(), e.column()))) + (L2 *  matrix.valueAt(e.row(), e.column())));
     }
 
 }

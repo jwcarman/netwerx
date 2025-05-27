@@ -22,12 +22,12 @@ public class ElasticNetRegularizationFunction<M extends Matrix<M>> implements Re
 
     @Override
     public M gradient(M matrix) {
-        return matrix.map((_, _, v) -> lambda1 * Math.signum(v) + lambda2 * 2 * v);
+        return matrix.map((_, _, v) -> lambda1 * Math.signum(v) + lambda2 * v);
     }
 
     @Override
     public double penalty(M matrix) {
-        return lambda1 * matrix.sumOfAbs() + lambda2 * matrix.sumOfSquares();
+        return lambda1 * matrix.sumOfAbs() + lambda2 / 2.0 * matrix.sumOfSquares();
     }
 
 }

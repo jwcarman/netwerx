@@ -20,12 +20,12 @@ public class L2RegularizationFunction<M extends Matrix<M>> implements Regulariza
 
     @Override
     public M gradient(M matrix) {
-        return matrix.map((_, _, v) -> lambda * 2 * v);
+        return matrix.scale(lambda);
     }
 
     @Override
     public double penalty(M matrix) {
-        return lambda * matrix.sumOfSquares(); // or normL2()^2
+        return lambda / 2.0 * matrix.sumOfSquares(); // or normL2()^2
     }
 
 }

@@ -17,7 +17,7 @@ class L2RegularizationFunctionTest {
         var matrix = factory.filled(2, 2, 1.0);
 
         double penalty = reg.penalty(matrix);
-        assertThat(penalty).isEqualTo(matrix.sumOfSquares() * LAMBDA);
+        assertThat(penalty).isEqualTo(matrix.sumOfSquares() * LAMBDA / 2.0);
     }
 
     @Test
@@ -31,6 +31,6 @@ class L2RegularizationFunctionTest {
         assertThat(gradient).isNotNull();
         assertThat(gradient.rowCount()).isEqualTo(2);
         assertThat(gradient.columnCount()).isEqualTo(2);
-        assertThat(gradient.elements().toList()).allMatch(e -> e.value() == matrix.valueAt(e.row(), e.column()) * 2 * LAMBDA);
+        assertThat(gradient.elements().toList()).allMatch(e -> e.value() == matrix.valueAt(e.row(), e.column()) * LAMBDA);
     }
 }
