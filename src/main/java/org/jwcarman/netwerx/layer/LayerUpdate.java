@@ -18,16 +18,9 @@ public class LayerUpdate<M extends Matrix<M>> {
         return updates.stream().reduce(new LayerUpdate<>(), (acc, update) -> {
             acc.merge(update);
             return acc;
-        }).scale(updates.size());
+        });
     }
 
-    public LayerUpdate<M> scale(double scalar) {
-        LayerUpdate<M> scaledUpdate = new LayerUpdate<>();
-        for (Map.Entry<String, M> entry : gradients.entrySet()) {
-            scaledUpdate.addGradient(entry.getKey(), entry.getValue().scale(scalar));
-        }
-        return scaledUpdate;
-    }
 
 // -------------------------- OTHER METHODS --------------------------
 
@@ -35,6 +28,14 @@ public class LayerUpdate<M extends Matrix<M>> {
         for (String name : other.gradientNames()) {
             addGradient(name, other.gradient(name));
         }
+    }
+
+    public LayerUpdate<M> scaled(double weight) {
+        LayerUpdate<M> weightedUpdate = new LayerUpdate<>();
+        for (Map.Entry<String, M> entry : gradients.entrySet()) {
+            weightedUpdate.addGradient(entry.getKey(), entry.getValue().scale(weight));
+        }
+        return weightedUpdate;
     }
 
     public List<String> gradientNames() {

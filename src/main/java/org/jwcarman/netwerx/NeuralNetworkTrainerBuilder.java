@@ -28,6 +28,12 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
 // -------------------------- OTHER METHODS --------------------------
 
     /**
+     * Sets the batch size to use for training. Default is 512.
+     * @param batchSize the batch size to use for training
+     * @return the current instance of the builder
+     */
+    NeuralNetworkTrainerBuilder<M> batchSize(int batchSize);
+    /**
      * Builds a new {@link NeuralNetworkTrainer} instance.
      *
      * @return a new {@link NeuralNetworkTrainer} instance
@@ -63,6 +69,8 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
      */
     RegressionModelTrainer<M> buildRegressionModelTrainer();
 
+    NeuralNetworkTrainerBuilder<M> defaultNormalizer(NormalizationFunctionFactory factory);
+
     /**
      * Sets the default optimizer supplier for the neural network trainer.
      *
@@ -85,10 +93,6 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
      * @return the current instance of the builder
      */
     NeuralNetworkTrainerBuilder<M> denseLayer(Consumer<DenseLayerConfig<M>> configurer);
-
-    NeuralNetworkTrainerBuilder<M> defaultNormalizer(NormalizationFunctionFactory factory);
-
-    NeuralNetworkTrainerBuilder<M> normalizer(int featureIndex, NormalizationFunctionFactory factory);
 
     /**
      * Adds a dropout layer to the neural network trainer using the default configuration.
@@ -121,6 +125,8 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
      */
     NeuralNetworkTrainerBuilder<M> lossFunction(LossFunction lossFunction);
 
+    NeuralNetworkTrainerBuilder<M> normalizer(int featureIndex, NormalizationFunctionFactory factory);
+
     /**
      * Sets the scoring function to the neural network trainer.
      *
@@ -136,6 +142,13 @@ public interface NeuralNetworkTrainerBuilder<M extends Matrix<M>> {
      * @return the current instance of the builder
      */
     NeuralNetworkTrainerBuilder<M> stoppingAdvisor(StoppingAdvisor stoppingAdvisor);
+
+    /**
+     * Sets the number of sub-batches to use for training. Each batch will be split into this many sub-batches.
+     * @param subBatchCount the number of sub-batches to use for training
+     * @return the current instance of the builder
+     */
+    NeuralNetworkTrainerBuilder<M> subBatchCount(int subBatchCount);
 
     /**
      * Sets the validation dataset to the neural network trainer.

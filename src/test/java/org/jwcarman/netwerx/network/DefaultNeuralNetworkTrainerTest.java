@@ -62,4 +62,22 @@ class DefaultNeuralNetworkTrainerTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    void shouldNotAllowZeroBatchSize() {
+        var factory = new EjmlMatrixFactory();
+
+        var builder = new DefaultNeuralNetworkTrainerBuilder<>(factory, 2);
+        assertThatThrownBy(() -> builder.batchSize(0))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void shouldNotAllowZeroSubBatchCount() {
+        var factory = new EjmlMatrixFactory();
+
+        var builder = new DefaultNeuralNetworkTrainerBuilder<>(factory, 2);
+        assertThatThrownBy(() -> builder.subBatchCount(0))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
 }

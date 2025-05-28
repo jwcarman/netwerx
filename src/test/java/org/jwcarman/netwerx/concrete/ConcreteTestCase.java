@@ -51,15 +51,15 @@ class ConcreteTestCase {
         var validationTargets = factory.from(1, validationInputs.columnCount(), labels(split.validation()));
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
+                .defaultOptimizer(Optimizers::adam)
                 .defaultNormalizer(NormalizationFunctions::minMax)
-                .normalizer(5, NormalizationFunctions::maxAbs)
-                .defaultOptimizer(() -> Optimizers.momentum(0.25, 0.9))
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
                 .stoppingAdvisor(StoppingAdvisors.patience())
                 .listener(TrainingListeners.logging(logger, 100))
-                .denseLayer(layer -> layer.units(32))
-                .denseLayer(layer -> layer.units(16))
-                .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
+                .denseLayer(layer -> layer.units(64).regularizationFunction(Regularizations.l2(1e-4)))
+                .denseLayer(layer -> layer.units(32).regularizationFunction(Regularizations.l2(1e-5)))
+                .denseLayer(layer -> layer.units(16).regularizationFunction(Regularizations.l2(1e-5)))
+                .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-5)))
                 .buildRegressionModelTrainer();
 
         var regressionModel = trainer.train(trainInputs, trainTargets);

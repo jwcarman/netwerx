@@ -63,6 +63,7 @@ class WineTestCase {
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(new EjmlMatrixFactory(), trainInputs.rowCount(), random)
                 .defaultNormalizer(NormalizationFunctions::zScore)
+                .normalizer(3, NormalizationFunctions::minMax)
                 .defaultOptimizer(Optimizers::sgd)
                 .stoppingAdvisor(StoppingAdvisors.patience())
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))

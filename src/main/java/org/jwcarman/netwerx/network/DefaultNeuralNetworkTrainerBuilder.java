@@ -5,8 +5,6 @@ import org.jwcarman.netwerx.NeuralNetworkTrainerBuilder;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
 import org.jwcarman.netwerx.autoencoder.AutoencoderTrainer;
 import org.jwcarman.netwerx.autoencoder.DefaultAutoencoderTrainer;
-import org.jwcarman.netwerx.batch.FullBatchExecutor;
-import org.jwcarman.netwerx.batch.TrainingExecutor;
 import org.jwcarman.netwerx.classification.binary.BinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.binary.DefaultBinaryClassifierTrainer;
 import org.jwcarman.netwerx.classification.multi.DefaultMultiClassifierTrainer;
@@ -50,18 +48,20 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
 
 // ------------------------------ FIELDS ------------------------------
 
+    public static final int DEFAULT_BATCH_SIZE = 512;
     private final MatrixFactory<M> matrixFactory;
     private final Random random;
     private final List<LayerTrainer<M>> layerTrainers = new ArrayList<>();
     private int inputSize;
-    private Supplier<Optimizer<M>> defaultOptimizerSupplier = Optimizers::sgd;
+    private Supplier<Optimizer<M>> defaultOptimizerSupplier = Optimizers::momentum;
     private StoppingAdvisor stoppingAdvisor = StoppingAdvisors.patience();
     private LossFunction lossFunction = LossFunctions.mse();
     private Dataset<M> validationDataset;
-    private TrainingExecutor<M> trainingExecutor = new FullBatchExecutor<>();
     private ScoringFunction scoringFunction = ScoringFunctions.validationLossWithPenalty();
     private TrainingListener listener = TrainingListeners.noop();
     private NormalizationFunctionFactory defaultNormalizationFactory = _ -> NormalizationFunctions.identity();
+    private int batchSize = DEFAULT_BATCH_SIZE;
+    private int subBatchCount = Runtime.getRuntime().availableProcessors();
     private final Map<Integer, NormalizationFunctionFactory> normalizationFactories = new HashMap<>();
 
 // -------------------------- STATIC METHODS --------------------------
@@ -88,10 +88,18 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
 
 // --------------------- Interface NeuralNetworkTrainerBuilder ---------------------
 
+    @Override
+    public NeuralNetworkTrainerBuilder<M> batchSize(int batchSize) {
+        if (batchSize <= 0) {
+            throw new IllegalArgumentException("Batch size must be greater than zero.");
+        }
+        this.batchSize = batchSize;
+        return this;
+    }
 
     @Override
     public NeuralNetworkTrainer<M> build() {
-        var config = new NeuralNetworkTrainerConfig<>(lossFunction, validationDataset, trainingExecutor, scoringFunction, stoppingAdvisor, listener);
+        var config = new NeuralNetworkTrainerConfig<>(lossFunction, validationDataset, batchSize, subBatchCount, random, scoringFunction, stoppingAdvisor, listener);
         return new DefaultNeuralNetworkTrainer<>(config, layerTrainers, defaultNormalizationFactory, normalizationFactories);
     }
 
@@ -139,6 +147,12 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         return new DefaultRegressionModelTrainer<>(build());
     }
 
+    @Override
+    public NeuralNetworkTrainerBuilder<M> defaultNormalizer(NormalizationFunctionFactory factory) {
+        this.defaultNormalizationFactory = factory;
+        return this;
+    }
+
     public NeuralNetworkTrainerBuilder<M> defaultOptimizer(Supplier<Optimizer<M>> optimizerSupplier) {
         this.defaultOptimizerSupplier = optimizerSupplier;
         return this;
@@ -156,18 +170,6 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
         configurer.accept(config);
         layerTrainers.add(new DenseLayerTrainer<>(matrixFactory, random, config));
         inputSize = config.getUnits();
-        return this;
-    }
-
-    @Override
-    public NeuralNetworkTrainerBuilder<M> defaultNormalizer(NormalizationFunctionFactory factory) {
-        this.defaultNormalizationFactory = factory;
-        return this;
-    }
-
-    @Override
-    public NeuralNetworkTrainerBuilder<M> normalizer(int featureIndex, NormalizationFunctionFactory factory) {
-        normalizationFactories.put(featureIndex, factory);
         return this;
     }
 
@@ -197,6 +199,12 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
     }
 
     @Override
+    public NeuralNetworkTrainerBuilder<M> normalizer(int featureIndex, NormalizationFunctionFactory factory) {
+        normalizationFactories.put(featureIndex, factory);
+        return this;
+    }
+
+    @Override
     public NeuralNetworkTrainerBuilder<M> scoringFunction(ScoringFunction scoringFunction) {
         this.scoringFunction = scoringFunction;
         return this;
@@ -209,15 +217,17 @@ public class DefaultNeuralNetworkTrainerBuilder<M extends Matrix<M>> implements 
     }
 
     @Override
-    public NeuralNetworkTrainerBuilder<M> validationDataset(Dataset<M> validationDataset) {
-        this.validationDataset = validationDataset;
+    public NeuralNetworkTrainerBuilder<M> subBatchCount(int subBatchCount) {
+        if (subBatchCount <= 0) {
+            throw new IllegalArgumentException("Sub-batch count must be greater than zero.");
+        }
+        this.subBatchCount = subBatchCount;
         return this;
     }
 
-// -------------------------- OTHER METHODS --------------------------
-
-    public NeuralNetworkTrainerBuilder<M> trainingExecutor(TrainingExecutor<M> trainingExecutor) {
-        this.trainingExecutor = trainingExecutor;
+    @Override
+    public NeuralNetworkTrainerBuilder<M> validationDataset(Dataset<M> validationDataset) {
+        this.validationDataset = validationDataset;
         return this;
     }
 

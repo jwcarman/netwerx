@@ -54,7 +54,7 @@ class TitanicTestCase {
             return new TitanicPassenger(name, ticketClass, age, sex, fare, parentsAndChildren, siblingsAndSpouses, survived);
         });
 
-        final var random = new Random(42);
+        final var random = new Random(225);
         var split = Datasets.split(passengers, 0.7f, 0.15f, 0.15f, random);
 
         var factory = new EjmlMatrixFactory();
@@ -68,12 +68,14 @@ class TitanicTestCase {
 
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, trainInputs.rowCount(), random)
+                .batchSize(64)
                 .defaultNormalizer(NormalizationFunctions::zScore)
                 .validationDataset(new Dataset<>(validationInputs, validationTargets))
                 .listener(TrainingListeners.logging(logger, 100))
-                .defaultOptimizer(() -> Optimizers.adam(0.01, 0.9, 0.999, 1e-8))
+                .defaultOptimizer(Optimizers::adam)
                 .scoringFunction(ScoringFunctions.validationLossWithPenalty())
-                .denseLayer(layer -> layer.units(8))
+                .denseLayer(layer -> layer.units(32).regularizationFunction(Regularizations.l2(1e-4)))
+                .denseLayer(layer -> layer.units(16).regularizationFunction(Regularizations.l2(1e-4)))
                 .denseLayer(layer -> layer.units(4).regularizationFunction(Regularizations.l2(1e-4)))
                 .buildBinaryClassifierTrainer();
 

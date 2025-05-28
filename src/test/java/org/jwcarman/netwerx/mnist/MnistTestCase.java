@@ -2,7 +2,6 @@ package org.jwcarman.netwerx.mnist;
 
 import org.junit.jupiter.api.Test;
 import org.jwcarman.netwerx.activation.ActivationFunctions;
-import org.jwcarman.netwerx.batch.TrainingExecutors;
 import org.jwcarman.netwerx.dataset.Dataset;
 import org.jwcarman.netwerx.learning.LearningRateProviders;
 import org.jwcarman.netwerx.listener.TrainingListeners;
@@ -15,7 +14,6 @@ import org.jwcarman.netwerx.optimization.Optimizers;
 import org.jwcarman.netwerx.regularization.Regularizations;
 import org.jwcarman.netwerx.score.ScoringFunctions;
 import org.jwcarman.netwerx.stopping.StoppingAdvisors;
-import org.jwcarman.netwerx.util.Randoms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +21,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,10 +48,10 @@ class MnistTestCase {
         var learningRateProvider= LearningRateProviders.constant(0.001);
 
         var trainer = new DefaultNeuralNetworkTrainerBuilder<>(factory, images.rowCount(), random)
-                .trainingExecutor(TrainingExecutors.miniBatch(32, Randoms.defaultRandom(), Executors.newFixedThreadPool(10)))
                 .stoppingAdvisor(StoppingAdvisors.scoreThreshold(-0.02))
                 .scoringFunction(ScoringFunctions.validationLoss())
                 .validationDataset(validation)
+                .subBatchCount(4)
                 .listener(TrainingListeners.logging(logger, 100))
                 .defaultOptimizer(() -> Optimizers.adam(learningRateProvider, 0.9, 0.999, 1e-8))
                 .denseLayer(layer -> layer.units(input.features().rowCount()).regularizationFunction(Regularizations.l2(1e-5)))

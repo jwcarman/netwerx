@@ -16,15 +16,7 @@ import static org.jwcarman.netwerx.util.Lists.chunked;
  */
 public record Dataset<M extends Matrix<M>>(M features, M labels) {
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-    public Dataset {
-        if (features.columnCount() != labels.columnCount()) {
-            throw new IllegalArgumentException("Feature and label column counts must match.");
-        }
-
-    }
-
+// -------------------------- STATIC METHODS --------------------------
 
     public static <M extends Matrix<M>> Dataset<M> forBinaryClassifier(M features, boolean[] labels) {
         return new Dataset<>(features, features.binaryClassifierLabels(labels));
@@ -42,28 +34,52 @@ public record Dataset<M extends Matrix<M>>(M features, M labels) {
         return new Dataset<>(features, features);
     }
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
+    public Dataset {
+        if (features.columnCount() != labels.columnCount()) {
+            throw new IllegalArgumentException("Feature and label column counts must match.");
+        }
+    }
+
 // -------------------------- OTHER METHODS --------------------------
 
-    public Triple<Dataset<M>, Dataset<M>, Dataset<M>> split(Random random, double firstSplit, double secondSplit) {
+    /**
+     * Returns a new dataset with the features and labels split into batches, in the order of the original dataset.
+     *
+     * @param batchSize the number of samples in each batch
+     * @return a list of datasets, each containing a batch of samples
+     */
+    public List<Dataset<M>> batches(int batchSize) {
+        return chunked(features.columnIndices(), batchSize).stream()
+                .map(chunk -> new Dataset<>(features.columnSelect(chunk), labels.columnSelect(chunk)))
+                .toList();
+    }
 
-        if (firstSplit <= 0.0 || firstSplit >= 1.0 || secondSplit <= 0.0 || secondSplit >= 1.0 || firstSplit + secondSplit >= 1.0) {
-            throw new IllegalArgumentException("Split ratios must be between 0 and 1 and sum to less than 1.");
+
+    public List<Dataset<M>> partition(int numPartitions) {
+        if (numPartitions <= 0) {
+            throw new IllegalArgumentException("Number of partitions must be greater than 0.");
         }
+        var partitionSize = (int)Math.ceil(1.0 * size() / numPartitions);
+        return batches(partitionSize);
+    }
+
+    /**
+     * Returns a new dataset with the features and labels shuffled in the same order.
+     * This is useful for training models to ensure that samples are not in a specific order.
+     *
+     * @param random the random number generator to use for shuffling
+     * @return a new shuffled dataset
+     */
+    public Dataset<M> shuffle(Random random) {
         var indices = features.columnIndices();
         Collections.shuffle(indices, random);
+        return new Dataset<>(features.columnReorder(indices), labels.columnReorder(indices));
+    }
 
-        int firstSplitIndex = (int) (firstSplit * indices.size());
-        int secondSplitIndex = (int) ((firstSplit + secondSplit) * indices.size());
-
-        var firstIndices = indices.subList(0, firstSplitIndex);
-        var secondIndices = indices.subList(firstSplitIndex, secondSplitIndex);
-        var thirdIndices = indices.subList(secondSplitIndex, indices.size());
-
-        var first = new Dataset<>(features.columnSelect(firstIndices), labels.columnSelect(firstIndices));
-        var second = new Dataset<>(features.columnSelect(secondIndices), labels.columnSelect(secondIndices));
-        var third = new Dataset<>(features.columnSelect(thirdIndices), labels.columnSelect(thirdIndices));
-
-        return new Triple<>(first, second, third);
+    public int size() {
+        return features.columnCount();
     }
 
     public Pair<Dataset<M>, Dataset<M>> split(Random random, double splitRatio) {
@@ -84,45 +100,25 @@ public record Dataset<M extends Matrix<M>>(M features, M labels) {
         return new Pair<>(first, second);
     }
 
-    /**
-     * Returns a new dataset with the features and labels split into batches, in the order of the original dataset.
-     *
-     * @param batchSize the number of samples in each batch
-     * @return a list of datasets, each containing a batch of samples
-     */
-    public List<Dataset<M>> batches(int batchSize) {
-        return batches(features.columnIndices(), batchSize);
-    }
-
-    private List<Dataset<M>> batches(List<Integer> indices, int batchSize) {
-        return chunked(indices, batchSize).stream()
-                .map(chunk -> new Dataset<>(features.columnSelect(chunk), labels.columnSelect(chunk)))
-                .toList();
-    }
-
-    /**
-     * Returns a new dataset with the features and labels split into batches, in a random order.
-     *
-     * @param random    the random number generator to use for shuffling
-     * @param batchSize the number of samples in each batch
-     * @return a list of datasets, each containing a batch of samples
-     */
-    public List<Dataset<M>> batches(Random random, int batchSize) {
+    public Triple<Dataset<M>, Dataset<M>, Dataset<M>> split(Random random, double firstSplit, double secondSplit) {
+        if (firstSplit <= 0.0 || firstSplit >= 1.0 || secondSplit <= 0.0 || secondSplit >= 1.0 || firstSplit + secondSplit >= 1.0) {
+            throw new IllegalArgumentException("Split ratios must be between 0 and 1 and sum to less than 1.");
+        }
         var indices = features.columnIndices();
         Collections.shuffle(indices, random);
-        return batches(indices, batchSize);
+
+        int firstSplitIndex = (int) (firstSplit * indices.size());
+        int secondSplitIndex = (int) ((firstSplit + secondSplit) * indices.size());
+
+        var firstIndices = indices.subList(0, firstSplitIndex);
+        var secondIndices = indices.subList(firstSplitIndex, secondSplitIndex);
+        var thirdIndices = indices.subList(secondSplitIndex, indices.size());
+
+        var first = new Dataset<>(features.columnSelect(firstIndices), labels.columnSelect(firstIndices));
+        var second = new Dataset<>(features.columnSelect(secondIndices), labels.columnSelect(secondIndices));
+        var third = new Dataset<>(features.columnSelect(thirdIndices), labels.columnSelect(thirdIndices));
+
+        return new Triple<>(first, second, third);
     }
 
-    /**
-     * Returns a new dataset with the features and labels shuffled in the same order.
-     * This is useful for training models to ensure that samples are not in a specific order.
-     *
-     * @param random the random number generator to use for shuffling
-     * @return a new shuffled dataset
-     */
-    public Dataset<M> shuffle(Random random) {
-        var indices = features.columnIndices();
-        Collections.shuffle(indices, random);
-        return new Dataset<>(features.columnReorder(indices), labels.columnReorder(indices));
-    }
 }
