@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.OptionalDouble;
 import java.util.Random;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
@@ -51,7 +52,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the column vector added to each column
      */
     default M addColumnVector(M columnVector) {
-        return map((row, _, value) -> value + columnVector.valueAt(row, 0));
+        return columnBroadcast(columnVector, Double::sum);
     }
 
     /**
@@ -61,7 +62,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the row vector added to each row
      */
     default M addRowVector(M rowVector) {
-        return map((_, col, value) -> value + rowVector.valueAt(0, col));
+        return rowBroadcast(rowVector, Double::sum);
     }
 
     /**
@@ -264,6 +265,36 @@ public interface Matrix<M extends Matrix<M>> {
         return reduceColumns(Matrix::max);
     }
 
+    default boolean hasShape(int rows, int columns) {
+        return rowCount() == rows && columnCount() == columns;
+    }
+
+    /**
+     * Returns a new matrix with the specified row vector broadcasted across each row of the matrix using the specified operation.
+     * @param rowVector the row vector to broadcast
+     * @param operation the operation to apply between each element of the matrix and the row vector
+     * @return a new matrix with the row vector broadcasted across each row
+     */
+    default M rowBroadcast(M rowVector, DoubleBinaryOperator operation) {
+        if(!rowVector.hasShape(1, columnCount())) {
+            throw new IllegalArgumentException(String.format("Row vector must have shape (1, %d), but has (%d, %d)", columnCount(), rowVector.rowCount(), rowVector.columnCount()));
+        }
+        return map((_, col, value) -> operation.applyAsDouble(value, rowVector.valueAt(0, col)));
+    }
+
+    /**
+     * Returns a new matrix with the specified column vector broadcasted across each column of the matrix using the specified operation.
+     * @param columnVector the column vector to broadcast
+     * @param operation the operation to apply between each element of the matrix and the column vector
+     * @return a new matrix with the column vector broadcasted across each column
+     */
+    default M columnBroadcast(M columnVector, DoubleBinaryOperator operation) {
+        if(!columnVector.hasShape(rowCount(), 1)) {
+            throw new IllegalArgumentException(String.format("Column vector must have shape (%d, 1), but has (%d, %d)", rowCount(), columnVector.rowCount(), columnVector.columnCount()));
+        }
+        return map((row, _, value) -> operation.applyAsDouble(value, columnVector.valueAt(row, 0)));
+    }
+
     /**
      * Returns a new matrix with the specified row vector subtracted from each row of the matrix.
      *
@@ -271,7 +302,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the row vector subtracted from each row
      */
     default M subtractRowVector(M rowVector) {
-        return map((_, col, value) -> value - rowVector.valueAt(0, col));
+        return rowBroadcast(rowVector, (value, rowValue) -> value - rowValue);
     }
 
     /**
@@ -841,7 +872,7 @@ public interface Matrix<M extends Matrix<M>> {
      * @return a new matrix with the column vector subtracted from each column
      */
     default M subtractColumnVector(M columnVector) {
-        return map((row, _, value) -> value - columnVector.valueAt(row, 0));
+        return columnBroadcast(columnVector, (value, columnValue) -> value - columnValue);
     }
 
     /**

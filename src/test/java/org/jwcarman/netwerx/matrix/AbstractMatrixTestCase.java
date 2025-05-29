@@ -50,6 +50,24 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
     }
 
     @Test
+    void testAddRowVectorWithInvalidDimensions() {
+        M a = factory().filled(2, 2, 1.0);
+        M b = factory().filled(1, 3, 1.0); // Invalid dimensions
+
+        assertThatThrownBy(() -> a.addRowVector(b))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testAddColumnVectorWithInvalidDimensions() {
+        M a = factory().filled(2, 2, 1.0);
+        M b = factory().filled(3, 1, 1.0); // Invalid dimensions
+
+        assertThatThrownBy(() -> a.addColumnVector(b))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void testBinaryClassifierLabels() {
         var m = factory().zeros(3, 3)
                 .binaryClassifierLabels(new boolean[]{true, false, true});
@@ -896,4 +914,11 @@ public abstract class AbstractMatrixTestCase<M extends Matrix<M>> {
         assertEquals(expected, result, Tolerances.DEFAULT_TOLERANCE);
     }
 
+    @Test
+    void testHasShape() {
+        M a = factory().filled(2, 2, 1.0);
+        assertThat(a.hasShape(2, 2)).isTrue();
+        assertThat(a.hasShape(1, 2)).isFalse();
+        assertThat(a.hasShape(2, 1)).isFalse();
+    }
 }

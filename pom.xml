@@ -44,11 +44,22 @@
         <commons-csv.version>1.14.0</commons-csv.version>
         <ejml.version>0.44.0</ejml.version>
         <junit.version>5.11.4</junit.version>
-        <jacoco.version>0.8.13</jacoco.version>
+
         <logback.version>1.5.18</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
 
+        <compiler.plugin.version>3.13.0</compiler.plugin.version>
+        <enforcer.plugin.version>3.5.0</enforcer.plugin.version>
+        <failsafe.plugin.version>3.5.2</failsafe.plugin.version>
+        <gpg.plugin.version>3.2.7</gpg.plugin.version>
+        <jacoco.plugin.version>0.8.13</jacoco.plugin.version>
+        <javadoc.plugin.version>3.11.1</javadoc.plugin.version>
         <sonar-maven-plugin.version>5.1.0.4751</sonar-maven-plugin.version>
+        <sonatype.plugin.version>0.6.0</sonatype.plugin.version>
+        <source.plugin.version>3.3.1</source.plugin.version>
+        <surefire.plugin.version>3.5.2</surefire.plugin.version>
+
+
 
         <!-- SonarCloud properties -->
         <sonar.organization>jwcarman</sonar.organization>
@@ -147,7 +158,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>${compiler.plugin.version}</version>
                 <configuration>
                     <enablePreview>true</enablePreview>
                 </configuration>
@@ -155,7 +166,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>${surefire.plugin.version}</version>
                 <configuration>
                     <argLine>@{argLine} --enable-preview</argLine>
                 </configuration>
@@ -170,7 +181,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>${jacoco.version}</version>
+                        <version>${jacoco.plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
@@ -195,6 +206,72 @@
                         <groupId>org.sonarsource.scanner.maven</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
                         <version>${sonar-maven-plugin.version}</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${sonatype.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <tokenAuth>true</tokenAuth>
+                            <autoPublish>true</autoPublish>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>${source.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>${javadoc.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${gpg.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
