@@ -7,7 +7,7 @@ import org.jwcarman.netwerx.matrix.Matrix;
 /**
  * RMSProp optimizer.
  * <p>
- * Reference: Tieleman & Hinton (2012).
+ * Reference: Tieleman &amp; Hinton (2012).
  */
 public class RmsPropOptimizer<M extends Matrix<M>> implements Optimizer<M> {
 
