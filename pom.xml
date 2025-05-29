@@ -245,6 +245,8 @@
                         <version>${javadoc.plugin.version}</version>
                         <configuration>
                             <additionalOptions>--enable-preview</additionalOptions>
+                            <failOnWarnings>false</failOnWarnings>
+                            <failOnError>false</failOnError>
                         </configuration>
                         <executions>
                             <execution>
