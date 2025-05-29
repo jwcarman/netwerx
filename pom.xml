@@ -39,11 +39,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <assertj.version>3.24.2</assertj.version>
-        <commons-csv.version>1.13.0</commons-csv.version>
+        <assertj.version>3.27.3</assertj.version>
+        <awaitility.version>4.3.0</awaitility.version>
+        <commons-csv.version>1.14.0</commons-csv.version>
         <ejml.version>0.44.0</ejml.version>
         <junit.version>5.11.4</junit.version>
-        <jacoco.version>0.8.12</jacoco.version>
+        <jacoco.version>0.8.13</jacoco.version>
+        <logback.version>1.5.18</logback.version>
         <slf4j.version>2.0.17</slf4j.version>
 
         <sonar-maven-plugin.version>5.1.0.4751</sonar-maven-plugin.version>
@@ -83,13 +85,13 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
+            <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>4.3.0</version>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -124,8 +126,28 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.6.3</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <enablePreview>true</enablePreview>
                 </configuration>
