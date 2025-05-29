@@ -9,7 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <url>https://github.com/jwcarman/netwerx</url>
-
+    <name>Netwerx</name>
+    <description>A neural network library for Java</description>
     <developers>
         <developer>
             <id>jwcarman</id>
